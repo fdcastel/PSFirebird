@@ -1,5 +1,5 @@
 function New-FirebirdDatabase {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Position = 0, Mandatory = $true)]
         [string]$DatabasePath,
@@ -37,17 +37,23 @@ function New-FirebirdDatabase {
     } else {
         Join-Path $EnvironmentPath 'bin/isql'
     }
-
     if (-not (Test-Path $isql -PathType Leaf)) {
         throw "isql not found at '$($isql)'"
     }
 
-    if ($Force -and (Test-Path -Path $DatabasePath -PathType Leaf)) {
-        Write-VerboseMark -Message "-Force specified. Removing existing database file at '$($DatabasePath)'."
-        Remove-Item -Path $DatabasePath -Force
+    if (Test-Path -Path $DatabasePath -PathType Leaf) {
+        if ($Force) {
+            if ($PSCmdlet.ShouldProcess($DatabasePath, 'Remove existing database file')) {
+                Write-VerboseMark -Message "Database file '$($DatabasePath)' already exists and -Force specified. Removing database file..."
+                Remove-Item -Path $DatabasePath -Force
+            }
+        } else {
+            throw "Database file '$($DatabasePath)' already exists. Use -Force to overwrite."
+        }
     }
 
-    $createDbCmd = @"
+    if ($PSCmdlet.ShouldProcess($DatabasePath, 'Create new Firebird database')) {
+        $createDbCmd = @"
 CREATE DATABASE '$DatabasePath' 
     USER '$User' 
     PASSWORD '$Password' 
@@ -55,16 +61,16 @@ CREATE DATABASE '$DatabasePath'
     DEFAULT CHARACTER SET $Charset;
 "@
 
-    Write-VerboseMark -Message "Creating database at '$($DatabasePath)' with user '$($User)', page size $($PageSize), charset '$($Charset)'."
+        Write-VerboseMark -Message "Creating database at '$($DatabasePath)' with user '$($User)', page size $($PageSize), charset '$($Charset)'."
+        $output = $createDbCmd | & $isql -quiet 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            # Split StdOut and StdErr -- https://stackoverflow.com/a/68106198/33244
+            $stdOut, $stdErr = $output.Where({ $_ -is [string] }, 'Split')
+            throw $stdErr
+        }
 
-    $output = $createDbCmd | & $isql -quiet 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        # Split StdOut and StdErr -- https://stackoverflow.com/a/68106198/33244
-        $stdOut, $stdErr = $output.Where({ $_ -is [string] }, 'Split')
-        throw $stdErr
+        Write-VerboseMark -Message "Database created successfully at '$($DatabasePath)'"
     }
-
-    Write-VerboseMark -Message "Database created successfully at '$($DatabasePath)'"
     [PSCustomObject]@{
         DatabasePath = $DatabasePath
         PageSize     = $PageSize
