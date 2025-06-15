@@ -1,8 +1,8 @@
 function Get-FirebirdEnvironment {
     [CmdletBinding()]
     param(
-        [Parameter(Position=0, Mandatory=$false)]
-        [ValidateScript({Test-Path $_}, ErrorMessage = 'EnvironmentPath must be a valid path.')]
+        [Parameter(Position = 0, Mandatory = $false)]
+        [ValidateScript({ Test-Path $_ }, ErrorMessage = 'EnvironmentPath must be a valid path.')]
         [string]$EnvironmentPath
     )
 
@@ -50,8 +50,7 @@ function Get-FirebirdEnvironment {
             $productVersion = $matches[1]
             Write-VerboseMark -Message "Extracted ProductVersion: '$($productVersion)' from manifest at '$($manifestPath)'."
         }
-    }
-    catch {
+    } catch {
         Write-Warning -Message "Cannot extract ProductVersion from $($firebirdBinary): $($_.Exception.Message)"
     }
 

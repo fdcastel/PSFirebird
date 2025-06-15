@@ -52,27 +52,27 @@ function Get-FirebirdReleaseUrl {
     switch ($major) {
         5 {
             $patternMap = @{
-                'win-x86'    = 'windows-x86.*\.zip$'
-                'win-x64'    = 'windows-x64.*\.zip$'
-                'win-arm64'  = 'windows-arm64.*\.zip$'
-                'linux-x64'  = 'linux-x64.*\.tar\.gz$'
-                'linux-arm64'= 'linux-arm64.*\.tar\.gz$'
+                'win-x86'     = 'windows-x86.*\.zip$'
+                'win-x64'     = 'windows-x64.*\.zip$'
+                'win-arm64'   = 'windows-arm64.*\.zip$'
+                'linux-x64'   = 'linux-x64.*\.tar\.gz$'
+                'linux-arm64' = 'linux-arm64.*\.tar\.gz$'
             }
         }
         4 {
             $patternMap = @{
-                'win-x86'    = 'Win32.*\.zip$'
-                'win-x64'    = 'x64.*\.zip$'
-                'linux-x64'  = 'amd64.*\.tar\.gz$|x86_64.*\.tar\.gz$'
-                'linux-arm64'= 'arm64.*\.tar\.gz$'
+                'win-x86'     = 'Win32.*\.zip$'
+                'win-x64'     = 'x64.*\.zip$'
+                'linux-x64'   = 'amd64.*\.tar\.gz$|x86_64.*\.tar\.gz$'
+                'linux-arm64' = 'arm64.*\.tar\.gz$'
             }
         }
         3 {
             $patternMap = @{
-                'win-x86'    = 'Win32.*\.zip$'
-                'win-x64'    = 'x64.*\.zip$'
-                'linux-x64'  = 'amd64.*\.tar\.gz$|x86_64.*\.tar\.gz$'
-                'linux-arm64'= 'arm64.*\.tar\.gz$'
+                'win-x86'     = 'Win32.*\.zip$'
+                'win-x64'     = 'x64.*\.zip$'
+                'linux-x64'   = 'amd64.*\.tar\.gz$|x86_64.*\.tar\.gz$'
+                'linux-arm64' = 'arm64.*\.tar\.gz$'
             }
         }
         default {
