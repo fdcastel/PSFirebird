@@ -172,7 +172,6 @@ function Install-FirebirdEnvironment {
     return $OutputPath
 }
 
-
 function Invoke-AptDownloadAndExtract {
     [CmdletBinding(SupportsShouldProcess = $true)]
     Param(
@@ -181,25 +180,39 @@ function Invoke-AptDownloadAndExtract {
         [string]$TargetFolder
     )
     if ($PSCmdlet.ShouldProcess($TargetFolder, "Downloading and extracting package $PackageName")) {
-        # The apt-get download command does not have a built-in option to set the download directory
-        Push-Location $tempRoot
+        # Create temporary folder -- https://tinyurl.com/rb82j8k4
+        $tempFolder = New-Item -ItemType Directory -Path $([IO.Path]::GetTempPath()) -Name "tmp$($(Get-Random).ToString('X'))"
         try {
-            Write-VerboseMark "Downloading '$PackageName' package..."
-            apt-get download -y $PackageName
-            if ($LASTEXITCODE -ne 0) {
-                throw "Failed to download '$PackageName' package. Cannot continue."
-            }
+            # The apt-get download command does not have a built-in option to set the download directory
+            Push-Location $tempFolder
+            try {
+                Write-VerboseMark "Downloading '$PackageName' package..."
+                apt-get download -y $PackageName
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Failed to download '$PackageName' package. Cannot continue."
+                }
 
-            Write-VerboseMark "Extracting '$PackageName' to '$TargetFolder'..."
-            $fullPackagePath = Resolve-Path "$($PackageName)_*.deb"
-            dpkg-deb -x $fullPackagePath .
-            if ($LASTEXITCODE -ne 0) {
-                throw "Failed to extract '$PackageName' package. Cannot continue."
-            }
+                try {
+                    Write-VerboseMark "Extracting '$PackageName' to '$TargetFolder'..."
+                    $fullPackagePath = Resolve-Path "$($PackageName)_*.deb"
+                    dpkg-deb -x $fullPackagePath .
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "Failed to extract '$PackageName' package. Cannot continue."
+                    }
 
-            Move-Item $SourcePattern $TargetFolder -Force
+                    Move-Item $SourcePattern $TargetFolder -Force
+                } finally {
+                    # Clean up the downloaded package
+                    Remove-Item $fullPackagePath -Force -ErrorAction Ignore
+
+
+                }
+
+            } finally {
+                Pop-Location
+            }
         } finally {
-            Pop-Location
+            Remove-Item $tempFolder -Recurse -Force
         }
     }
 }
