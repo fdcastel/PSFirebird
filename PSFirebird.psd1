@@ -21,7 +21,9 @@
 
     FunctionsToExport = @(
         'Install-FirebirdEnvironment',
-        'Get-FirebirdEnvironment'
+        'Get-FirebirdEnvironment',
+
+        'New-FirebirdDatabase'
     )
 
     # Minimum version of the PowerShell engine required by this module

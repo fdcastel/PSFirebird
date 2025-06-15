@@ -10,6 +10,7 @@ function Get-FirebirdEnvironment {
         throw 'Automatic environment detection is not implemented yet.'
     }
 
+    $EnvironmentPath = Resolve-Path $EnvironmentPath
     Write-VerboseMark -Message "Checking Firebird environment at '$($EnvironmentPath)'."
 
     $productVersion = $null
@@ -55,7 +56,7 @@ function Get-FirebirdEnvironment {
     }
 
     [PSCustomObject]@{
-        Path    = Resolve-Path $EnvironmentPath
+        Path    = $EnvironmentPath
         Version = [version]$productVersion
     }
 }
