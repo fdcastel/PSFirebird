@@ -26,6 +26,10 @@ function Install-FirebirdEnvironment {
         throw "Unsupported platform: $([System.Runtime.InteropServices.RuntimeInformation]::OSDescription). Only Windows and Linux are supported."
     }
 
+    if ($IsLinux -and (-not (Get-Command apt -ErrorAction SilentlyContinue))) {
+        throw 'apt command not found. Ensure you are running this on a Debian-based Linux distribution.'
+    }
+
     $rid = if ($RuntimeIdentifier) { $RuntimeIdentifier } else { [System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier }
     $supportedRIDs = @('win-x86', 'win-x64', 'win-arm64', 'linux-x64', 'linux-arm64')
     if ($supportedRIDs -notcontains $rid) {
@@ -72,8 +76,8 @@ function Install-FirebirdEnvironment {
         if ($IsWindows) {
             Expand-Archive -Path $fullArchiveFile -DestinationPath $OutputPath
         } elseif ($IsLinux) {
-            tar --extract --file=$fullArchiveFile --gunzip --verbose --directory=$OutputPath --strip-components=1
-            tar --extract --file="$OutputPath/buildroot.tar.gz" --gunzip --verbose --directory=$OutputPath --strip-components=3 ./opt
+            tar --extract --file=$fullArchiveFile --gunzip --directory=$OutputPath --strip-components=1
+            tar --extract --file="$OutputPath/buildroot.tar.gz" --gunzip --directory=$OutputPath --strip-components=3 ./opt
         }
     }
 
@@ -88,8 +92,8 @@ function Install-FirebirdEnvironment {
         ) -Recurse -Force -ErrorAction Ignore
     }
 
+    # Windows-only: Set the IpcName in firebird.conf
     if ($IsWindows) {
-        # Windows-only: Set the IpcName in firebird.conf
         $ipcName = "FIREBIRD-$($Version -replace '\.','_')"
         $firebirdConfPath = Join-Path $OutputPath 'firebird.conf'
         if ($PSCmdlet.ShouldProcess($firebirdConfPath, "Setting IpcName to '$ipcName' in firebird.conf")) {
@@ -97,6 +101,24 @@ function Install-FirebirdEnvironment {
             $content = Get-Content $firebirdConfPath
             $content = $content -replace '#IpcName = FIREBIRD', "IpcName = $ipcName"
             Set-Content -Path $firebirdConfPath -Value $content -Encoding Ascii
+        }
+    }
+
+    # Linux-only: Download libtommath1 package and extract it to the `lib` directory.
+    if ($IsLinux) {
+        # The apt download command does not have a built-in option to set the download directory
+        Push-Location $tempRoot
+        try {
+            Write-VerboseMark 'Downloading libtommath1 package...'
+            apt download -y libtommath1
+            dpkg-deb -x libtommath1_*.deb .
+
+            $libPath = Join-Path $OutputPath 'lib'
+            Write-VerboseMark "Extracting libtommath1 to '$libPath'..."
+            Move-Item ./usr/lib/x86_64-linux-gnu/* $libPath
+        }
+        finally {
+            Pop-Location
         }
     }
 
