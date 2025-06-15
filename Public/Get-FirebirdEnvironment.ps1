@@ -1,0 +1,61 @@
+function Get-FirebirdEnvironment {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0, Mandatory=$false)]
+        [ValidateScript({Test-Path $_}, ErrorMessage = 'EnvironmentPath must be a valid path.')]
+        [string]$EnvironmentPath
+    )
+
+    if (-not $EnvironmentPath) {
+        throw 'Automatic environment detection is not implemented yet.'
+    }
+
+    Write-VerboseMark -Message "Checking Firebird environment at '$($EnvironmentPath)'."
+
+    $productVersion = $null
+    try {
+        if ($IsWindows) {
+            # Windows: Determine the version from VERSIONINFO resource in firebird.exe.
+
+            $firebirdBinary = Join-Path -Path $EnvironmentPath -ChildPath 'firebird.exe'
+            Join-Path -Path $EnvironmentPath -ChildPath 'firebird.exe'
+            if (-not (Test-Path -Path $firebirdBinary -PathType Leaf)) {
+                throw "$firebirdBinary not found at $($firebirdBinary)"
+            }
+
+            try {
+                $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($firebirdBinary)
+                $productVersion = $versionInfo.ProductVersion
+                Write-VerboseMark -Message "Extracted ProductVersion: '$($productVersion)' from binary at '$($firebirdBinary)'."
+            } catch {
+                throw "Failed to extract ProductVersion from $($firebirdBinary): $($_.Exception.Message)"
+                $null
+            }
+        } else {
+            # Linux: There are no version in ELF64 binaries.
+            # Determine the version looking for "./opt/firebird/lib/libfbclient.so.<version>" in manifest.txt
+
+            $manifestPath = Join-Path -Path $EnvironmentPath -ChildPath 'manifest.txt'
+            if (-not (Test-Path -Path $manifestPath -PathType Leaf)) {
+                throw "Manifest file not found at $($manifestPath)"
+            }
+
+            $manifestContent = Get-Content -Path $manifestPath -Raw
+            $versionMatch = $manifestContent -match '\./opt/firebird/lib/libfbclient\.so\.(\d+\.\d+\.\d+)'
+            if (-not $versionMatch) {
+                throw "Pattern to extract version from manifest at $($manifestPath) not found."
+            }
+
+            $productVersion = $matches[1]
+            Write-VerboseMark -Message "Extracted ProductVersion: '$($productVersion)' from manifest at '$($manifestPath)'."
+        }
+    }
+    catch {
+        Write-Warning -Message "Cannot extract ProductVersion from $($firebirdBinary): $($_.Exception.Message)"
+    }
+
+    [PSCustomObject]@{
+        Path    = Resolve-Path $EnvironmentPath
+        Version = [version]$productVersion
+    }
+}
