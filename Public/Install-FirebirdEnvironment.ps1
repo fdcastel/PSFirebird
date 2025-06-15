@@ -19,15 +19,17 @@ function Install-FirebirdEnvironment {
         [string]$OutputPath,
 
         [ValidateSet('win-x86', 'win-x64', 'win-arm64', 'linux-x64', 'linux-arm64')]
-        [string]$RuntimeIdentifier
+        [string]$RuntimeIdentifier,
+
+        [switch]$Force
     )
 
     if (-not $IsWindows -and -not $IsLinux) {
         throw "Unsupported platform: $([System.Runtime.InteropServices.RuntimeInformation]::OSDescription). Only Windows and Linux are supported."
     }
 
-    if ($IsLinux -and (-not (Get-Command apt -ErrorAction SilentlyContinue))) {
-        throw 'apt command not found. Ensure you are running this on a Debian-based Linux distribution.'
+    if ($IsLinux -and (-not (Get-Command 'apt-get' -ErrorAction SilentlyContinue))) {
+        throw 'apt-get command not found. Ensure you are running this on a Debian-based Linux distribution.'
     }
 
     $rid = if ($RuntimeIdentifier) { $RuntimeIdentifier } else { [System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier }
@@ -51,6 +53,10 @@ function Install-FirebirdEnvironment {
     }
 
     if (Test-Path $OutputPath) {
+        if (-not $Force) {
+            Write-VerboseMark "OutputPath '$OutputPath' already exists and -Force not specified. Returning path."
+            return $OutputPath
+        }
         if ($PSCmdlet.ShouldProcess($OutputPath, 'Clear existing output directory')) {
             Remove-Item $OutputPath -Recurse -Force
         }
@@ -104,27 +110,31 @@ function Install-FirebirdEnvironment {
         }
     }
 
-    # Linux-only: Download libtommath1 package and extract it to the `lib` directory.
+    # Linux-only: Download additional packages and extract it to the `lib` directory.
     if ($IsLinux) {
-        # The apt download command does not have a built-in option to set the download directory
-        Push-Location $tempRoot
-        try {
-            Write-VerboseMark 'Downloading libtommath1 package...'
-            apt download -y libtommath1
-            dpkg-deb -x libtommath1_*.deb .
+        $libPath = Join-Path $OutputPath 'lib'
 
-            $libPath = Join-Path $OutputPath 'lib'
-            Write-VerboseMark "Extracting libtommath1 to '$libPath'..."
-            Move-Item ./usr/lib/x86_64-linux-gnu/* $libPath
+        Invoke-AptDownloadAndExtract -PackageName 'libtommath1' `
+            -SourcePattern './usr/lib/x86_64-linux-gnu/*' `
+            -TargetFolder $libPath
 
-            # Fix libtommath for FB3 and FB4 -- https://github.com/FirebirdSQL/firebird/issues/5716#issuecomment-826239174
-            if ($Version -lt [semver]5) {
+        # For FB3, we also need to download libncurses5
+        if ($Version -ge [semver]3) {
+            Invoke-AptDownloadAndExtract -PackageName 'libncurses5' `
+                -SourcePattern './lib/x86_64-linux-gnu/*' `
+                -TargetFolder $libPath
+
+            Invoke-AptDownloadAndExtract -PackageName 'libtinfo5' `
+                -SourcePattern './lib/x86_64-linux-gnu/*' `
+                -TargetFolder $libPath    
+        }
+
+        # Fix libtommath for FB3 and FB4 -- https://github.com/FirebirdSQL/firebird/issues/5716#issuecomment-826239174
+        if ($Version -lt [semver]5) {
+            if ($PSCmdlet.ShouldProcess("$libPath/libtommath.so.1", 'Creating symlink for libtommath.so.0...')) {
                 Write-VerboseMark 'Creating symlink for libtommath.so.0...'
                 ln -sf "$libPath/libtommath.so.1" "$libPath/libtommath.so.0"
             }
-        }
-        finally {
-            Pop-Location
         }
     }
 
@@ -160,4 +170,36 @@ function Install-FirebirdEnvironment {
 
     # Return the output path
     return $OutputPath
+}
+
+
+function Invoke-AptDownloadAndExtract {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    Param(
+        [string]$PackageName,
+        [string]$SourcePattern,
+        [string]$TargetFolder
+    )
+    if ($PSCmdlet.ShouldProcess($TargetFolder, "Downloading and extracting package $PackageName")) {
+        # The apt-get download command does not have a built-in option to set the download directory
+        Push-Location $tempRoot
+        try {
+            Write-VerboseMark "Downloading '$PackageName' package..."
+            apt-get download -y $PackageName
+            if ($LASTEXITCODE -ne 0) {
+                throw "Failed to download '$PackageName' package. Cannot continue."
+            }
+
+            Write-VerboseMark "Extracting '$PackageName' to '$TargetFolder'..."
+            $fullPackagePath = Resolve-Path "$($PackageName)_*.deb"
+            dpkg-deb -x $fullPackagePath .
+            if ($LASTEXITCODE -ne 0) {
+                throw "Failed to extract '$PackageName' package. Cannot continue."
+            }
+
+            Move-Item $SourcePattern $TargetFolder -Force
+        } finally {
+            Pop-Location
+        }
+    }
 }
