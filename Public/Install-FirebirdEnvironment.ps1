@@ -116,6 +116,12 @@ function Install-FirebirdEnvironment {
             $libPath = Join-Path $OutputPath 'lib'
             Write-VerboseMark "Extracting libtommath1 to '$libPath'..."
             Move-Item ./usr/lib/x86_64-linux-gnu/* $libPath
+
+            # Fix libtommath for FB3 and FB4 -- https://github.com/FirebirdSQL/firebird/issues/5716#issuecomment-826239174
+            if ($Version -lt [semver]5) {
+                Write-VerboseMark 'Creating symlink for libtommath.so.0...'
+                ln -sf "$libPath/libtommath.so.1" "$libPath/libtommath.so.0"
+            }
         }
         finally {
             Pop-Location
