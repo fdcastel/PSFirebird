@@ -62,8 +62,20 @@ function Install-FirebirdEnvironment {
 
     if (Test-Path $Path) {
         if (-not $Force) {
-            Write-VerboseMark "Path '$Path' already exists and -Force not specified. Returning path."
-            return $Path
+            Write-VerboseMark "Path '$Path' already exists and -Force not specified."
+
+            # Check if the existing path is a valid Firebird environment
+            $existingEnvironment = Get-FirebirdEnvironment -Path $Path
+
+            # Check if the existing environment version matches the requested version (discard Revision/Build number)
+            $v = $existingEnvironment.Version
+            $existingVersion = [semver]::new($v.Major, $v.Minor, $v.Build)
+            if ($existingVersion -ne $Version) {
+                throw "Path '$Path' already exists with version '$($existingVersion)'. Cannot install version '$Version'. Use -Force to overwrite."
+            }
+
+            # If the existing environment matches the requested version, return it
+            return $existingEnvironment
         }
         if ($PSCmdlet.ShouldProcess($Path, 'Clear existing output directory')) {
             Remove-Item $Path -Recurse -Force
