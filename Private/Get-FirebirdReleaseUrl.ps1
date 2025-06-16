@@ -1,13 +1,13 @@
 function Get-FirebirdReleaseUrl {
     <#
     .SYNOPSIS
-        Returns the download URL for the Firebird Embedded package for a given version and runtime identifier (RID).
+        Returns the download URL for the Firebird package for a given version and runtime identifier (RID).
     .PARAMETER Version
         The Firebird version to install (minimum 3.0.9), as a [semver] object.
     .PARAMETER RuntimeIdentifier
         Optional. The runtime identifier (RID) to use. If not provided, uses the current platform RID.
     .OUTPUTS
-        [string] The download URL for the Firebird Embedded package.
+        [string] The download URL for the Firebird package.
     #>
     [CmdletBinding()]
     Param(

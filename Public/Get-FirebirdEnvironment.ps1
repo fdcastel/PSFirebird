@@ -1,4 +1,21 @@
 function Get-FirebirdEnvironment {
+    <#
+    .SYNOPSIS
+        Returns information about a Firebird environment at the specified path.
+    .PARAMETER Path
+        The path to the Firebird environment directory.
+    .PARAMETER Environment
+        An object representing a Firebird environment. Its Path property will be used.
+    .OUTPUTS
+        PSCustomObject with Path and Version properties.
+    .EXAMPLE
+        Get-FirebirdEnvironment -Path '/opt/firebird-5.0.2'
+        Returns environment info for the specified path.
+    .EXAMPLE
+        Get-FirebirdEnvironment -Environment $envObj
+        Returns environment info using the provided environment object.
+    #>
+
     [CmdletBinding()]
     param(
         [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'Path')]

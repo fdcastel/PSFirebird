@@ -1,15 +1,23 @@
 function Install-FirebirdEnvironment {
     <#
     .SYNOPSIS
-        Downloads and extracts Firebird Embedded binaries for a given version and platform using GitHub releases.
+        Downloads and extracts Firebird binaries for a given version and platform.
     .PARAMETER Version
-        The Firebird version to install (minimum 3.0.9), as a [semver] object.
+        The Firebird version to install. Minimum supported version is 3.0.9.
     .PARAMETER Path
-        Optional. The directory to extract the binaries to. If not provided, a temporary folder is used.
+        Directory to extract the binaries to. Uses a temporary folder if not provided.
     .PARAMETER RuntimeIdentifier
-        Optional. The runtime identifier (RID) to use. If not provided, uses the current platform RID.
+        Runtime identifier (RID) for the platform. Uses current platform if not specified.
+    .PARAMETER Force
+        Overwrites the output directory if it already exists.
     .OUTPUTS
-        [string] The path to the extracted Firebird Embedded root.
+        String with the path to the extracted Firebird root directory.
+    .EXAMPLE
+        Install-FirebirdEnvironment -Version 5.0.2 -Path '/tmp/firebird-5.0.2' -Force
+        Installs Firebird 5.0.2 to the specified path, overwriting if it exists.
+    .EXAMPLE
+        Install-FirebirdEnvironment -Version 5.0.2
+        Installs Firebird 5.0.2 to a temporary directory.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     Param(
