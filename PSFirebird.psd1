@@ -23,7 +23,10 @@
         'Install-FirebirdEnvironment',
         'Get-FirebirdEnvironment',
 
-        'New-FirebirdDatabase'
+        'New-FirebirdDatabase',
+
+        'Enter-FirebirdEnvironment'
+        'Exit-FirebirdEnvironment'
     )
 
     # Minimum version of the PowerShell engine required by this module

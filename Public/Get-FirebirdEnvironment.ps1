@@ -16,13 +16,13 @@ function Get-FirebirdEnvironment {
         Returns environment info using the provided environment object.
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'ByPath')]
     param(
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'Path')]
+        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'ByPath')]
         [ValidateScript({ Test-Path $_ }, ErrorMessage = 'Path must be a valid path.')]
         [string]$Path,
 
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Environment')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'ByEnvironment')]
         [FirebirdEnvironment]$Environment
     )
 
@@ -31,7 +31,13 @@ function Get-FirebirdEnvironment {
     }
 
     if (-not $Path) {
-        throw 'Automatic environment detection is not implemented yet.'
+        if ($CurrentFirebirdEnvironment) {
+            # Use the current environment if available.
+            $Path = $CurrentFirebirdEnvironment.Path
+        } else {
+            # No path is provided nor current environment is set. Cannot proceed.
+            throw 'There is currently no Firebird environment set. Please provide a -Path or use Enter-FirebirdEnvironment.'
+        }
     }
 
     $Path = Resolve-Path $Path

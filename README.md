@@ -49,6 +49,8 @@ New-FirebirdDatabase -DatabasePath '/tmp/test.fdb' -Environment $fbEnv -Force
 - `Install-FirebirdEnvironment`: Download and extract Firebird packages
 - `Get-FirebirdEnvironment`: Inspect a Firebird environment
 - `New-FirebirdDatabase`: Create a new Firebird database
+- `Enter-FirebirdEnvironment`: Set and enters a Firebird environment for the current session.
+- `Exit-FirebirdEnvironment`: Clear the current Firebird environment for the session.
 
 ## Requirements
 

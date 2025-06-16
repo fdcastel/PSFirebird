@@ -20,7 +20,7 @@ foreach ($import in $Types) {
 #
 
 # Define the types to export with type accelerators.
-$ExportableTypes =@(
+$ExportableTypes = @(
     [FirebirdEnvironment]
 )
 # Get the internal TypeAccelerators class to use its static methods.
@@ -51,11 +51,15 @@ foreach ($Type in $ExportableTypes) {
 }
 # Remove type accelerators when the module is removed.
 $MyInvocation.MyCommand.ScriptBlock.Module.OnRemove = {
-    foreach($Type in $ExportableTypes) {
+    foreach ($Type in $ExportableTypes) {
         $TypeAcceleratorsClass::Remove($Type.FullName)
     }
 }.GetNewClosure()
 
+
+# Shared private variables
+
+[FirebirdEnvironment]$script:CurrentFirebirdEnvironment = $null
 
 
 # Import all public/private function files from Functions subfolders
