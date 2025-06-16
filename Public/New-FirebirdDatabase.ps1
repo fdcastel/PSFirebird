@@ -36,7 +36,7 @@ function New-FirebirdDatabase {
 
         [string]$Charset = 'UTF8',
 
-        [PSTypeName('FirebirdEnvironment')]$Environment,
+        [FirebirdEnvironment]$Environment,
 
         [switch]$Force
     )

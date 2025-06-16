@@ -23,7 +23,7 @@ function Get-FirebirdEnvironment {
         [string]$Path,
 
         [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Environment')]
-        [PSTypeName('FirebirdEnvironment')]$Environment
+        [FirebirdEnvironment]$Environment
     )
 
     if ($Environment) {
@@ -43,7 +43,6 @@ function Get-FirebirdEnvironment {
             # Windows: Determine the version from VERSIONINFO resource in firebird.exe.
 
             $firebirdBinary = Join-Path -Path $Path -ChildPath 'firebird.exe'
-            Join-Path -Path $Path -ChildPath 'firebird.exe'
             if (-not (Test-Path -Path $firebirdBinary -PathType Leaf)) {
                 throw "$firebirdBinary not found at $($firebirdBinary)"
             }
@@ -51,7 +50,7 @@ function Get-FirebirdEnvironment {
             try {
                 $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($firebirdBinary)
                 $productVersion = $versionInfo.ProductVersion
-                Write-VerboseMark -Message "Extracted ProductVersion: '$($productVersion)' from binary at '$($firebirdBinary)'."
+                Write-VerboseMark -Message "Extracted ProductVersion: '$($productVersion)' from '$($firebirdBinary)'."
             } catch {
                 throw "Failed to extract ProductVersion from $($firebirdBinary): $($_.Exception.Message)"
                 $null
@@ -79,9 +78,8 @@ function Get-FirebirdEnvironment {
     }
 
     # Return the environment information as a PSCustomObject
-    [PSCustomObject]@{
-        PSTypeName = 'FirebirdEnvironment'
-        Path       = $Path
-        Version    = [version]$productVersion
-    }
+    [FirebirdEnvironment]::new(@{
+            Path    = $Path
+            Version = [version]$productVersion
+        })
 }

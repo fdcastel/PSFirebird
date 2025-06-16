@@ -189,11 +189,10 @@ function Install-FirebirdEnvironment {
     }
 
     # Return the environment information as a PSCustomObject
-    [PSCustomObject]@{
-        PSTypeName = 'FirebirdEnvironment'
-        Path       = $Path
-        Version    = [version]$Version
-    }
+    [FirebirdEnvironment]::new(@{
+            Path    = $Path
+            Version = [version]$Version
+        })
 }
 
 function Invoke-AptDownloadAndExtract {
