@@ -1,33 +1,49 @@
 function New-FirebirdDatabase {
+    <#
+    .SYNOPSIS
+        Creates a new Firebird database at the specified path.
+    .PARAMETER DatabasePath
+        The file path for the new database. Must not already exist unless -Force is used.
+    .PARAMETER User
+        The database user name. Defaults to 'SYSDBA'.
+    .PARAMETER Password
+        The database user password. Defaults to 'masterkey'.
+    .PARAMETER PageSize
+        The page size for the database. Allowed values: 4096, 8192, 16384, 32768. Default is 8192.
+    .PARAMETER Charset
+        The character set for the database. Defaults to 'UTF8'.
+    .PARAMETER Environment
+        The Firebird environment object to use for database creation.
+    .PARAMETER Force
+        Overwrites the database file if it already exists.
+    .OUTPUTS
+        PSCustomObject with DatabasePath, PageSize, Charset, and User properties.
+    .EXAMPLE
+        New-FirebirdDatabase -DatabasePath '/tmp/test.fdb' -Force
+        Creates a new database at the specified path, overwriting if it exists.
+    #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Position = 0, Mandatory = $true)]
         [string]$DatabasePath,
 
-        [Parameter(Mandatory = $false)]
         [string]$User = 'SYSDBA',
 
-        [Parameter(Mandatory = $false)]
         [string]$Password = 'masterkey',
 
-        [Parameter(Mandatory = $false)]
         [ValidateSet(4096, 8192, 16384, 32768)]
         [int]$PageSize = 8192,
 
-        [Parameter(Mandatory = $false)]
         [string]$Charset = 'UTF8',
 
-        [Parameter(Mandatory = $false)]
-        [string]$EnvironmentPath,
+        [PSTypeName('FirebirdEnvironment')]$Environment,
 
-        [Parameter(Mandatory = $false)]
         [switch]$Force
     )
 
-    if (-not $EnvironmentPath) {
-        Write-VerboseMark -Message 'EnvironmentPath not specified. Detecting using Get-FirebirdEnvironment.'
-        $envInfo = Get-FirebirdEnvironment
-        $EnvironmentPath = $envInfo.Path
+    if (-not $Environment) {
+        Write-VerboseMark -Message 'Environment not specified. Detecting using Get-FirebirdEnvironment.'
+        $Environment = Get-FirebirdEnvironment
     }
 
     Write-VerboseMark -Message "Using Firebird environment at '$($EnvironmentPath)'"

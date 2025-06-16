@@ -4,7 +4,7 @@ function Install-FirebirdEnvironment {
         Downloads and extracts Firebird Embedded binaries for a given version and platform using GitHub releases.
     .PARAMETER Version
         The Firebird version to install (minimum 3.0.9), as a [semver] object.
-    .PARAMETER OutputPath
+    .PARAMETER Path
         Optional. The directory to extract the binaries to. If not provided, a temporary folder is used.
     .PARAMETER RuntimeIdentifier
         Optional. The runtime identifier (RID) to use. If not provided, uses the current platform RID.
@@ -16,7 +16,7 @@ function Install-FirebirdEnvironment {
         [Parameter(Mandatory)]
         [semver]$Version,
 
-        [string]$OutputPath,
+        [string]$Path,
 
         [ValidateSet('win-x86', 'win-x64', 'win-arm64', 'linux-x64', 'linux-arm64')]
         [string]$RuntimeIdentifier,
@@ -47,23 +47,23 @@ function Install-FirebirdEnvironment {
 
     $tempRoot = [System.IO.Path]::GetTempPath()
 
-    if (-not $OutputPath) {
-        $OutputPath = Join-Path $tempRoot "firebird-$($Version)"
-        Write-VerboseMark "No OutputPath specified. Using temporary folder: $OutputPath"
+    if (-not $Path) {
+        $Path = Join-Path $tempRoot "firebird-$($Version)"
+        Write-VerboseMark "No Path specified. Using temporary folder: $Path"
     }
 
-    if (Test-Path $OutputPath) {
+    if (Test-Path $Path) {
         if (-not $Force) {
-            Write-VerboseMark "OutputPath '$OutputPath' already exists and -Force not specified. Returning path."
-            return $OutputPath
+            Write-VerboseMark "Path '$Path' already exists and -Force not specified. Returning path."
+            return $Path
         }
-        if ($PSCmdlet.ShouldProcess($OutputPath, 'Clear existing output directory')) {
-            Remove-Item $OutputPath -Recurse -Force
+        if ($PSCmdlet.ShouldProcess($Path, 'Clear existing output directory')) {
+            Remove-Item $Path -Recurse -Force
         }
     }
 
-    if ($PSCmdlet.ShouldProcess($OutputPath, 'Create output directory')) {
-        New-Item -ItemType Directory $OutputPath -Force > $null
+    if ($PSCmdlet.ShouldProcess($Path, 'Create output directory')) {
+        New-Item -ItemType Directory $Path -Force > $null
     }
 
     $downloadUrl = Get-FirebirdReleaseUrl -Version $Version -RuntimeIdentifier $rid
@@ -80,10 +80,10 @@ function Install-FirebirdEnvironment {
     if ($PSCmdlet.ShouldProcess($archiveFile, 'Extracting archive')) {
         Write-VerboseMark "Extracting archive '$archiveFile'..."
         if ($IsWindows) {
-            Expand-Archive -Path $fullArchiveFile -DestinationPath $OutputPath
+            Expand-Archive -Path $fullArchiveFile -DestinationPath $Path
         } elseif ($IsLinux) {
-            tar --extract --file=$fullArchiveFile --gunzip --directory=$OutputPath --strip-components=1
-            tar --extract --file="$OutputPath/buildroot.tar.gz" --gunzip --directory=$OutputPath --strip-components=3 ./opt
+            tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
+            tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
         }
     }
 
@@ -91,7 +91,7 @@ function Install-FirebirdEnvironment {
         Write-VerboseMark "Removing archive '$fullArchiveFile'..."
         Remove-Item @(
             # On Linux, also remove the buildroot archive
-            "$OutputPath/buildroot.tar.gz",
+            "$Path/buildroot.tar.gz",
 
             # Common
             $fullArchiveFile
@@ -101,7 +101,7 @@ function Install-FirebirdEnvironment {
     # Windows-only: Set the IpcName in firebird.conf
     if ($IsWindows) {
         $ipcName = "FIREBIRD-$($Version -replace '\.','_')"
-        $firebirdConfPath = Join-Path $OutputPath 'firebird.conf'
+        $firebirdConfPath = Join-Path $Path 'firebird.conf'
         if ($PSCmdlet.ShouldProcess($firebirdConfPath, "Setting IpcName to '$ipcName' in firebird.conf")) {
             Write-VerboseMark "Setting IpcName to '$ipcName' in firebird.conf..."
             $content = Get-Content $firebirdConfPath
@@ -112,7 +112,7 @@ function Install-FirebirdEnvironment {
 
     # Linux-only: Download additional packages and extract it to the `lib` directory.
     if ($IsLinux) {
-        $libPath = Join-Path $OutputPath 'lib'
+        $libPath = Join-Path $Path 'lib'
 
         Invoke-AptDownloadAndExtract -PackageName 'libtommath1' `
             -SourcePattern './usr/lib/x86_64-linux-gnu/*' `
@@ -139,7 +139,7 @@ function Install-FirebirdEnvironment {
     }
 
     # Remove the sample database from databases.conf
-    $databasesConfPath = Join-Path $OutputPath 'databases.conf'
+    $databasesConfPath = Join-Path $Path 'databases.conf'
     if ($PSCmdlet.ShouldProcess($databasesConfPath, 'Removing sample database')) {
         Write-VerboseMark "Removing sample database from '$databasesConfPath'..."
         $content = Get-Content $databasesConfPath
@@ -147,29 +147,33 @@ function Install-FirebirdEnvironment {
     }
 
     # Clean up the output directory
-    if ($PSCmdlet.ShouldProcess($OutputPath, 'Cleaning up output directory')) {
+    if ($PSCmdlet.ShouldProcess($Path, 'Cleaning up output directory')) {
         Write-VerboseMark 'Cleaning up output directory...'
         Remove-Item @(
             # Windows-specific
-            "$OutputPath/system32",
-            "$OutputPath/*.bat",
+            "$Path/system32",
+            "$Path/*.bat",
 
             # Linux-specific
-            "$OutputPath/buildroot.tar.gz",
+            "$Path/buildroot.tar.gz",
 
             # Common files
-            "$OutputPath/doc",
-            "$OutputPath/examples",
-            "$OutputPath/help",
-            "$OutputPath/include",
-            "$OutputPath/misc",
+            "$Path/doc",
+            "$Path/examples",
+            "$Path/help",
+            "$Path/include",
+            "$Path/misc",
             
             $fullArchiveFile
         ) -Recurse -Force -ErrorAction Ignore
     }
 
-    # Return the output path
-    return $OutputPath
+    # Return the environment information as a PSCustomObject
+    [PSCustomObject]@{
+        PSTypeName = 'FirebirdEnvironment'
+        Path       = $Path
+        Version    = [version]$Version
+    }
 }
 
 function Invoke-AptDownloadAndExtract {
@@ -202,12 +206,9 @@ function Invoke-AptDownloadAndExtract {
 
                     Move-Item $SourcePattern $TargetFolder -Force
                 } finally {
-                    # Clean up the downloaded package
+                    # Clean up
                     Remove-Item $fullPackagePath -Force -ErrorAction Ignore
-
-
                 }
-
             } finally {
                 Pop-Location
             }

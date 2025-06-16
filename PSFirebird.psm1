@@ -19,4 +19,18 @@ foreach ($import in @($Public + $Private)) {
 # Export public functions
 Export-ModuleMember -Function $Public.BaseName
 
+# Define the FirebirdEnvironment type
+Write-Verbose "Updating FirebirdEnvironment TypeData..."
+Remove-TypeData -TypeName FirebirdEnvironment -ErrorAction SilentlyContinue
+$TypeData = @{
+    TypeName = 'FirebirdEnvironment'
+
+    MemberType = 'ScriptProperty'
+    MemberName = 'DisplayName'
+    Value = {"Firebird $($this.Version) at $($this.Path)"}
+
+    DefaultDisplayPropertySet = 'DisplayName'
+}
+Update-TypeData @TypeData
+
 Write-Verbose 'PSFirebird module loaded.'
