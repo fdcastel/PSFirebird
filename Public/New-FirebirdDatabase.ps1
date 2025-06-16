@@ -46,12 +46,12 @@ function New-FirebirdDatabase {
         $Environment = Get-FirebirdEnvironment
     }
 
-    Write-VerboseMark -Message "Using Firebird environment at '$($EnvironmentPath)'"
+    Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
     $isql = if ($IsWindows) { 
-        Join-Path $EnvironmentPath 'isql.exe'
+        Join-Path $Environment.Path 'isql.exe'
     } else {
-        Join-Path $EnvironmentPath 'bin/isql'
+        Join-Path $Environment.Path 'bin/isql'
     }
     if (-not (Test-Path $isql -PathType Leaf)) {
         throw "isql not found at '$($isql)'"
