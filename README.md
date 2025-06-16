@@ -24,7 +24,7 @@ Import-Module ./PSFirebird.psd1 -Force
 ### Install a Firebird Environment
 
 ```powershell
-$env = Install-FirebirdEnvironment -Version 5.0.2 -Verbose
+$fbEnv = Install-FirebirdEnvironment -Version 5.0.2 -Verbose
 ```
 - Use `-Path` to specify a custom output directory
 - Use `-Force` to overwrite existing output
@@ -32,14 +32,14 @@ $env = Install-FirebirdEnvironment -Version 5.0.2 -Verbose
 ### Get Firebird Environment Information
 
 ```powershell
-$info = Get-FirebirdEnvironment -Path $env
+Get-FirebirdEnvironment $fbEnv
 ```
-- Returns a PSCustomObject with `Path` and `Version`
+- Returns a `FirebirdEnvironment` with `Path` and `Version`
 
 ### Create a New Database
 
 ```powershell
-New-FirebirdDatabase -DatabasePath '/tmp/test.fdb' -Environment $env -Force
+New-FirebirdDatabase -DatabasePath '/tmp/test.fdb' -Environment $fbEnv -Force
 ```
 - Supports `-User`, `-Password`, `-PageSize`, `-Charset`, and `-Force`
 - Returns a PSCustomObject with database details

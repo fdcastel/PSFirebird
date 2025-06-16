@@ -7,7 +7,7 @@ function Get-FirebirdEnvironment {
     .PARAMETER Environment
         An object representing a Firebird environment. Its Path property will be used.
     .OUTPUTS
-        PSCustomObject with Path and Version properties.
+        FirebirdEnvironment with Path and Version properties.
     .EXAMPLE
         Get-FirebirdEnvironment -Path '/opt/firebird-5.0.2'
         Returns environment info for the specified path.
@@ -77,7 +77,7 @@ function Get-FirebirdEnvironment {
         Write-Warning -Message "Cannot extract ProductVersion from $($firebirdBinary): $($_.Exception.Message)"
     }
 
-    # Return the environment information as a PSCustomObject
+    # Return the environment information as a FirebirdEnvironment class instance.
     [FirebirdEnvironment]::new(@{
             Path    = $Path
             Version = [version]$productVersion

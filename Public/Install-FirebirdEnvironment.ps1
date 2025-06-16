@@ -188,7 +188,7 @@ function Install-FirebirdEnvironment {
         ) -Recurse -Force -ErrorAction Ignore
     }
 
-    # Return the environment information as a PSCustomObject
+    # Return the environment information as a FirebirdEnvironment class instance.
     [FirebirdEnvironment]::new(@{
             Path    = $Path
             Version = [version]$Version
