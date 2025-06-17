@@ -1,0 +1,31 @@
+name: Publish PowerShell Module
+
+description: Publish PSFirebird module to PowerShell Gallery
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Publish to PowerShell Gallery
+        shell: pwsh
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $tag = "${{ github.ref }}" -replace 'refs/tags/v', ''
+          Write-Host "Updating ModuleVersion to $tag"
+          $psd1 = 'PSFirebird.psd1'
+          (Get-Content $psd1) -replace "(?<=ModuleVersion\s*=\s*)'[^']+'", "'$tag'" | Set-Content $psd1
+
+          Write-Host "Publishing to PowerShell Gallery..."
+          Publish-Module -Path '.' -NuGetApiKey $env:PSGALLERY_API_KEY -Verbose
