@@ -20,6 +20,9 @@
     Description       = 'PowerShell toolkit for Firebird databases.'
 
     FunctionsToExport = @(
+        'Backup-FirebirdDatabase',
+        'Convert-FirebirdDatabase',
+        
         'Get-FirebirdDatabase',
         'Get-FirebirdEnvironment',
 
@@ -30,6 +33,8 @@
 
         'Read-FirebirdConfiguration',
         'Read-FirebirdDatabase',
+
+        'Restore-FirebirdDatabase',
 
         'Use-FirebirdEnvironment',
         

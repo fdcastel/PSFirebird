@@ -20,11 +20,11 @@ function Get-FirebirdEnvironment {
 
     [CmdletBinding(DefaultParameterSetName = 'ByPath')]
     param(
-        [Parameter(Position = 0, Mandatory = $false, ParameterSetName = 'ByPath')]
+        [Parameter(Position = 0, ParameterSetName = 'ByPath')]
         [ValidateScript({ Test-Path $_ }, ErrorMessage = 'Path must be a valid path.')]
         [string]$Path,
 
-        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'ByEnvironment')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'ByEnvironment')]
         [FirebirdEnvironment]$Environment
     )
 

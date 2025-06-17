@@ -5,15 +5,15 @@ function New-FirebirdDatabase {
     .DESCRIPTION
         Generates a new Firebird database file with the given options and returns its details.
     .PARAMETER DatabasePath
-        File path for the new database. Must not exist unless -Force is used.
+        Full path and file name including its extension. Must not exist unless -Force is used.
     .PARAMETER User
-        Database user name. Defaults to 'SYSDBA'.
+        Username of the owner of the new database. Defaults to 'SYSDBA'.
     .PARAMETER Password
-        Database user password. Defaults to 'masterkey'.
+        Password of the user as the database owner. Defaults to 'masterkey'.
     .PARAMETER PageSize
         Page size for the database. Allowed: 4096, 8192, 16384, 32768. Default is 8192.
     .PARAMETER Charset
-        Character set for the database. Defaults to 'UTF8'.
+        The default character set for string data types. Defaults to 'UTF8'.
     .PARAMETER Environment
         Firebird environment object to use for database creation.
     .PARAMETER Force

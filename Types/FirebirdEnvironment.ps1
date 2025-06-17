@@ -46,4 +46,15 @@ class FirebirdEnvironment {
 
         return Resolve-Path $gstatPath
     }
+
+    # Return gbak location
+    [System.Management.Automation.PathInfo] GetGbakPath() { 
+        $gbakPath = if ($global:IsWindows) { 
+            Join-Path $this.Path 'gbak.exe'
+        } else {
+            Join-Path $this.Path 'bin/gbak'
+        }
+
+        return Resolve-Path $gbakPath
+    }
 }

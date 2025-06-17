@@ -33,6 +33,9 @@ Import-Module ./PSFirebird.psm1
 - `Invoke-FirebirdIsql` – Run SQL scripts or queries
 - `Read-FirebirdConfiguration` – Read all active (non-commented) config entries from a Firebird config file
 - `Write-FirebirdConfiguration` – Update, add, or comment out config entries in a Firebird config file
+- `Backup-FirebirdDatabase` – Backup a Firebird database
+- `Convert-FirebirdDatabase` – Convert a Firebird database between versions
+- `Restore-FirebirdDatabase` – Restore a Firebird database from backup
 
 ### Set Up a Firebird Environment
 ```powershell
@@ -72,6 +75,26 @@ Returns a hashtable of all active (non-commented) configuration entries.
 Write-FirebirdConfiguration -Path 'C:/Firebird/firebird.conf' -Configuration @{ 'Key' = 'Value'; 'OtherKey' = $null }
 ```
 Updates or adds the specified key/value pairs. Use `$null` to comment out a key.
+
+## Backup, Convert, and Restore Databases
+
+### Backup a Firebird Database
+```powershell
+Backup-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb' -OutputPath 'C:/Firebird/data/test.fbk'
+```
+Creates a backup file (.fbk) of the specified database.
+
+### Convert a Firebird Database Between Versions
+```powershell
+Convert-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb' -SourceEnvironment $src -TargetEnvironment $tgt
+```
+Backs up the database using the source environment and restores it with the target environment, creating a new file with a versioned extension.
+
+### Restore a Firebird Database from Backup
+```powershell
+Restore-FirebirdDatabase -BackupPath 'C:/Firebird/data/test.fbk' -DatabasePath 'C:/Firebird/data/restore.fdb' -Force
+```
+Restores a database from a backup file to the specified path.
 
 ## Contributing
 Contributions, issues, and feature requests are welcome! Please open an issue or submit a pull request.
