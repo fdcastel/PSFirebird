@@ -2,16 +2,21 @@
 
 $ErrorActionPreference = 'Stop'
 
-# Import types
-$Types = @(Get-ChildItem -Path (Join-Path $PSScriptRoot 'Types/*.ps1') -ErrorAction SilentlyContinue)
-foreach ($import in $Types) {
-    try {
-        . $import.FullName
-    } catch {
-        Write-Error "Failed to import $($import.FullName): $_"
+# Import types in dependency order
+$TypeFiles = @(
+    'FirebirdEnvironment.ps1',
+    'FirebirdDatabase.ps1'
+)
+foreach ($TypeFile in $TypeFiles) {
+    $TypePath = Join-Path $PSScriptRoot "Types/$TypeFile"
+    if (Test-Path $TypePath) {
+        try {
+            . $TypePath
+        } catch {
+            Write-Error "Failed to import $($TypePath): $_"
+        }
     }
 }
-
 
 
 #
@@ -21,7 +26,7 @@ foreach ($import in $Types) {
 
 # Define the types to export with type accelerators.
 $ExportableTypes = @(
-    [FirebirdEnvironment]
+    [FirebirdEnvironment], [FirebirdDatabase]
 )
 # Get the internal TypeAccelerators class to use its static methods.
 $TypeAcceleratorsClass = [psobject].Assembly.GetType(
@@ -58,7 +63,6 @@ $MyInvocation.MyCommand.ScriptBlock.Module.OnRemove = {
 
 
 # Shared private variables
-
 [FirebirdEnvironment]$script:CurrentFirebirdEnvironment = $null
 
 

@@ -13,11 +13,6 @@ class FirebirdEnvironment {
         $this.Init($Properties) 
     }
 
-    # Common constructor for title and author
-    FirebirdEnvironment([string]$Path, [version]$Version) {
-        $this.Init(@{Path = $Path; Version = $Version })
-    }
-
     # Shared initializer method
     [void] Init([hashtable]$Properties) {
         foreach ($Property in $Properties.Keys) {
@@ -39,5 +34,16 @@ class FirebirdEnvironment {
         }
 
         return Resolve-Path $isqlPath
+    }
+
+    # Return gstat location
+    [System.Management.Automation.PathInfo] GetGstatPath() { 
+        $gstatPath = if ($global:IsWindows) { 
+            Join-Path $this.Path 'gstat.exe'
+        } else {
+            Join-Path $this.Path 'bin/gstat'
+        }
+
+        return Resolve-Path $gstatPath
     }
 }

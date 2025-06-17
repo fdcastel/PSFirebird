@@ -1,23 +1,25 @@
-function Install-FirebirdEnvironment {
+function New-FirebirdEnvironment {
     <#
     .SYNOPSIS
         Downloads and extracts Firebird binaries for a given version and platform.
+    .DESCRIPTION
+        Installs Firebird to a specified or temporary directory and returns environment details.
     .PARAMETER Version
-        The Firebird version to install. Minimum supported version is 3.0.9.
+        Firebird version to install. Minimum supported version is 3.0.9.
     .PARAMETER Path
         Directory to extract the binaries to. Uses a temporary folder if not provided.
     .PARAMETER RuntimeIdentifier
-        Runtime identifier (RID) for the platform. Uses current platform if not specified.
+        Runtime identifier for the platform. Uses current platform if not specified.
     .PARAMETER Force
         Overwrites the output directory if it already exists.
-    .OUTPUTS
-        String with the path to the extracted Firebird root directory.
     .EXAMPLE
-        Install-FirebirdEnvironment -Version 5.0.2 -Path '/tmp/firebird-5.0.2' -Force
+        New-FirebirdEnvironment -Version 5.0.2 -Path '/tmp/firebird-5.0.2' -Force
         Installs Firebird 5.0.2 to the specified path, overwriting if it exists.
     .EXAMPLE
-        Install-FirebirdEnvironment -Version 5.0.2
+        New-FirebirdEnvironment -Version 5.0.2
         Installs Firebird 5.0.2 to a temporary directory.
+    .OUTPUTS
+        FirebirdEnvironment object with Path and Version properties.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     Param(

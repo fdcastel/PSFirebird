@@ -2,60 +2,63 @@
 
 <img src="docs/PSFirebird-logo.png" alt="PSFirebird Logo" width="180" align="right" />
 
-PowerShell toolkit for Firebird databases.
+A PowerShell module for managing Firebird database environments, databases, and utilities on Windows and Linux.
 
-🚧 **Under Construction** 🚧
+## Features
+- Download and manage multiple Firebird environments and versions
+- Create, inspect, and read Firebird databases
+- Run SQL scripts and queries using Firebird's isql utility
+- Switch between environments for multi-version support
 
-### Features (for now)
-
-- Download and installs multiple Firebird Embedded environments for Windows and Linux
-- Create new Firebird databases with custom options
+## Requirements
+- PowerShell 7.4 or later
+- Windows or Linux (Debian-based for Linux)
 
 ## Installation
-
-Clone this repository and import the module:
+Clone or download this repository, then import the module:
 
 ```powershell
-Import-Module ./PSFirebird.psd1 -Force
+Import-Module ./PSFirebird.psm1
 ```
 
 ## Usage
 
-### Install a Firebird Environment
-
+### Set Up a Firebird Environment
 ```powershell
-$fbEnv = Install-FirebirdEnvironment -Version 5.0.2 -Verbose
-```
-- Use `-Path` to specify a custom output directory
-- Use `-Force` to overwrite existing output
+# Download and extract Firebird 5.0.2 to a specific folder
+New-FirebirdEnvironment -Version 5.0.2 -Path 'C:/Firebird/env1' -Force
 
-### Get Firebird Environment Information
-
-```powershell
-Get-FirebirdEnvironment $fbEnv
+# Use the environment for subsequent commands
+Use-FirebirdEnvironment -Environment (Get-FirebirdEnvironment -Path 'C:/Firebird/env1')
 ```
-- Returns a `FirebirdEnvironment` with `Path` and `Version`
 
 ### Create a New Database
-
 ```powershell
-New-FirebirdDatabase -DatabasePath '/tmp/test.fdb' -Environment $fbEnv -Force
+New-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb' -Force
 ```
-- Supports `-User`, `-Password`, `-PageSize`, `-Charset`, and `-Force`
-- Returns a PSCustomObject with database details
 
-## Public Functions
+### Get Database Information
+```powershell
+Get-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb'
+Read-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb'
+```
 
-- `Install-FirebirdEnvironment`: Download and extract Firebird packages
-- `Get-FirebirdEnvironment`: Inspect a Firebird environment
-- `New-FirebirdDatabase`: Create a new Firebird database
-- `Enter-FirebirdEnvironment`: Set and enters a Firebird environment for the current session.
-- `Exit-FirebirdEnvironment`: Clear the current Firebird environment for the session.
+### Run SQL Against a Database
+```powershell
+Invoke-FirebirdIsql -DatabasePath 'C:/Firebird/data/test.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
+```
 
-## Requirements
+## Cmdlets Overview
+- `New-FirebirdEnvironment` – Download and set up a Firebird environment
+- `Use-FirebirdEnvironment` – Set the current environment for the session
+- `Get-FirebirdEnvironment` – Inspect a Firebird environment
+- `New-FirebirdDatabase` – Create a new Firebird database
+- `Get-FirebirdDatabase` – Get database and environment info
+- `Read-FirebirdDatabase` – Read detailed database properties
+- `Invoke-FirebirdIsql` – Run SQL scripts or queries
 
-- PowerShell 7.4 or later
-- Windows or Linux (Debian-based for Linux)
+## Contributing
+Contributions, issues, and feature requests are welcome! Please open an issue or submit a pull request.
 
 ---
-> For more information, see the [Firebird Project](https://firebirdsql.org/)
+> For more information, see the [Firebird Project](https://firebirdsql.org/) and the inline help for each cmdlet.

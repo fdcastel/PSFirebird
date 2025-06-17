@@ -1,19 +1,21 @@
 function Get-FirebirdEnvironment {
     <#
     .SYNOPSIS
-        Returns information about a Firebird environment at the specified path.
+        Retrieves information about a Firebird environment at a given path or from an environment object.
+    .DESCRIPTION
+        Returns a FirebirdEnvironment object with details about the specified or current environment.
     .PARAMETER Path
-        The path to the Firebird environment directory.
+        Path to the Firebird environment directory. Optional if an environment object is provided.
     .PARAMETER Environment
-        An object representing a Firebird environment. Its Path property will be used.
-    .OUTPUTS
-        FirebirdEnvironment with Path and Version properties.
+        A FirebirdEnvironment object. Its Path property will be used.
     .EXAMPLE
         Get-FirebirdEnvironment -Path '/opt/firebird-5.0.2'
         Returns environment info for the specified path.
     .EXAMPLE
         Get-FirebirdEnvironment -Environment $envObj
         Returns environment info using the provided environment object.
+    .OUTPUTS
+        FirebirdEnvironment object with Path and Version properties.
     #>
 
     [CmdletBinding(DefaultParameterSetName = 'ByPath')]
@@ -36,7 +38,7 @@ function Get-FirebirdEnvironment {
             $Path = $CurrentFirebirdEnvironment.Path
         } else {
             # No path is provided nor current environment is set. Cannot proceed.
-            throw 'There is currently no Firebird environment set. Please provide a -Path or use Enter-FirebirdEnvironment.'
+            throw 'There is currently no Firebird environment set. Please provide a -Path or use Use-FirebirdEnvironment.'
         }
     }
 

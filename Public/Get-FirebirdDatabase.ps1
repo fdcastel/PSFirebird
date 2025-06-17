@@ -1,44 +1,39 @@
-<#
-.SYNOPSIS
-Returns information about a Firebird database and its environment.
-
-.DESCRIPTION
-Get details about a Firebird database, including environment, page size, charset, and more.
-
-.PARAMETER DatabasePath
-The path to the Firebird database file to inspect.
-
-.PARAMETER Environment
-The Firebird environment to use. If not specified, uses the current environment.
-
-.EXAMPLE
-Get-FirebirdDatabase -DatabasePath '/tmp/test.fdb' -Environment $fbEnv
-
-.EXAMPLE
-Get-FirebirdDatabase -DatabasePath '/tmp/test.fdb'
-
-.OUTPUTS
-PSCustomObject with properties: Environment, DatabasePath, PageSize, Charset, User, RawInfo.
-#>
 function Get-FirebirdDatabase {
+    <#
+    .SYNOPSIS
+        Retrieves information about a Firebird database and its environment.
+    .DESCRIPTION
+        Returns a FirebirdDatabase object with details about the specified database and environment.
+    .PARAMETER DatabasePath
+        Path to the Firebird database file to inspect. Must exist.
+    .PARAMETER Environment
+        The Firebird environment to use. Defaults to the current environment if not specified.
+    .EXAMPLE
+        Get-FirebirdDatabase -DatabasePath '/tmp/test.fdb' -Environment $fbEnv
+        Returns details for the database at '/tmp/test.fdb' using the specified environment.
+    .EXAMPLE
+        Get-FirebirdDatabase -DatabasePath '/tmp/test.fdb'
+        Returns details for the database at '/tmp/test.fdb' using the current environment.
+    .OUTPUTS
+        FirebirdDatabase object with Environment, DatabasePath, PageSize, and ODSVersion properties.
+    #>
+
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory, Position = 0)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
+        [ValidateScript({ Test-Path $_ }, ErrorMessage = 'The DatabasePath must exist.')]
         [string]$DatabasePath,
 
         [FirebirdEnvironment]$Environment
     )
 
-    if (-not $Environment) {
-        $Environment = Get-FirebirdEnvironment
-    }
+    $Environment ??= Get-FirebirdEnvironment -Verbose:$false
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
-    $isql = $Environment.GetIsqlPath()
+    $gstat = $Environment.GetGstatPath()
+    Write-VerboseMark -Message "Checking database at '$($DatabasePath)'."
 
-    Write-VerboseMark -Message "Querying database at '$($DatabasePath)'."
-    $query = 'SET LIST ON; SELECT * FROM mon$database CROSS JOIN rdb$database;'
-    $output = $query | & $isql -bail -quiet $DatabasePath 2>&1
+    $output = $query | & $gstat -h $DatabasePath 2>&1
 
     # Split StdOut and StdErr -- https://stackoverflow.com/a/68106198/33244
     $stdOut, $stdErr = $output.Where({ $_ -is [string] }, 'Split')
@@ -46,26 +41,27 @@ function Get-FirebirdDatabase {
         throw $stdErr
     }
 
-    # Parse isql list output. Discard first 2 lines, stop at first blank line.
-    $rawInfo = [ordered]@{}
-    $tableLines = $stdOut | Select-Object -Skip 2
-    foreach ($line in $tableLines) {
-        if ($line.Trim() -eq '') { break }
-        if ($line -match '^(\S+)\s+(.*)$') {
-            $key = $Matches[1]
-            $value = $Matches[2].Trim()
-            $rawInfo[$key] = $value
+    # Parse gstat output. Discard first 5 lines, stop at ODS Version.
+    $pageSize = $null
+    $odsVersion = $null
+    $lines = $stdOut | Select-Object -Skip 5
+    foreach ($line in $lines) {
+        if ($line -match '^\s+Page size\s+(\d+)') {
+            $pageSize = [int]$Matches[1].Trim()
+        }
+
+        if ($line -match '^\s+ODS Version\s+([\d]+.[\d]+)') {
+            $odsVersion = [version]$Matches[1].Trim()
+            break; # Stop processing further lines
         }
     }
 
-    [PSCustomObject]@{
-        Environment  = $Environment
-        DatabasePath = $DatabasePath
+    # Return the database information as a FirebirdDatabase class instance.
+    [FirebirdDatabase]::new(@{
+            Environment  = $Environment
+            DatabasePath = $DatabasePath
 
-        PageSize     = $rawInfo['MON$PAGE_SIZE']
-        Charset      = $rawInfo['RDB$CHARACTER_SET_NAME']
-        User         = $rawInfo['MON$OWNER']
-
-        RawInfo      = $rawInfo
-    }
+            PageSize     = $PageSize
+            ODSVersion   = $ODSVersion
+        })
 }

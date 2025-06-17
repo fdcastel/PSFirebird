@@ -20,14 +20,16 @@
     Description       = 'PowerShell toolkit for Firebird databases.'
 
     FunctionsToExport = @(
-        'Install-FirebirdEnvironment',
+        'Get-FirebirdDatabase',
         'Get-FirebirdEnvironment',
 
-        'New-FirebirdDatabase',
-        'Get-FirebirdDatabase',
+        'Invoke-FirebirdIsql',
 
-        'Enter-FirebirdEnvironment'
-        'Exit-FirebirdEnvironment'
+        'New-FirebirdDatabase',
+        'New-FirebirdEnvironment',
+
+        'Read-FirebirdDatabase',
+        'Use-FirebirdEnvironment'
     )
 
     # Minimum version of the PowerShell engine required by this module
