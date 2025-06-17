@@ -28,8 +28,12 @@
         'New-FirebirdDatabase',
         'New-FirebirdEnvironment',
 
+        'Read-FirebirdConfiguration',
         'Read-FirebirdDatabase',
-        'Use-FirebirdEnvironment'
+
+        'Use-FirebirdEnvironment',
+        
+        'Write-FirebirdConfiguration'
     )
 
     # Minimum version of the PowerShell engine required by this module
