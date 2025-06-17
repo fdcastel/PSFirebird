@@ -42,20 +42,9 @@ function New-FirebirdDatabase {
     )
 
     if (-not $Environment) {
-        Write-VerboseMark -Message 'Environment not specified. Detecting using Get-FirebirdEnvironment.'
         $Environment = Get-FirebirdEnvironment
     }
-
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
-
-    $isql = if ($IsWindows) { 
-        Join-Path $Environment.Path 'isql.exe'
-    } else {
-        Join-Path $Environment.Path 'bin/isql'
-    }
-    if (-not (Test-Path $isql -PathType Leaf)) {
-        throw "isql not found at '$($isql)'"
-    }
 
     if (Test-Path -Path $DatabasePath -PathType Leaf) {
         if ($Force) {
@@ -77,6 +66,8 @@ CREATE DATABASE '$DatabasePath'
     DEFAULT CHARACTER SET $Charset;
 "@
 
+        $isql = $Environment.GetIsqlPath()
+        
         Write-VerboseMark -Message "Creating database at '$($DatabasePath)' with user '$($User)', page size $($PageSize), charset '$($Charset)'."
         $output = $createDbCmd | & $isql -quiet 2>&1
         if ($LASTEXITCODE -ne 0) {
@@ -88,7 +79,9 @@ CREATE DATABASE '$DatabasePath'
         Write-VerboseMark -Message "Database created successfully at '$($DatabasePath)'"
     }
     [PSCustomObject]@{
+        Environment  = $Environment
         DatabasePath = $DatabasePath
+
         PageSize     = $PageSize
         Charset      = $Charset
         User         = $User

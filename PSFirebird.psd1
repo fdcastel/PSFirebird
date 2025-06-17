@@ -24,6 +24,7 @@
         'Get-FirebirdEnvironment',
 
         'New-FirebirdDatabase',
+        'Get-FirebirdDatabase',
 
         'Enter-FirebirdEnvironment'
         'Exit-FirebirdEnvironment'

@@ -25,8 +25,19 @@ class FirebirdEnvironment {
         }
     }
 
-    # Method to return a string representation of the class
+    # Return a string representation of the class
     [string] ToString() {
         return "Firebird $($this.Version) at $($this.Path)"
+    }
+
+    # Return isql location
+    [System.Management.Automation.PathInfo] GetIsqlPath() { 
+        $isqlPath = if ($global:IsWindows) { 
+            Join-Path $this.Path 'isql.exe'
+        } else {
+            Join-Path $this.Path 'bin/isql'
+        }
+
+        return Resolve-Path $isqlPath
     }
 }
