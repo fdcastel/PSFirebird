@@ -1,6 +1,6 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
-Describe 'Static Default Method Pattern' {
+Describe 'FirebirdEnvironment' {
     BeforeAll {
         # Create mock environments for testing
         $script:mockEnv1 = [FirebirdEnvironment]::new(@{

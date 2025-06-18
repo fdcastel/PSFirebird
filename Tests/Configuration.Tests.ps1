@@ -1,6 +1,6 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
-Describe 'Firebird Configuration Functions' {
+Describe 'Configuration' {
     InModuleScope 'PSFirebird' {
         BeforeAll {
             $script:baseConfig = Join-Path $PSScriptRoot 'assets/firebird.conf'
