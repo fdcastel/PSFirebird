@@ -67,7 +67,7 @@ function Backup-FirebirdDatabase {
         [Parameter(Mandatory, ParameterSetName = 'AsCommandLine')]
         [switch]$AsCommandLine,
 
-        [FirebirdEnvironment]$Environment,
+        [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
 
         [switch]$Force,
 
@@ -77,8 +77,6 @@ function Backup-FirebirdDatabase {
         $RemainingArguments
     )
 
-    # Determine the environment to use.
-    $Environment ??= Get-FirebirdEnvironment -Verbose:$false
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
     # Determine the target output for the backup.

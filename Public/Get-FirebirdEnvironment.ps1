@@ -6,41 +6,19 @@ function Get-FirebirdEnvironment {
         Returns a FirebirdEnvironment object with details about the specified or current environment.
     .PARAMETER Path
         Path to the Firebird environment directory. Optional if an environment object is provided.
-    .PARAMETER Environment
-        A FirebirdEnvironment object. Its Path property will be used.
     .EXAMPLE
         Get-FirebirdEnvironment -Path '/opt/firebird-5.0.2'
         Returns environment info for the specified path.
-    .EXAMPLE
-        Get-FirebirdEnvironment -Environment $envObj
-        Returns environment info using the provided environment object.
     .OUTPUTS
         FirebirdEnvironment object with Path and Version properties.
     #>
 
-    [CmdletBinding(DefaultParameterSetName = 'ByPath')]
+    [CmdletBinding()]
     param(
-        [Parameter(Position = 0, ParameterSetName = 'ByPath')]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateScript({ Test-Path $_ }, ErrorMessage = 'Path must be a valid path.')]
-        [string]$Path,
-
-        [Parameter(Position = 0, Mandatory, ParameterSetName = 'ByEnvironment')]
-        [FirebirdEnvironment]$Environment
+        [string]$Path
     )
-
-    if ($Environment) {
-        $Path = $Environment.Path
-    }
-
-    if (-not $Path) {
-        if ($CurrentFirebirdEnvironment) {
-            # Use the current environment if available.
-            $Path = $CurrentFirebirdEnvironment.Path
-        } else {
-            # No path is provided nor current environment is set. Cannot proceed.
-            throw 'There is currently no Firebird environment set. Please provide a -Path or use Use-FirebirdEnvironment.'
-        }
-    }
 
     $Path = Resolve-Path $Path
     Write-VerboseMark -Message "Checking Firebird environment at '$($Path)'."

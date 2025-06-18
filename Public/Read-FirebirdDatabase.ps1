@@ -22,10 +22,9 @@ function Read-FirebirdDatabase {
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [string]$DatabasePath,
 
-        [FirebirdEnvironment]$Environment
+        [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()
     )
 
-    $Environment ??= Get-FirebirdEnvironment -Verbose:$false
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
     Write-VerboseMark -Message "Querying database at '$($DatabasePath)'."

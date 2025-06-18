@@ -52,7 +52,7 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
         [Parameter(Mandatory, ParameterSetName = 'AsCommandLine')]
         [string]$DatabasePath,
 
-        [FirebirdEnvironment]$Environment,
+        [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
 
         [switch]$Force,
 
@@ -60,8 +60,6 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
         $RemainingArguments
     )
 
-    # Determine the environment to use.
-    $Environment ??= Get-FirebirdEnvironment -Verbose:$false
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
     # Determine the target database for the restore.

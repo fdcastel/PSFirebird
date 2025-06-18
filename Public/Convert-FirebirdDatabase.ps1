@@ -33,19 +33,16 @@ function Convert-FirebirdDatabase {
     param(
         [Parameter(Mandatory)]
         [string]$DatabasePath,
-        [object]$SourceEnvironment,
-        [object]$TargetEnvironment
+        [FirebirdEnvironment]$SourceEnvironment = [FirebirdEnvironment]::default(),
+        [FirebirdEnvironment]$TargetEnvironment = [FirebirdEnvironment]::default()
     )
 
     if (-not (Test-Path -Path $DatabasePath -PathType Leaf)) {
         throw "Database path '$DatabasePath' does not exist."
     }
 
-    $SourceEnvironment ??= Get-FirebirdEnvironment -Verbose:$false
-    Write-VerboseMark -Message "Using Firebird environment at '$($SourceEnvironment.Path)'"
-
-    $TargetEnvironment ??= Get-FirebirdEnvironment -Verbose:$false
-    Write-VerboseMark -Message "Using Firebird environment at '$($TargetEnvironment.Path)'"
+    Write-VerboseMark -Message "Using source Firebird environment at '$($SourceEnvironment.Path)'"
+    Write-VerboseMark -Message "Using target Firebird environment at '$($TargetEnvironment.Path)'"
 
     $v = $TargetEnvironment.Version
     $targetDatabasePath = [Io.Path]::ChangeExtension($DatabasePath, ".FB$($v.Major)$($v.Minor).fdb")

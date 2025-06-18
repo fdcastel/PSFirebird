@@ -38,12 +38,11 @@ function New-FirebirdDatabase {
 
         [string]$Charset = 'UTF8',
 
-        [FirebirdEnvironment]$Environment,
+        [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
 
         [switch]$Force
     )
 
-    $Environment ??= Get-FirebirdEnvironment -Verbose:$false
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
     if (Test-Path -Path $DatabasePath -PathType Leaf) {

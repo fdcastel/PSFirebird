@@ -57,4 +57,29 @@ class FirebirdEnvironment {
 
         return Resolve-Path $gbakPath
     }
+
+    # Return the current context environment (set by Use-FirebirdEnvironment). Used as a default value for parameters.
+    static [FirebirdEnvironment] default() {
+        # Do not use Verbose messages here.
+        $scope = 1
+        while ($true) {
+            $err = $null
+            try {
+                $contextEnvironment = Get-Variable -Name 'FirebirdEnvironment' -Scope $scope -ValueOnly -ErrorAction SilentlyContinue
+                if ($contextEnvironment) {
+                    # Found a FirebirdEnvironment in the current scope
+                    return $contextEnvironment
+                }
+                $scope++
+            } catch [System.Management.Automation.PSArgumentOutOfRangeException] {
+                # Get-Variable raises this exception when the scope exceeds the maximum. 
+                #   This occurs during the argument processing phase of the cmdlet. -ErrorVariable does not catch it.
+                Write-Verbose "No FirebirdEnvironment found up to scope $($scope). Error: $($_.Exception.Message)"
+                break;
+            }
+        }
+
+        # If no environment found, throw an error
+        throw 'No Firebird environment available. Use -Environment parameter or Use-FirebirdEnvironment to set one.'
+    }
 }

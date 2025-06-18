@@ -26,13 +26,12 @@ function Invoke-FirebirdIsql {
         [Parameter(Mandatory, ValueFromPipeline)]
         [string]$Sql,
 
-        [FirebirdEnvironment]$Environment,
+        [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
 
         [Parameter(ValueFromRemainingArguments)]
         $RemainingArguments
     )
 
-    $Environment ??= Get-FirebirdEnvironment -Verbose:$false
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
     $isql = $Environment.GetIsqlPath()

@@ -24,10 +24,9 @@ function Get-FirebirdDatabase {
         [ValidateScript({ Test-Path $_ }, ErrorMessage = 'The DatabasePath must exist.')]
         [string]$DatabasePath,
 
-        [FirebirdEnvironment]$Environment
+        [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()
     )
 
-    $Environment ??= Get-FirebirdEnvironment -Verbose:$false
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
     $gstat = $Environment.GetGstatPath()
