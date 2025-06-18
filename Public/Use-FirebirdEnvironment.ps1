@@ -4,8 +4,6 @@ function Use-FirebirdEnvironment {
         Executes a script block within a Firebird environment context.
     .DESCRIPTION
         Sets a Firebird environment context for the duration of the script block execution.
-        All cmdlets within the script block will automatically use this environment unless
-        explicitly overridden with the -Environment parameter.
     .PARAMETER Environment
         A FirebirdEnvironment object to set as the context environment.
     .PARAMETER ScriptBlock
@@ -15,16 +13,19 @@ function Use-FirebirdEnvironment {
             New-FirebirdDatabase -DatabasePath 'test.fdb'
             Backup-FirebirdDatabase -DatabasePath 'test.fdb' -FilePath 'backup.gbk'
         }
+
         Executes the commands using the specified environment context.
     .EXAMPLE
-        Get-FirebirdEnvironment -Path 'C:/Firebird' | Use-FirebirdEnvironment {
+        Get-FirebirdEnvironment -Path 'C:/Firebird' | Use-FirebirdEnvironment -ScriptBlock {
             New-FirebirdDatabase -DatabasePath 'test.fdb'
         }
+
         Uses pipeline input to set the environment context.
     .OUTPUTS
         Returns the result of the script block execution.
     .NOTES
-        You must use the -ScriptBlock explicitly when using the pipeline. This is a PowerShell parameter binding limitation.
+        You must use the -ScriptBlock parameter name explicitly when using the pipeline.
+        This is a PowerShell parameter binding limitation.
     #>
     [CmdletBinding()]
     param(
