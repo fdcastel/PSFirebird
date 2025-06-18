@@ -34,7 +34,7 @@ Describe 'Restore' -ForEach $FirebirdVersions {
     }
 
     BeforeEach {
-        # Ensure the Restore file does not exist before each test
+        # Ensure the restored database does not exist before each test
         if (Test-Path $TestDatabaseRestored) {
             Remove-Item -Path $TestDatabaseRestored -Force -ErrorAction SilentlyContinue
         }
