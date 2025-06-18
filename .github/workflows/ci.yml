@@ -1,0 +1,30 @@
+name: CI
+
+description: Run Pester tests on Windows, Linux, and ARM
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  test:
+    name: Pester Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          ## ubuntu 24.04 doesn't have a package for libncurses5
+          - ubuntu-22.04
+          - ubuntu-22.04-arm
+          - windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          Invoke-Pester -Path ./Tests -Output Detailed
