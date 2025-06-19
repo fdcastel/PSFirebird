@@ -30,20 +30,17 @@ function Read-FirebirdDatabase {
     Write-VerboseMark -Message "Querying database at '$($DatabasePath)'."
     $query = 'SET LIST ON; SELECT * FROM mon$database CROSS JOIN rdb$database;'
     $isql = $Environment.GetIsqlPath()
-    $output = $query | & $isql -bail -quiet $DatabasePath 2>&1
 
-    # Split StdOut and StdErr -- https://stackoverflow.com/a/68106198/33244
-    $stdOut, $stdErr = $output.Where({ $_ -is [string] }, 'Split')
-    if ($LASTEXITCODE -ne 0) {
-        throw $stdErr
-    }
+    $isqlResult = Invoke-ExternalCommand {
+        $query | & $isql -bail -quiet $DatabasePath
+    } -ErrorMessage "Error running isql."
 
     # Parse isql list output. Discard first 2 lines, stop at first blank line.
     $result = [ordered]@{
         Environment  = $Environment
         DatabasePath = $DatabasePath
     }
-    $resultLines = $stdOut | Select-Object -Skip 2
+    $resultLines = $isqlResult.StdOut | Select-Object -Skip 2
     foreach ($line in $resultLines) {
         if ($line.Trim() -eq '') { break }
         if ($line -match '^(\S+)\s+(.*)$') {

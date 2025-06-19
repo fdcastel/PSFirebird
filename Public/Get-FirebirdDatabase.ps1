@@ -32,18 +32,14 @@ function Get-FirebirdDatabase {
     $gstat = $Environment.GetGstatPath()
     Write-VerboseMark -Message "Checking database at '$($DatabasePath)'."
 
-    $output = $query | & $gstat -h $DatabasePath 2>&1
-
-    # Split StdOut and StdErr -- https://stackoverflow.com/a/68106198/33244
-    $stdOut, $stdErr = $output.Where({ $_ -is [string] }, 'Split')
-    if ($LASTEXITCODE -ne 0) {
-        throw $stdErr
-    }
+    $gstatResult = Invoke-ExternalCommand {
+        $query | & $gstat -h $DatabasePath
+    } -Passthru
 
     # Parse gstat output. Discard first 5 lines, stop at ODS Version.
     $pageSize = $null
     $odsVersion = $null
-    $lines = $stdOut | Select-Object -Skip 5
+    $lines = $gstatResult.StdOut | Select-Object -Skip 5
     foreach ($line in $lines) {
         if ($line -match '^\s+Page size\s+(\d+)') {
             $pageSize = [int]$Matches[1].Trim()

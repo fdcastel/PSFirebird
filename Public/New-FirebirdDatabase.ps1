@@ -68,13 +68,9 @@ CREATE DATABASE '$DatabasePath'
         $isql = $Environment.GetIsqlPath()
         
         Write-VerboseMark -Message "Creating database at '$($DatabasePath)' with user '$($User)', page size $($PageSize), charset '$($Charset)'."
-        $output = $createDbCmd | & $isql -quiet 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            # Split StdOut and StdErr -- https://stackoverflow.com/a/68106198/33244
-            $stdOut, $stdErr = $output.Where({ $_ -is [string] }, 'Split')
-            throw $stdErr
-        }
-
+        Invoke-ExternalCommand {
+            $createDbCmd | & $isql -quiet
+        } -ErrorMessage "Error running isql."
         Write-VerboseMark -Message "Database created successfully at '$($DatabasePath)'"
     }
 

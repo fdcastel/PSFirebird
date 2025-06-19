@@ -212,17 +212,15 @@ function Invoke-AptDownloadAndExtract {
             Push-Location $tempFolder
             try {
                 Write-VerboseMark "Downloading '$PackageName' package..."
-                $null = & apt-get download -y $PackageName
-                if ($LASTEXITCODE -ne 0) {
-                    throw "Failed to download '$PackageName' package. Cannot continue."
-                }
+                Invoke-ExternalCommand {
+                    & apt-get download -y $PackageName
+                } -ErrorMessage "Failed to download '$PackageName' package. Cannot continue."
 
                 Write-VerboseMark "Extracting '$PackageName' to '$TargetFolder'..."
                 $fullPackagePath = Resolve-Path "$($PackageName)_*.deb"
-                $null = & dpkg-deb -X $fullPackagePath .
-                if ($LASTEXITCODE -ne 0) {
-                    throw "Failed to extract '$PackageName' package. Cannot continue."
-                }
+                Invoke-ExternalCommand {
+                    & dpkg-deb -X $fullPackagePath .
+                } -ErrorMessage "Failed to extract '$PackageName' package. Cannot continue."
 
                 Move-Item $SourcePattern $TargetFolder -Force
             } finally {
