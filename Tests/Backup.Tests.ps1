@@ -13,11 +13,11 @@ Describe 'Backup' -ForEach $FirebirdVersions {
         $script:FirebirdVersion = $_
 
         # Create a temporary folder for the test files
-        $script:rootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
+        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
-        $script:TestDatabase = New-FirebirdDatabase -DatabasePath "$rootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
-        $script:TestBackupFile = "$rootFolder/$FirebirdVersion-tests.gbk"
+        $script:TestDatabase = New-FirebirdDatabase -DatabasePath "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
+        $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.gbk"
 
         # Set up the environment variables for Firebird
         $env:ISC_USER = 'SYSDBA'
@@ -26,13 +26,13 @@ Describe 'Backup' -ForEach $FirebirdVersions {
         
     AfterAll {
         # Remove the test folder
-        Remove-Item -Path $rootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
     }
 
     BeforeEach {
         # Ensure the backup file does not exist before each test
         if (Test-Path $TestBackupFile) {
-            Remove-Item -Path $TestBackupFile -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $TestBackupFile -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
 

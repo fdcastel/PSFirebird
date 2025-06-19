@@ -1,6 +1,6 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
-Describe 'FirebirdEnvironment' {
+Describe 'Use-FirebirdEnvironment' {
     BeforeAll {
         # Create mock environments for testing
         $script:mockEnv1 = [FirebirdEnvironment]::new(@{

@@ -11,7 +11,7 @@ BeforeDiscovery {
 Describe 'Convert' {
     BeforeAll {
         # Create a temporary folder for the test files
-        $script:rootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
+        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
         # Create one test environment for each Firebird version
         $script:testEnvironments = @{}
@@ -21,8 +21,8 @@ Describe 'Convert' {
             $fbEnv = New-FirebirdEnvironment -Version $firebirdVersion
             $e = @{
                 Environment = $fbEnv
-                Database = New-FirebirdDatabase -DatabasePath "$rootFolder/$firebirdVersion.fdb" -Environment $fbEnv
-                DatabaseRestored = "$rootFolder/$firebirdVersion.restored.fdb"
+                Database = New-FirebirdDatabase -DatabasePath "$RootFolder/$firebirdVersion.fdb" -Environment $fbEnv
+                DatabaseRestored = "$RootFolder/$firebirdVersion.restored.fdb"
             }
 
             $testEnvironments.Add($fbEnv.Version.Major, $e)
@@ -35,7 +35,7 @@ Describe 'Convert' {
 
     AfterAll {
         # Remove the test folder
-        Remove-Item -Path $rootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
     }
 
     BeforeEach {
@@ -43,7 +43,7 @@ Describe 'Convert' {
         $testEnvironments.Keys | ForEach-Object {
             $e = $testEnvironments[$_]
             if (Test-Path $e.DatabaseRestored) {
-                Remove-Item -Path $e.DatabaseRestored -Force -ErrorAction SilentlyContinue
+                Remove-Item -Path $e.DatabaseRestored -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
     }

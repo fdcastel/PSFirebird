@@ -111,7 +111,7 @@ function New-FirebirdEnvironment {
 
     if ($PSCmdlet.ShouldProcess($fullArchiveFile, 'Removing archive')) {
         Write-VerboseMark "Removing archive '$fullArchiveFile'..."
-        Remove-Item @(
+        Remove-Item -Path @(
             # On Linux, also remove the buildroot archive
             "$Path/buildroot.tar.gz",
 
@@ -171,7 +171,7 @@ function New-FirebirdEnvironment {
     # Clean up the output directory
     if ($PSCmdlet.ShouldProcess($Path, 'Cleaning up output directory')) {
         Write-VerboseMark 'Cleaning up output directory...'
-        Remove-Item @(
+        Remove-Item -Path @(
             # Windows-specific
             "$Path/system32",
             "$Path/*.bat",
@@ -217,24 +217,19 @@ function Invoke-AptDownloadAndExtract {
                     throw "Failed to download '$PackageName' package. Cannot continue."
                 }
 
-                try {
-                    Write-VerboseMark "Extracting '$PackageName' to '$TargetFolder'..."
-                    $fullPackagePath = Resolve-Path "$($PackageName)_*.deb"
-                    $null = & dpkg-deb -X $fullPackagePath .
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "Failed to extract '$PackageName' package. Cannot continue."
-                    }
-
-                    Move-Item $SourcePattern $TargetFolder -Force
-                } finally {
-                    # Clean up
-                    Remove-Item $fullPackagePath -Force -ErrorAction Ignore
+                Write-VerboseMark "Extracting '$PackageName' to '$TargetFolder'..."
+                $fullPackagePath = Resolve-Path "$($PackageName)_*.deb"
+                $null = & dpkg-deb -X $fullPackagePath .
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Failed to extract '$PackageName' package. Cannot continue."
                 }
+
+                Move-Item $SourcePattern $TargetFolder -Force
             } finally {
                 Pop-Location
             }
         } finally {
-            Remove-Item $tempFolder -Recurse -Force
+            Remove-Item -Path $tempFolder -Recurse -Force
         }
     }
 }
