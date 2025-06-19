@@ -104,8 +104,13 @@ function New-FirebirdEnvironment {
         if ($IsWindows) {
             Expand-Archive -Path $fullArchiveFile -DestinationPath $Path
         } elseif ($IsLinux) {
-            tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
-            tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
+            Invoke-ExternalCommand {
+                & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
+            } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
+
+            Invoke-ExternalCommand {
+                & tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
+            } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
         }
     }
 
