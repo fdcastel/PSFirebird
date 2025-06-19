@@ -137,17 +137,17 @@ function New-FirebirdEnvironment {
         $libPath = Join-Path $Path 'lib'
 
         Invoke-AptDownloadAndExtract -PackageName 'libtommath1' `
-            -SourcePattern './usr/lib/x86_64-linux-gnu/*' `
+            -SourcePattern './usr/lib/*/*' `
             -TargetFolder $libPath
 
         # For FB3, we also need to download libncurses5
         if ($Version -ge [semver]3) {
             Invoke-AptDownloadAndExtract -PackageName 'libncurses5' `
-                -SourcePattern './lib/x86_64-linux-gnu/*' `
+                -SourcePattern './lib/*/*' `
                 -TargetFolder $libPath
 
             Invoke-AptDownloadAndExtract -PackageName 'libtinfo5' `
-                -SourcePattern './lib/x86_64-linux-gnu/*' `
+                -SourcePattern './lib/*/*' `
                 -TargetFolder $libPath    
         }
 
@@ -220,7 +220,7 @@ function Invoke-AptDownloadAndExtract {
                 try {
                     Write-VerboseMark "Extracting '$PackageName' to '$TargetFolder'..."
                     $fullPackagePath = Resolve-Path "$($PackageName)_*.deb"
-                    dpkg-deb -x $fullPackagePath .
+                    dpkg-deb -X $fullPackagePath .
                     if ($LASTEXITCODE -ne 0) {
                         throw "Failed to extract '$PackageName' package. Cannot continue."
                     }
