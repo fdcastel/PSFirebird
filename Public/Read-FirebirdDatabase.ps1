@@ -25,22 +25,17 @@ function Read-FirebirdDatabase {
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()
     )
 
-    Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
-
-    Write-VerboseMark -Message "Querying database at '$($DatabasePath)'."
     $query = 'SET LIST ON; SELECT * FROM mon$database CROSS JOIN rdb$database;'
-    $isql = $Environment.GetIsqlPath()
 
-    $isqlResult = Invoke-ExternalCommand {
-        $query | & $isql -bail -quiet $DatabasePath
-    } -Passthru -ErrorMessage "Error running isql."
+    $isqlOutput = $query | Invoke-FirebirdIsql -DatabasePath $DatabasePath -Environment $Environment -bail -quiet 
 
     # Parse isql list output. Discard first 2 lines, stop at first blank line.
     $result = [ordered]@{
         Environment  = $Environment
         DatabasePath = $DatabasePath
     }
-    $resultLines = $isqlResult.StdOut | Select-Object -Skip 2
+
+    $resultLines = $isqlOutput | Select-Object -Skip 2
     foreach ($line in $resultLines) {
         if ($line.Trim() -eq '') { break }
         if ($line -match '^(\S+)\s+(.*)$') {
