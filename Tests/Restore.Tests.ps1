@@ -16,12 +16,12 @@ Describe 'Restore' -ForEach $FirebirdVersions {
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
-        $script:TestDatabase = New-FirebirdDatabase -DatabasePath "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
+        $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
         $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.gbk"
         $script:TestDatabaseRestored = "$RootFolder/$FirebirdVersion-tests.restored.fdb"
 
         # Create a backup file to restore from
-        Backup-FirebirdDatabase -DatabasePath $TestDatabase.DatabasePath -FilePath $TestBackupFile -Environment $TestEnvironment
+        Backup-FirebirdDatabase -Database $TestDatabase -BackupFilePath $TestBackupFile -Environment $TestEnvironment
 
         # Set up the environment variables for Firebird
         $env:ISC_USER = 'SYSDBA'
@@ -42,7 +42,7 @@ Describe 'Restore' -ForEach $FirebirdVersions {
 
     It 'Restore a database with named parameters' {
         $TestDatabaseRestored | Should -Not -Exist
-        Restore-FirebirdDatabase -FilePath $TestBackupFile -DatabasePath $TestDatabaseRestored -Environment $TestEnvironment
+        Restore-FirebirdDatabase -BackupFilePath $TestBackupFile -Database $TestDatabaseRestored -Environment $TestEnvironment
         $TestDatabaseRestored | Should -Exist
     }
 
@@ -54,25 +54,25 @@ Describe 'Restore' -ForEach $FirebirdVersions {
 
     It 'Restore a database with mixed parameters (1)' {
         $TestDatabaseRestored | Should -Not -Exist
-        Restore-FirebirdDatabase -FilePath $TestBackupFile $TestDatabaseRestored -Environment $TestEnvironment
+        Restore-FirebirdDatabase -BackupFilePath $TestBackupFile $TestDatabaseRestored -Environment $TestEnvironment
         $TestDatabaseRestored | Should -Exist
     }
 
     It 'Restore a database with mixed parameters (2)' {
         $TestDatabaseRestored | Should -Not -Exist
-        Restore-FirebirdDatabase $TestBackupFile -DatabasePath $TestDatabaseRestored -Environment $TestEnvironment
+        Restore-FirebirdDatabase $TestBackupFile -Database $TestDatabaseRestored -Environment $TestEnvironment
         $TestDatabaseRestored | Should -Exist
     }
 
     It 'Restore a database with pipeline input' {
         $TestDatabaseRestored | Should -Not -Exist
-        $TestBackupFile | Restore-FirebirdDatabase -DatabasePath $TestDatabaseRestored -Environment $TestEnvironment
+        $TestBackupFile | Restore-FirebirdDatabase -Database $TestDatabaseRestored -Environment $TestEnvironment
         $TestDatabaseRestored | Should -Exist
     }
 
     It 'Return a command-line string for a streamed restore' {
         $TestDatabaseRestored | Should -Not -Exist
-        $gbakArgs = Restore-FirebirdDatabase -AsCommandLine -DatabasePath $TestDatabaseRestored -Environment $TestEnvironment
+        $gbakArgs = Restore-FirebirdDatabase -AsCommandLine -Database $TestDatabaseRestored -Environment $TestEnvironment
         $TestDatabaseRestored | Should -Not -Exist
     
         $gbakArgs[0] | Should -Be '-create_database'

@@ -48,18 +48,18 @@ Use-FirebirdEnvironment -Environment (Get-FirebirdEnvironment -Path 'C:/Firebird
 
 ### Create a New Database
 ```powershell
-New-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb' -Force
+New-FirebirdDatabase -Database 'C:/Firebird/data/test.fdb' -Force
 ```
 
 ### Get Database Information
 ```powershell
-Get-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb'
-Read-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb'
+Get-FirebirdDatabase -Database 'C:/Firebird/data/test.fdb'
+Read-FirebirdDatabase -Database 'C:/Firebird/data/test.fdb'
 ```
 
 ### Run SQL Against a Database
 ```powershell
-Invoke-FirebirdIsql -DatabasePath 'C:/Firebird/data/test.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
+Invoke-FirebirdIsql -Database 'C:/Firebird/data/test.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
 ```
 
 ## Configuration File Management
@@ -80,19 +80,19 @@ Updates or adds the specified key/value pairs. Use `$null` to comment out a key.
 
 ### Backup a Firebird Database
 ```powershell
-Backup-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb' -OutputPath 'C:/Firebird/data/test.fbk'
+Backup-FirebirdDatabase -Database 'C:/Firebird/data/test.fdb' -OutputPath 'C:/Firebird/data/test.fbk'
 ```
 Creates a backup file (.fbk) of the specified database.
 
 ### Convert a Firebird Database Between Versions
 ```powershell
-Convert-FirebirdDatabase -DatabasePath 'C:/Firebird/data/test.fdb' -SourceEnvironment $src -TargetEnvironment $tgt
+Convert-FirebirdDatabase -Database 'C:/Firebird/data/test.fdb' -SourceEnvironment $src -TargetEnvironment $tgt
 ```
 Backs up the database using the source environment and restores it with the target environment, creating a new file with a versioned extension.
 
 ### Restore a Firebird Database from Backup
 ```powershell
-Restore-FirebirdDatabase -BackupPath 'C:/Firebird/data/test.fbk' -DatabasePath 'C:/Firebird/data/restore.fdb' -Force
+Restore-FirebirdDatabase -BackupPath 'C:/Firebird/data/test.fbk' -Database 'C:/Firebird/data/restore.fdb' -Force
 ```
 Restores a database from a backup file to the specified path.
 

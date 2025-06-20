@@ -5,10 +5,10 @@ Creates a backup of a Firebird database using gbak.
 .DESCRIPTION
 Backs up a Firebird database to a file or as a byte stream. Supports force overwrite and transportable mode.
 
-.PARAMETER DatabasePath
+.PARAMETER Database
 The path to the Firebird database to back up. Accepts pipeline input.
 
-.PARAMETER FilePath
+.PARAMETER BackupFilePath
 The path to the backup file to create. Required unless -AsCommandLine is used.
 
 .PARAMETER AsCommandLine
@@ -27,11 +27,11 @@ If specified, creates a transportable backup (removes the -nt option from gbak).
 Additional arguments to pass to gbak.
 
 .EXAMPLE
-Backup-FirebirdDatabase -DatabasePath 'database.fdb' -FilePath 'backup.fbk'
+Backup-FirebirdDatabase -Database 'database.fdb' -BackupFilePath 'backup.fbk'
 Backs up 'database.fdb' to 'backup.fbk'.
 
 .EXAMPLE
-'database.fdb' | Backup-FirebirdDatabase -FilePath 'backup.fbk'
+'database.fdb' | Backup-FirebirdDatabase -BackupFilePath 'backup.fbk'
 Backs up a database using pipeline input.
 
 .EXAMPLE
@@ -44,25 +44,25 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
 .NOTES
 PowerShell does not support binding positional parameters after pipeline input. For example,
 
-    'database.fdb' | Backup-FirebirdDatabase -FilePath 'backup.fbk'
+    'database.fdb' | Backup-FirebirdDatabase -BackupFilePath 'backup.fbk'
 
 works, but
 
     'database.fdb' | Backup-FirebirdDatabase 'backup.fbk'
 
-will prompt for FilePath.
+will prompt for BackupFilePath.
 #>
 
 function Backup-FirebirdDatabase {
-    [CmdletBinding(DefaultParameterSetName = 'FilePath')]
+    [CmdletBinding(DefaultParameterSetName = 'BackupFilePath')]
     param(
-        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'FilePath')]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'BackupFilePath')]
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'AsCommandLine')]
-        [ValidateScript({ Test-Path $_ }, ErrorMessage = 'The DatabasePath must exist.')]
-        [string]$DatabasePath,
+        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
+        [FirebirdDatabase]$Database,
 
-        [Parameter(Position = 1, Mandatory, ParameterSetName = 'FilePath')]
-        [string]$FilePath,
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'BackupFilePath')]
+        [string]$BackupFilePath,
 
         [Parameter(Mandatory, ParameterSetName = 'AsCommandLine')]
         [switch]$AsCommandLine,
@@ -81,17 +81,17 @@ function Backup-FirebirdDatabase {
 
     # Determine the target output for the backup.
     if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
-        $FilePath = 'stdout'
+        $BackupFilePath = 'stdout'
     } else {
         # If no file path is specified, derive it from the database path.
-        if (-not $FilePath) {
-            $FilePath = [Io.Path]::ChangeExtension($DatabasePath, '.gbk')
+        if (-not $BackupFilePath) {
+            $BackupFilePath = [Io.Path]::ChangeExtension($Database.Path, '.gbk')
         }
 
         # Force deletion of existing file if specified.
-        if ($Force -and (Test-Path $FilePath)) {
-            Write-VerboseMark -Message "Deleting existing file at '$FilePath' due to -Force."
-            Remove-Item -Path $FilePath -Force
+        if ($Force -and (Test-Path $BackupFilePath)) {
+            Write-VerboseMark -Message "Deleting existing file at '$BackupFilePath' due to -Force."
+            Remove-Item -Path $BackupFilePath -Force
         }
     }
 
@@ -110,8 +110,8 @@ function Backup-FirebirdDatabase {
         ((-not $Transportable) ? '-nt' : $null),
         '-verify',
         '-statistics', 'T',
-        $DatabasePath,
-        $FilePath
+        $Database.Path,
+        $BackupFilePath
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {

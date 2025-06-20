@@ -42,9 +42,9 @@ function Convert-FirebirdDatabase {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$SourceDatabase,
+        [FirebirdDatabase]$SourceDatabase,
 
-        [string]$TargetDatabase,
+        [FirebirdDatabase]$TargetDatabase,
 
         [FirebirdEnvironment]$SourceEnvironment = [FirebirdEnvironment]::default(),
 
@@ -53,24 +53,25 @@ function Convert-FirebirdDatabase {
         [switch]$Force
     )
 
-    if (-not (Test-Path -Path $SourceDatabase -PathType Leaf)) {
-        throw "Database path '$SourceDatabase' does not exist."
+    if (-not (Test-Path -Path $SourceDatabase.Path -PathType Leaf)) {
+        throw "Database path '$($SourceDatabase.Path)' does not exist."
     }
     Write-VerboseMark -Message "Source environment at '$($SourceEnvironment.Path)'"
-    Write-VerboseMark -Message "Source database is '$($SourceDatabase)'"
+    Write-VerboseMark -Message "Source database is '$($SourceDatabase.Path)'"
 
     $v = $TargetEnvironment.Version
     if (-not $TargetDatabase) {
-        $TargetDatabase = [Io.Path]::ChangeExtension($SourceDatabase, ".FB$($v.Major)$($v.Minor).fdb")
+        $targetDatabasePath = [Io.Path]::ChangeExtension($SourceDatabase.Path, ".FB$($v.Major)$($v.Minor).fdb")
+        $TargetDatabase = Get-FirebirdDatabase -Path $targetDatabasePath -Environment $TargetEnvironment
     }
     Write-VerboseMark -Message "Target environment at '$($TargetEnvironment.Path)'"
-    Write-VerboseMark -Message "Target database is '$($TargetDatabase)'"
+    Write-VerboseMark -Message "Target database is '$($TargetDatabase.Path)'"
 
     $backupCmd = $SourceEnvironment.GetGbakPath()
-    $backupArgs = Backup-FirebirdDatabase -DatabasePath $SourceDatabase -AsCommandLine -Environment $SourceEnvironment
+    $backupArgs = Backup-FirebirdDatabase -Database $SourceDatabase -AsCommandLine -Environment $SourceEnvironment
 
     $restoreCmd = $TargetEnvironment.GetGbakPath()
-    $restoreArgs = Restore-FirebirdDatabase -AsCommandLine -DatabasePath $TargetDatabase -Environment $SourceEnvironment -Force:$Force
+    $restoreArgs = Restore-FirebirdDatabase -AsCommandLine -Database $TargetDatabase -Environment $SourceEnvironment -Force:$Force
 
     & $backupCmd $backupArgs | & $restoreCmd $restoreArgs
 }

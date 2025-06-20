@@ -16,7 +16,7 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
-        $script:TestDatabase = New-FirebirdDatabase -DatabasePath "$RootFolder/$FirebirdVersion-tests.fdb" -PageSize 4096 -Environment $TestEnvironment
+        $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -PageSize 4096 -Environment $TestEnvironment
         $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.gbk"
 
         # Set up the environment variables for Firebird
@@ -30,9 +30,9 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
     }
 
     It 'Can read database information' {
-        $info = Read-FirebirdDatabase -DatabasePath $TestDatabase.DatabasePath -Environment $TestEnvironment
+        $info = Read-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
         $info.Environment | Should -BeOfType FirebirdEnvironment
-        $info.DatabasePath | Should -Be $TestDatabase.DatabasePath
+        $info.Database | Should -Be $TestDatabase
         $info['MON$PAGE_SIZE'] | Should -Be 4096
     }
 }

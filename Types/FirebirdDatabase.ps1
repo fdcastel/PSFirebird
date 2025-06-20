@@ -1,7 +1,7 @@
 class FirebirdDatabase {
     # Class properties
     [FirebirdEnvironment] $Environment
-    [string] $DatabasePath
+    [string] $Path
 
     [int]$PageSize
     [version]$ODSVersion
@@ -9,6 +9,11 @@ class FirebirdDatabase {
     # Default constructor
     FirebirdDatabase() {
         $this.Init(@{})
+    }
+
+    # String constructor for implicit type conversion
+    FirebirdDatabase([string]$Path) {
+        $this.Init(@{ Path = $Path })
     }
 
     # Convenience constructor from hashtable
@@ -25,6 +30,6 @@ class FirebirdDatabase {
 
     # Return a string representation of the class
     [string] ToString() {
-        return "Firebird Database $($this.ODSVersion) at $($this.DatabasePath)"
+        return "Firebird Database $($this.ODSVersion) at $($this.Path)"
     }
 }

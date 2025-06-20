@@ -21,7 +21,7 @@ Describe 'Convert' {
             $fbEnv = New-FirebirdEnvironment -Version $firebirdVersion
             $e = @{
                 Environment = $fbEnv
-                Database = New-FirebirdDatabase -DatabasePath "$RootFolder/$firebirdVersion.fdb" -Environment $fbEnv
+                Database = New-FirebirdDatabase -Database "$RootFolder/$firebirdVersion.fdb" -Environment $fbEnv
                 DatabaseRestored = "$RootFolder/$firebirdVersion.restored.fdb"
             }
 
@@ -52,7 +52,7 @@ Describe 'Convert' {
         $testEnvironments.Keys | ForEach-Object {
             $e = $testEnvironments[$_]
             $e.DatabaseRestored | Should -Not -Exist
-            Convert-FirebirdDatabase -SourceDatabase $e.Database.DatabasePath `
+            Convert-FirebirdDatabase -SourceDatabase $e.Database `
                                      -SourceEnvironment $e.Environment `
                                      -TargetDatabase $e.DatabaseRestored `
                                      -TargetEnvironment $e.Environment

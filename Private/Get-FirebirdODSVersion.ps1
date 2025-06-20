@@ -5,11 +5,11 @@ Gets the ODS (On-Disk Structure) version of a Firebird database file.
 .DESCRIPTION
 Reads the header of a Firebird database file and returns its ODS major and minor version as a version object.
 
-.PARAMETER DatabasePath
+.PARAMETER Database
 Path to the Firebird database file to inspect. Must exist.
 
 .EXAMPLE
-Get-FirebirdODSVersion -DatabasePath '/data/mydb.fdb'
+Get-FirebirdODSVersion -Database '/data/mydb.fdb'
 Returns the ODS version of the specified database file.
 
 .OUTPUTS
@@ -19,15 +19,15 @@ function Get-FirebirdODSVersion {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [ValidateScript({ Test-Path $_ }, ErrorMessage = 'The DatabasePath must exist.')]
-        [string]$DatabasePath
+        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
+        [FirebirdDatabase]$Database
     )
 
     # Read the first 80 bytes of the database file
-    Write-VerboseMark "Reading header from file '$DatabasePath'..."
-    $bytes = Get-Content -Path $DatabasePath -AsByteStream -TotalCount 80
+    Write-VerboseMark "Reading header from file '$Database'..."
+    $bytes = Get-Content -Path $Database.Path -AsByteStream -TotalCount 80
     if ($bytes.Length -lt 80) {
-        throw "File '$DatabasePath' is not a valid Firebird database."
+        throw "File '$($Database.Path)' is not a valid Firebird database."
     }
 
     # Source: https://www.firebirdsql.org/file/documentation/html/en/firebirddocs/firebirdinternals/firebird-internals.html

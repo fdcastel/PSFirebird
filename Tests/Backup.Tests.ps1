@@ -16,7 +16,7 @@ Describe 'Backup' -ForEach $FirebirdVersions {
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
-        $script:TestDatabase = New-FirebirdDatabase -DatabasePath "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
+        $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
         $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.gbk"
 
         # Set up the environment variables for Firebird
@@ -38,41 +38,41 @@ Describe 'Backup' -ForEach $FirebirdVersions {
 
     It 'Backup a database with named parameters' {
         $TestBackupFile | Should -Not -Exist
-        Backup-FirebirdDatabase -DatabasePath $TestDatabase.DatabasePath -FilePath $TestBackupFile -Environment $TestEnvironment
+        Backup-FirebirdDatabase -Database $TestDatabase -BackupFilePath $TestBackupFile -Environment $TestEnvironment
         $TestBackupFile | Should -Exist
     }
 
     It 'Backup a database with positional parameters' {
         $TestBackupFile | Should -Not -Exist
-        Backup-FirebirdDatabase $TestDatabase.DatabasePath $TestBackupFile -Environment $TestEnvironment
+        Backup-FirebirdDatabase $TestDatabase $TestBackupFile -Environment $TestEnvironment
         $TestBackupFile | Should -Exist
     }
 
     It 'Backup a database with mixed parameters (1)' {
         $TestBackupFile | Should -Not -Exist
-        Backup-FirebirdDatabase -DatabasePath $TestDatabase.DatabasePath $TestBackupFile -Environment $TestEnvironment
+        Backup-FirebirdDatabase -Database $TestDatabase $TestBackupFile -Environment $TestEnvironment
         $TestBackupFile | Should -Exist
     }
 
     It 'Backup a database with mixed parameters (2)' {
         $TestBackupFile | Should -Not -Exist
-        Backup-FirebirdDatabase $TestDatabase.DatabasePath -FilePath $TestBackupFile -Environment $TestEnvironment
+        Backup-FirebirdDatabase $TestDatabase -BackupFilePath $TestBackupFile -Environment $TestEnvironment
         $TestBackupFile | Should -Exist
     }
 
     It 'Backup a database with pipeline input' {
         $TestBackupFile | Should -Not -Exist
-        $TestDatabase.DatabasePath | Backup-FirebirdDatabase -FilePath $TestBackupFile -Environment $TestEnvironment
+        $TestDatabase | Backup-FirebirdDatabase -BackupFilePath $TestBackupFile -Environment $TestEnvironment
         $TestBackupFile | Should -Exist
     }
 
     It 'Return a command-line string for a streamed backup' {
         $TestBackupFile | Should -Not -Exist
-        $gbakArgs = Backup-FirebirdDatabase -DatabasePath $TestDatabase.DatabasePath -AsCommandLine -Environment $script:TestEnvironment
+        $gbakArgs = Backup-FirebirdDatabase -Database $TestDatabase -AsCommandLine -Environment $script:TestEnvironment
         $TestBackupFile | Should -Not -Exist
 
         $gbakArgs[0] | Should -Be '-backup_database'
-        $gbakArgs[-2] | Should -Be $TestDatabase.DatabasePath
+        $gbakArgs[-2] | Should -Be $TestDatabase.Path
         $gbakArgs[-1] | Should -Be 'stdout'
     }
 }

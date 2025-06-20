@@ -4,7 +4,7 @@ function New-FirebirdDatabase {
         Creates a new Firebird database at the specified path.
     .DESCRIPTION
         Generates a new Firebird database file with the given options and returns its details.
-    .PARAMETER DatabasePath
+    .PARAMETER Database
         Full path and file name including its extension. Must not exist unless -Force is used.
     .PARAMETER User
         Username of the owner of the new database. Defaults to 'SYSDBA'.
@@ -19,15 +19,15 @@ function New-FirebirdDatabase {
     .PARAMETER Force
         Overwrites the database file if it already exists.
     .EXAMPLE
-        New-FirebirdDatabase -DatabasePath '/tmp/test.fdb' -Force
+        New-FirebirdDatabase -Database '/tmp/test.fdb' -Force
         Creates a new database at the specified path, overwriting if it exists.
     .OUTPUTS
-        FirebirdDatabase object with Environment, DatabasePath, PageSize, and ODSVersion properties.
+        FirebirdDatabase object with Environment, Database, PageSize, and ODSVersion properties.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
-        [string]$DatabasePath,
+        [FirebirdDatabase]$Database,
 
         [string]$User = 'SYSDBA',
 
@@ -45,20 +45,20 @@ function New-FirebirdDatabase {
 
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
-    if (Test-Path -Path $DatabasePath -PathType Leaf) {
+    if (Test-Path -Path $Database.Path -PathType Leaf) {
         if ($Force) {
-            if ($PSCmdlet.ShouldProcess($DatabasePath, 'Remove existing database file')) {
-                Write-VerboseMark -Message "Database file '$($DatabasePath)' already exists and -Force specified. Removing database file..."
-                Remove-Item -Path $DatabasePath -Force
+            if ($PSCmdlet.ShouldProcess($Database.Path, 'Remove existing database file')) {
+                Write-VerboseMark -Message "Database file '$($Database.Path)' already exists and -Force specified. Removing database file..."
+                Remove-Item -Path $Database.Path -Force
             }
         } else {
-            throw "Database file '$($DatabasePath)' already exists. Use -Force to overwrite."
+            throw "Database file '$($Database.Path)' already exists. Use -Force to overwrite."
         }
     }
 
-    if ($PSCmdlet.ShouldProcess($DatabasePath, 'Create new Firebird database')) {
+    if ($PSCmdlet.ShouldProcess($Database.Path, 'Create new Firebird database')) {
         $createDbCmd = @"
-CREATE DATABASE '$DatabasePath' 
+CREATE DATABASE '$($Database.Path)' 
     USER '$User' 
     PASSWORD '$Password' 
     PAGE_SIZE $PageSize 
@@ -67,21 +67,21 @@ CREATE DATABASE '$DatabasePath'
 
         $isql = $Environment.GetIsqlPath()
         
-        Write-VerboseMark -Message "Creating database at '$($DatabasePath)' with user '$($User)', page size $($PageSize), charset '$($Charset)'."
+        Write-VerboseMark -Message "Creating database at '$($Database.Path)' with user '$($User)', page size $($PageSize), charset '$($Charset)'."
         Invoke-ExternalCommand {
             $createDbCmd | & $isql -quiet
-        } -ErrorMessage "Error running isql."
-        Write-VerboseMark -Message "Database created successfully at '$($DatabasePath)'"
+        } -ErrorMessage 'Error running isql.'
+        Write-VerboseMark -Message "Database created successfully at '$($Database.Path)'"
     }
 
-    $odsVersion = Get-FirebirdODSVersion -DatabasePath $DatabasePath
+    $odsVersion = Get-FirebirdODSVersion -Database $Database.Path
 
     # Return the database information as a FirebirdDatabase class instance.
     [FirebirdDatabase]::new(@{
-            Environment  = $Environment
-            DatabasePath = $DatabasePath
+            Environment = $Environment
+            Path        = $Database.Path
 
-            PageSize     = $PageSize
-            ODSVersion   = $odsVersion
+            PageSize    = $PageSize
+            ODSVersion  = $odsVersion
         })
 }

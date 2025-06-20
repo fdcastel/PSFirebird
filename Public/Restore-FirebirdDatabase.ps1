@@ -7,11 +7,11 @@ Restores a Firebird database from a backup file using gbak.
 Restores a Firebird database from a backup file (.fbk) to a specified database file (.fdb).
 Supports restoring from file or pipeline, with options for environment and force overwrite.
 
-.PARAMETER FilePath
+.PARAMETER BackupFilePath
 The path to the Firebird backup file (.fbk) to restore from. Mandatory unless using -AsCommandLine.
 
-.PARAMETER DatabasePath
-The path where the restored database (.fdb) will be created. If not specified, derived from FilePath.
+.PARAMETER Database
+The path where the restored database (.fdb) will be created. If not specified, derived from BackupFilePath.
 
 .PARAMETER Environment
 The Firebird environment object to use for the restore operation. Optional.
@@ -26,15 +26,15 @@ If specified, returns the gbak command-line arguments instead of running the res
 Additional arguments to pass to gbak.
 
 .EXAMPLE
-Restore-FirebirdDatabase -FilePath 'backup.fbk' -DatabasePath 'restored.fdb'
+Restore-FirebirdDatabase -BackupFilePath 'backup.fbk' -Database 'restored.fdb'
 Restores the backup file 'backup.fbk' to 'restored.fdb'.
 
 .EXAMPLE
-Get-Content 'backup.fbk' | Restore-FirebirdDatabase -DatabasePath 'restored.fdb'
+Get-Content 'backup.fbk' | Restore-FirebirdDatabase -Database 'restored.fdb'
 Restores a database from backup data provided via pipeline.
 
 .EXAMPLE
-Restore-FirebirdDatabase -FilePath 'backup.fbk' -DatabasePath 'restored.fdb' -Force
+Restore-FirebirdDatabase -BackupFilePath 'backup.fbk' -Database 'restored.fdb' -Force
 Restores and overwrites the target database if it exists.
 
 .OUTPUTS
@@ -42,15 +42,15 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
 #>
     [CmdletBinding()]
     param(
-        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'FilePath')]
-        [string]$FilePath,
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'BackupFilePath')]
+        [string]$BackupFilePath,
 
         [Parameter(Mandatory, ParameterSetName = 'AsCommandLine')]
         [switch]$AsCommandLine,
 
-        [Parameter(Position = 1, ParameterSetName = 'FilePath')]
+        [Parameter(Position = 1, ParameterSetName = 'BackupFilePath')]
         [Parameter(Mandatory, ParameterSetName = 'AsCommandLine')]
-        [string]$DatabasePath,
+        [FirebirdDatabase]$Database,
 
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
 
@@ -64,27 +64,28 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
 
     # Determine the target database for the restore.
     if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
-        if (-not $DatabasePath) {
-            throw 'When using the pipeline as input, you must specify a -DatabasePath to restore to.'
+        if (-not $Database) {
+            throw 'When using the pipeline as input, you must specify a -Database to restore to.'
         }
-        $FilePath = 'stdin'
+        $BackupFilePath = 'stdin'
     } else {
-        if (Test-Path $FilePath) {
-            Write-VerboseMark -Message "Using file path: $FilePath"
+        if (Test-Path $BackupFilePath) {
+            Write-VerboseMark -Message "Using file path: $BackupFilePath"
         } else {
-            throw "The specified FilePath '$FilePath' does not exist."
+            throw "The specified BackupFilePath '$BackupFilePath' does not exist."
         }
 
         # If no database path is specified, derive it from the file path.
-        if (-not $DatabasePath) {
-            $DatabasePath = [Io.Path]::ChangeExtension($FilePath, '.restored.fdb')
+        if (-not $Database) {
+            $databasePath = [Io.Path]::ChangeExtension($BackupFilePath, '.restored.fdb')
+            $Database = Get-FirebirdDatabase -Path $databasePath -Environment $Environment
         }
     }    
 
     # Force deletion of existing database if specified.
-    if ($Force -and $DatabasePath -and (Test-Path $DatabasePath)) {
-        Write-VerboseMark -Message "Deleting existing database at '$DatabasePath' due to -Force."
-        Remove-Item -Path $DatabasePath -Force
+    if ($Force -and $Database -and (Test-Path $Database.Path)) {
+        Write-VerboseMark -Message "Deleting existing database at '$($Database.Path)' due to -Force."
+        Remove-Item -Path $Database.Path -Force
     }
 
     $gbak = $Environment.GetGbakPath()
@@ -92,8 +93,8 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
         '-create_database',
         '-verify',
         '-statistics', 'T',
-        $FilePath,
-        $DatabasePath
+        $BackupFilePath,
+        $Database.Path
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {

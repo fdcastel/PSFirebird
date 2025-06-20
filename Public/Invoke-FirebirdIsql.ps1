@@ -4,7 +4,7 @@ function Invoke-FirebirdIsql {
         Executes SQL statements against a Firebird database using isql.
     .DESCRIPTION
         Runs the provided SQL on the specified Firebird database and outputs the result.
-    .PARAMETER DatabasePath
+    .PARAMETER Database
         Path to the Firebird database file to connect to.
     .PARAMETER Sql
         The SQL statement(s) to execute. Accepts pipeline input.
@@ -13,7 +13,7 @@ function Invoke-FirebirdIsql {
     .PARAMETER RemainingArguments
         Additional arguments to pass to the isql command.
     .EXAMPLE
-        Invoke-FirebirdIsql -DatabasePath '/tmp/test.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
+        Invoke-FirebirdIsql -Database '/tmp/test.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
         Executes the SQL query on the specified database.
     .OUTPUTS
         The output from the isql command.
@@ -21,7 +21,7 @@ function Invoke-FirebirdIsql {
     [CmdletBinding()]
     param(
         [Parameter(Position = 0, Mandatory)]
-        [string]$DatabasePath,
+        [FirebirdDatabase]$Database,
 
         [Parameter(Mandatory, ValueFromPipeline)]
         [string]$Sql,
@@ -36,10 +36,10 @@ function Invoke-FirebirdIsql {
 
     $isql = $Environment.GetIsqlPath()
 
-    Write-VerboseMark -Message "Piping Sql into: $isql $($RemainingArguments -join ' ') $DatabasePath"
+    Write-VerboseMark -Message "Piping Sql into: $isql $($RemainingArguments -join ' ') $($Database.Path)"
 
     $result = Invoke-ExternalCommand {
-        $Sql | & $isql @RemainingArguments $DatabasePath
+        $Sql | & $isql @RemainingArguments $Database.Path
     } -Passthru -ErrorMessage "Error running isql."    
 
     return $result.StdOut

@@ -10,14 +10,14 @@ function Use-FirebirdEnvironment {
         The script block to execute within the environment context.
     .EXAMPLE
         Use-FirebirdEnvironment -Environment $fbEnv {
-            New-FirebirdDatabase -DatabasePath 'test.fdb'
-            Backup-FirebirdDatabase -DatabasePath 'test.fdb' -FilePath 'backup.gbk'
+            New-FirebirdDatabase -Database 'test.fdb'
+            Backup-FirebirdDatabase -Database 'test.fdb' -BackupFilePath 'backup.gbk'
         }
 
         Executes the commands using the specified environment context.
     .EXAMPLE
         Get-FirebirdEnvironment -Path 'C:/Firebird' | Use-FirebirdEnvironment -ScriptBlock {
-            New-FirebirdDatabase -DatabasePath 'test.fdb'
+            New-FirebirdDatabase -Database 'test.fdb'
         }
 
         Uses pipeline input to set the environment context.

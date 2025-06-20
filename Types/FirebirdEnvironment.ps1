@@ -8,6 +8,11 @@ class FirebirdEnvironment {
         $this.Init(@{})
     }
 
+    # String constructor for implicit type conversion
+    FirebirdEnvironment([string]$Path) {
+        $this.Init(@{ Path = $Path })
+    }
+
     # Convenience constructor from hashtable
     FirebirdEnvironment([hashtable]$Properties) { 
         $this.Init($Properties) 
