@@ -36,8 +36,18 @@ function Get-FirebirdReleaseUrl {
     }
 
     $apiUrl = 'https://api.github.com/repos/FirebirdSQL/firebird/releases'
-    Write-VerboseMark "Querying GitHub API: $apiUrl"
-    $releases = Invoke-RestMethod -Uri $apiUrl -Headers @{ 'User-Agent' = 'PSFirebird' }
+    Write-VerboseMark -Message "Querying GitHub API for releases: $apiUrl"
+
+    $headers = @{ 'User-Agent' = 'PSFirebird' }
+        
+    # Uses GitHub access token from environment variable if available
+    [string]$githubAccessToken = $env:API_GITHUB_ACCESS_TOKEN
+    if ($githubAccessToken) {
+        Write-VerboseMark '- Using authenticated GitHub API requests'
+        $headers['Authorization'] = "Bearer $githubAccessToken"
+    }
+
+    $releases = Invoke-RestMethod -Uri $apiUrl -Headers $headers -Verbose:$false
 
     $versionString = $Version.ToString()
     $release = $releases | Where-Object { $_.tag_name -match $versionString }
