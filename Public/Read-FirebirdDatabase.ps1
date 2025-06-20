@@ -33,7 +33,7 @@ function Read-FirebirdDatabase {
 
     $isqlResult = Invoke-ExternalCommand {
         $query | & $isql -bail -quiet $DatabasePath
-    } -ErrorMessage "Error running isql."
+    } -Passthru -ErrorMessage "Error running isql."
 
     # Parse isql list output. Discard first 2 lines, stop at first blank line.
     $result = [ordered]@{
