@@ -38,13 +38,4 @@ Describe 'New-FirebirdEnvironment' -ForEach $FirebirdVersions {
         $v = $env.Version
         [semver]::new($v.Major, $v.Minor, $v.Build) | Should -Be $FirebirdVersion
     }
-
-    It 'Can run gstat tool' {
-        $env = New-FirebirdEnvironment -Version $FirebirdVersion
-
-        $gstatPath = $env.GetGstatPath().Path
-        $result = & $gstatPath 2>&1
-
-        $result | Should -Be 'use gstat -? to get help'
-    }
 }

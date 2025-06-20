@@ -196,10 +196,7 @@ function New-FirebirdEnvironment {
     }
 
     # Return the environment information as a FirebirdEnvironment class instance.
-    [FirebirdEnvironment]::new(@{
-            Path    = $Path
-            Version = [version]$Version
-        })
+    Get-FirebirdEnvironment -Path $Path
 }
 
 function Invoke-AptDownloadAndExtract {
