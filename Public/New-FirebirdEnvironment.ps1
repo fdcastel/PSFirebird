@@ -104,13 +104,20 @@ function New-FirebirdEnvironment {
         if ($IsWindows) {
             Expand-Archive -Path $fullArchiveFile -DestinationPath $Path
         } elseif ($IsLinux) {
-            Invoke-ExternalCommand {
-                & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
-            } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
+            if ($rid.Contains('linux-arm64') -and ($Version.Major -lt 5)) {
+                # For Firebird 4.0 and earlier, the ARM64 archive has a different structure (no 'buildroot.tar.gz').
+                Invoke-ExternalCommand {
+                    & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
+                } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
+            } else {
+                Invoke-ExternalCommand {
+                    & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
+                } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
 
-            Invoke-ExternalCommand {
-                & tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
-            } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
+                Invoke-ExternalCommand {
+                    & tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
+                } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
+            }
         }
     }
 
@@ -153,7 +160,7 @@ function New-FirebirdEnvironment {
 
             Invoke-AptDownloadAndExtract -PackageName 'libtinfo5' `
                 -SourcePattern './lib/*/*' `
-                -TargetFolder $libPath    
+                -TargetFolder $libPath
         }
 
         # Fix libtommath for FB3 and FB4 -- https://github.com/FirebirdSQL/firebird/issues/5716#issuecomment-826239174
@@ -167,6 +174,11 @@ function New-FirebirdEnvironment {
 
     # Remove the sample database from databases.conf
     $databasesConfPath = Join-Path $Path 'databases.conf'
+    if (-not (Test-Path $databasesConfPath)) {
+        $folderItems = Get-ChildItem -Path $Path
+        throw "databases.conf not found at '$Path'. Folder content is: $folderItems"
+    }
+    
     if ($PSCmdlet.ShouldProcess($databasesConfPath, 'Removing sample database')) {
         Write-VerboseMark "Removing sample database from '$databasesConfPath'..."
         $content = Get-Content $databasesConfPath
@@ -190,7 +202,7 @@ function New-FirebirdEnvironment {
             "$Path/help",
             "$Path/include",
             "$Path/misc",
-            
+
             $fullArchiveFile
         ) -Recurse -Force -ErrorAction Ignore
     }
