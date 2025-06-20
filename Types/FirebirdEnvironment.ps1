@@ -68,7 +68,6 @@ class FirebirdEnvironment {
         # Do not use Verbose messages here.
         $scope = 1
         while ($true) {
-            $err = $null
             try {
                 $contextEnvironment = Get-Variable -Name 'FirebirdEnvironment' -Scope $scope -ValueOnly -ErrorAction SilentlyContinue
                 if ($contextEnvironment) {
