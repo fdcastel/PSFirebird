@@ -32,24 +32,24 @@ Install-Module -Name PSFirebird
 
 ### Command summary
 
-| Command                                                    | Description                                        |
-|------------------------------------------------------------|-----------------------------------------------------------|
-| [New-FirebirdEnvironment](#new-firebirdenvironment)        | Download and set up a Firebird environment.               |
-| [Get-FirebirdEnvironment](#get-firebirdenvironment)        | Get information about a Firebird environment.             |
-| [Use-FirebirdEnvironment](#use-firebirdenvironment)        | Set the default Firebird environment for a given context. |
-| | |
-| [New-FirebirdDatabase](#new-firebirddatabase)              | Create a new Firebird database.                   |
-| [Get-FirebirdDatabase](#get-firebirddatabase)              | Get information about a Firebird database.        |
-| [Read-FirebirdDatabase](#read-firebirddatabase)            | Read detailed info from a Firebird database.      |
-| [Invoke-FirebirdIsql](#invoke-firebirdisql)                | Execute SQL statements using Firebird `isql`.       |
-| | |
-| [Read-FirebirdConfiguration](#read-firebirdconfiguration)  | Read settings from a Firebird configuration file.        |
-| [Write-FirebirdConfiguration](#write-firebirdconfiguration)| Update settings in a Firebird configuration file.        |
-| | |
-| [Backup-FirebirdDatabase](#backup-firebirddatabase)        | Create a backup file from a Firebird database. |
-| [Restore-FirebirdDatabase](#restore-firebirddatabase)      | Restore a Firebird database from a backup file.    |
-| [Convert-FirebirdDatabase](#convert-firebirddatabase)      | Perform backup and restore operations using streaming. |
-
+| Command                                                           | Description                                               |
+|-------------------------------------------------------------------|-----------------------------------------------------------|
+| _Environment commands_                                                                                                        |
+| &nbsp; [New-FirebirdEnvironment](#new-firebirdenvironment)        | Download and set up a Firebird environment.               |
+| &nbsp; [Get-FirebirdEnvironment](#get-firebirdenvironment)        | Get information about a Firebird environment.             |
+| &nbsp; [Use-FirebirdEnvironment](#use-firebirdenvironment)        | Set the default Firebird environment for a given context. |
+| _Database commands_                                                                                                           |
+| &nbsp; [New-FirebirdDatabase](#new-firebirddatabase)              | Create a new Firebird database.                           |
+| &nbsp; [Get-FirebirdDatabase](#get-firebirddatabase)              | Get information about a Firebird database.                |
+| &nbsp; [Read-FirebirdDatabase](#read-firebirddatabase)            | Read detailed info from a Firebird database.              |
+| &nbsp; [Invoke-FirebirdIsql](#invoke-firebirdisql)                | Execute SQL statements using Firebird `isql`.             |
+| _Configuration commands_                                                                                                      |
+| &nbsp; [Read-FirebirdConfiguration](#read-firebirdconfiguration)  | Read settings from a Firebird configuration file.         |
+| &nbsp; [Write-FirebirdConfiguration](#write-firebirdconfiguration)| Update settings in a Firebird configuration file.         |
+| _Backup and restore commands_                                                                                                 |
+| &nbsp; [Backup-FirebirdDatabase](#backup-firebirddatabase)        | Create a backup file from a Firebird database.            |
+| &nbsp; [Restore-FirebirdDatabase](#restore-firebirddatabase)      | Restore a Firebird database from a backup file.           |
+| &nbsp; [Convert-FirebirdDatabase](#convert-firebirddatabase)      | Perform backup and restore operations using streaming.    |
 
 
 
@@ -63,18 +63,25 @@ _Download and set up a Firebird environment._
 New-FirebirdEnvironment -Version <semver> [-Path <string>] [-RuntimeIdentifier <string>] [-Force] [<CommonParameters>]
 ```
 
-Downloads and extracts the specified Firebird version to a directory. 
+Downloads and extracts the specified Firebird version to a directory.
 
-If no path is given, a temporary directory is used. 
+Use `-Path` to indicate the target folder. If no path is given, a temporary directory is used.
 
 Use `-Force` to overwrite an existing environment.
 
+Note that most commands require an `-Environment` as argument. See [`Use-FirebirdEnvironment`](#use-firebirdenvironment) to avoid repetitions.
+
 ```powershell
-# Example: Download Firebird 5.0.2 to a custom path
-New-FirebirdEnvironment -Version '5.0.2' -Path '/opt/firebird-5.0.2' -Force
+# Example: Create a Firebird 5 database and query it
+$fb5 = New-FirebirdEnvironment -Version '5.0.2' -Path '/tmp/firebird5'
+Use-FirebirdEnvironment -Environment $fb5 {
+    $db5 = New-FirebirdDatabase -Database '/tmp/test.fdb' -Force
+    Read-FirebirdDatabase -Database $db5
+}
+
 ```
 
----
+
 
 ### Get-FirebirdEnvironment
 
@@ -88,10 +95,10 @@ Returns a `FirebirdEnvironment` object with details about the specified or curre
 
 ```powershell
 # Example: Get environment info for a specific path
-Get-FirebirdEnvironment -Path '/opt/firebird-5.0.2'
+Get-FirebirdEnvironment -Path '/tmp/firebird5'
 ```
 
----
+
 
 ### Use-FirebirdEnvironment
 
@@ -103,15 +110,17 @@ Use-FirebirdEnvironment -Environment <FirebirdEnvironment> -ScriptBlock <scriptb
 
 Temporarily sets the default Firebird environment for all commands executed within the provided script block.
 
+You can pass the environment as pipeline input. However, due to a limitation in PowerShell's parameter binding with pipeline inputs, you must explicitly specify the `-ScriptBlock` argument in this case.
+
 ```powershell
 # Example: Use a specific environment for a set of commands
-Use-FirebirdEnvironment -Environment $fbEnv -ScriptBlock {
-    New-FirebirdDatabase -Database 'test.fdb'
-    Backup-FirebirdDatabase -Database 'test.fdb' -BackupFilePath 'backup.fbk'
+$fb5 | Use-FirebirdEnvironment -ScriptBlock {
+    New-FirebirdDatabase -Database '/tmp/test.fdb'  # No -Environment needed here
+    Backup-FirebirdDatabase -Database '/tmp/test.fdb' -BackupFilePath '/tmp/backup.fbk'
 }
 ```
 
----
+
 
 ## Database commands
 
@@ -123,14 +132,20 @@ _Create a new Firebird database._
 New-FirebirdDatabase -Database <string> [-User <string>] [-Password <string>] [-PageSize <int>] [-Charset <string>] [-Environment <FirebirdEnvironment>] [-Force] [<CommonParameters>]
 ```
 
-Creates a new Firebird database file. Use `-Force` to overwrite an existing file. You can specify user, password, page size, and charset.
+Creates a new Firebird database file. You can specify the following database options:
+- `-User` (default: `SYSDBA`)
+- `-Password` (default: `masterkey`)
+- `-PageSize` (default: `8192`)
+- `-Charset`  (default: `UTF8`)
+
+Use `-Force` ⚠️ to overwrite an existing database. 
 
 ```powershell
 # Example: Create a new database with custom options
-New-FirebirdDatabase -Database '/data/newdb.fdb' -User 'SYSDBA' -Password 'masterkey' -PageSize 8192 -Charset 'UTF8'
+New-FirebirdDatabase -Database '/tmp/newdb.fdb'
 ```
 
----
+
 
 ### Get-FirebirdDatabase
 
@@ -144,10 +159,10 @@ Returns a `FirebirdDatabase` object with details such as environment, page size,
 
 ```powershell
 # Example: Get database info
-Get-FirebirdDatabase -Path '/data/mydb.fdb'
+Get-FirebirdDatabase -Path '/tmp/mydb.fdb'
 ```
 
----
+
 
 ### Read-FirebirdDatabase
 
@@ -161,10 +176,10 @@ Reads and returns properties from `MON$DATABASE` and `RDB$DATABASE` for the spec
 
 ```powershell
 # Example: Read database properties
-Read-FirebirdDatabase -Database '/data/mydb.fdb'
+Read-FirebirdDatabase -Database '/tmp/mydb.fdb'
 ```
 
----
+
 
 ### Invoke-FirebirdIsql
 
@@ -178,13 +193,13 @@ Executes SQL statements against a Firebird database using the `isql` utility. Ac
 
 ```powershell
 # Example: Run a SQL query
-Invoke-FirebirdIsql -Database '/data/mydb.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
+Invoke-FirebirdIsql -Database '/tmp/mydb.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
 
 # Example: Using pipeline input
-'SELECT COUNT(*) FROM MY_TABLE;' | Invoke-FirebirdIsql -Database '/data/mydb.fdb'
+'SELECT COUNT(*) FROM MY_TABLE;' | Invoke-FirebirdIsql -Database '/tmp/mydb.fdb'
 ```
 
----
+
 
 ## Configuration commands
 
@@ -203,7 +218,7 @@ Reads all active (non-commented) configuration entries from a Firebird config fi
 Read-FirebirdConfiguration -Path '/opt/firebird/firebird.conf'
 ```
 
----
+
 
 ### Write-FirebirdConfiguration
 
@@ -257,7 +272,7 @@ By default, all backups are created as *non-transportable*, resulting in approxi
 
 ```powershell
 # Example: Create a transportable backup.
-Backup-FirebirdDatabase -Database '/data/mydb.fdb' -BackupFile '/backups/mydb.fbk' -Transportable
+Backup-FirebirdDatabase -Database '/tmp/mydb.fdb' -BackupFile '/backups/mydb.fbk' -Transportable
 ```
 
 
@@ -281,7 +296,7 @@ The database must not already exist. Use the `-Force` ⚠️ option to overwrite
 
 ```powershell
 # Example: restore a Firebird database from backup.
-Restore-FirebirdDatabase -BackupFile '/backups/mydb.fbk' -Database '/data/mydb.restored.fdb'
+Restore-FirebirdDatabase -BackupFile '/backups/mydb.fbk' -Database '/tmp/mydb.restored.fdb'
 ```
 
 
@@ -305,10 +320,10 @@ The target database must not already exist. Use the `-Force` ⚠️ option to ov
 $fb3 = New-FirebirdEnvironment -Version '3.0.12'
 $fb5 = New-FirebirdEnvironment -Version '5.0.2'
 
-Convert-FirebirdDatabase -SourceDatabase '/data/mydb3.fdb' `
+Convert-FirebirdDatabase -SourceDatabase '/tmp/mydb3.fdb' `
                          -SourceEnvironment $fb3 `
-                         -TargetDatabase '/data/mydb5.fdb' `
-                         -TargetEnvironment $fb4
+                         -TargetDatabase '/tmp/mydb5.fdb' `
+                         -TargetEnvironment $fb5
 ```
 
 
