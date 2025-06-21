@@ -14,10 +14,8 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
 
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
-
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
-        $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -PageSize 4096 -Environment $TestEnvironment
-        $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.fbk"
+        $script:TestDatabasePath = "$RootFolder/$FirebirdVersion-tests.fdb"
 
         # Set up the environment variables for Firebird
         $env:ISC_USER = 'SYSDBA'
@@ -29,8 +27,36 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
         Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
     }
 
-    It 'Can read database information' {
-        $info = Read-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
+    BeforeEach {
+        # Ensure the test database does not exist before each test
+        if (Test-Path $TestDatabasePath) {
+            Remove-Item -Path $TestDatabasePath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'Create database with default parameters' {
+        $TestDatabasePath | Should -Not -Exist
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
+        $testDatabase.Environment | Should -Be $TestEnvironment
+        $testDatabase.Path | Should -Be $TestDatabasePath
+        $testDatabase.Path | Should -Exist
+    }
+
+    It 'Create database with context environment' {
+        Use-FirebirdEnvironment -Environment $TestEnvironment {
+            $TestDatabasePath | Should -Not -Exist
+            $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath 
+            $testDatabase.Path | Should -Be $TestDatabasePath
+            $testDatabase.Path | Should -Exist
+        }
+    }
+
+    It 'Read database information' {
+        $TestDatabasePath | Should -Not -Exist
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -PageSize 4096 -Environment $TestEnvironment
+        $TestDatabasePath | Should -Exist
+
+        $info = Read-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment
         $info.Environment | Should -BeOfType FirebirdEnvironment
         $info.Database | Should -Be $TestDatabase
         $info['MON$PAGE_SIZE'] | Should -Be 4096
