@@ -27,6 +27,7 @@
         'Get-FirebirdEnvironment',
 
         'Invoke-FirebirdIsql',
+        'Lock-FirebirdDatabase'
 
         'New-FirebirdDatabase',
         'New-FirebirdEnvironment',
@@ -37,6 +38,8 @@
         'Restore-FirebirdDatabase',
 
         'Use-FirebirdEnvironment',
+
+        'Unlock-FirebirdDatabase',
         
         'Write-FirebirdConfiguration'
     )

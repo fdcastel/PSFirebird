@@ -31,36 +31,33 @@ class FirebirdEnvironment {
     }
 
     # Return isql location
-    [System.Management.Automation.PathInfo] GetIsqlPath() { 
-        $isqlPath = if ($global:IsWindows) { 
-            Join-Path $this.Path 'isql.exe'
-        } else {
-            Join-Path $this.Path 'bin/isql'
-        }
-
-        return Resolve-Path $isqlPath
+    [System.Management.Automation.PathInfo] GetIsqlPath() {
+        return $this.GetFirebirdToolPath('isql')
     }
 
     # Return gstat location
-    [System.Management.Automation.PathInfo] GetGstatPath() { 
-        $gstatPath = if ($global:IsWindows) { 
-            Join-Path $this.Path 'gstat.exe'
-        } else {
-            Join-Path $this.Path 'bin/gstat'
-        }
-
-        return Resolve-Path $gstatPath
+    [System.Management.Automation.PathInfo] GetGstatPath() {
+        return $this.GetFirebirdToolPath('gstat')
     }
 
     # Return gbak location
-    [System.Management.Automation.PathInfo] GetGbakPath() { 
-        $gbakPath = if ($global:IsWindows) { 
-            Join-Path $this.Path 'gbak.exe'
-        } else {
-            Join-Path $this.Path 'bin/gbak'
-        }
+    [System.Management.Automation.PathInfo] GetGbakPath() {
+        return $this.GetFirebirdToolPath('gbak')
+    }
 
-        return Resolve-Path $gbakPath
+    # Return nbackup location
+    [System.Management.Automation.PathInfo] GetNbackupPath() {
+        return $this.GetFirebirdToolPath('nbackup')
+    }
+
+    # Private helper to get tool path
+    hidden [System.Management.Automation.PathInfo] GetFirebirdToolPath([string]$tool) {
+        $toolPath = if ($global:IsWindows) {
+            Join-Path $this.Path ("$tool.exe")
+        } else {
+            Join-Path $this.Path ("bin/$tool")
+        }
+        return Resolve-Path $toolPath
     }
 
     # Return the current context environment (set by Use-FirebirdEnvironment). Used as a default value for parameters.

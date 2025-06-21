@@ -17,6 +17,7 @@ Describe 'Backup' -ForEach $FirebirdVersions {
 
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
         $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
+
         $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.fbk"
 
         # Set up the environment variables for Firebird

@@ -50,6 +50,8 @@ Install-Module -Name PSFirebird
 | &nbsp; [Backup-FirebirdDatabase](#backup-firebirddatabase)        | Create a backup file from a Firebird database.            |
 | &nbsp; [Restore-FirebirdDatabase](#restore-firebirddatabase)      | Restore a Firebird database from a backup file.           |
 | &nbsp; [Convert-FirebirdDatabase](#convert-firebirddatabase)      | Perform backup and restore operations using streaming.    |
+| &nbsp; [Lock-FirebirdDatabase](#lock-firebirddatabase)            | Lock a database for filesystem copy.                      |
+| &nbsp; [Unlock-FirebirdDatabase](#unlock-firebirddatabase)        | Unlock a database after filesystem copy.                  |
 
 
 
@@ -138,7 +140,7 @@ Creates a new Firebird database file. You can specify the following database opt
 - `-PageSize` (default: `8192`)
 - `-Charset`  (default: `UTF8`)
 
-Use `-Force` ⚠️ to overwrite an existing database. 
+Use `-Force` ⚠️ to overwrite an existing database.
 
 ```powershell
 # Example: Create a new database with custom options
@@ -270,6 +272,8 @@ The backup file must not already exist. Use the `-Force` option to overwrite it 
 
 By default, all backups are created as *non-transportable*, resulting in approximately 5% faster performance. Use the `-Transportable` option if you plan to restore the database on a different system.
 
+Any extra arguments provided to this cmdlet will be forwarded to the `gbak` command.
+
 ```powershell
 # Example: Create a transportable backup.
 Backup-FirebirdDatabase -Database '/tmp/mydb.fdb' -BackupFile '/backups/mydb.fbk' -Transportable
@@ -292,7 +296,7 @@ The `-AsCommandLine` option outputs a `gbak` command line equivalent for the sam
 
 The database must not already exist. Use the `-Force` ⚠️ option to overwrite it if necessary.
 
-
+Any extra arguments provided to this cmdlet will be forwarded to the `gbak` command.
 
 ```powershell
 # Example: restore a Firebird database from backup.
@@ -324,6 +328,46 @@ Convert-FirebirdDatabase -SourceDatabase '/tmp/mydb3.fdb' `
                          -SourceEnvironment $fb3 `
                          -TargetDatabase '/tmp/mydb5.fdb' `
                          -TargetEnvironment $fb5
+```
+
+
+
+### Lock-FirebirdDatabase
+
+_Lock a database for filesystem copy._
+
+```
+Lock-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-RemainingArguments <Object>] [<CommonParameters>]
+```
+
+Locks a Firebird database for safe filesystem-level copying.
+
+Any extra arguments provided to this cmdlet will be forwarded to the `nbackup` command.
+
+```powershell
+# Example: Lock a database for copy
+Lock-FirebirdDatabase -Database '/tmp/mydb.fdb' -Environment $fb5
+```
+
+
+
+### Unlock-FirebirdDatabase
+
+_Unlock a database after filesystem copy._
+
+```
+Unlock-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-RemainingArguments <Object>] [<CommonParameters>]
+```
+
+Unlocks a Firebird database after a filesystem-level copy.
+
+If the database is missing a `.delta` file, it will attempt to fix it using the `nbackup` `-fixup` option.
+
+Any extra arguments provided to this cmdlet will be forwarded to the `nbackup` command.
+
+```powershell
+# Example: Unlock a database after copy
+Unlock-FirebirdDatabase -Database '/tmp/mydb.fdb' -Environment $fb5
 ```
 
 

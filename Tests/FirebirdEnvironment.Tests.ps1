@@ -14,6 +14,7 @@ Describe 'FirebirdEnvironment' -ForEach $FirebirdVersions {
 
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
+
         $script:TestEnvironmentPath = Join-Path $RootFolder $FirebirdVersion
     }
         

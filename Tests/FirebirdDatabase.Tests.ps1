@@ -14,6 +14,7 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
 
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
+
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
         $script:TestDatabasePath = "$RootFolder/$FirebirdVersion-tests.fdb"
 
@@ -21,7 +22,7 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
         $env:ISC_USER = 'SYSDBA'
         $env:ISC_PASSWORD = 'masterkey'
     }
-        
+
     AfterAll {
         # Remove the test folder
         Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
@@ -45,7 +46,7 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
     It 'Create database with context environment' {
         Use-FirebirdEnvironment -Environment $TestEnvironment {
             $TestDatabasePath | Should -Not -Exist
-            $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath 
+            $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath
             $testDatabase.Path | Should -Be $TestDatabasePath
             $testDatabase.Path | Should -Exist
         }
@@ -60,5 +61,50 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
         $info.Environment | Should -BeOfType FirebirdEnvironment
         $info.Database | Should -Be $TestDatabase
         $info['MON$PAGE_SIZE'] | Should -Be 4096
+    }
+
+    It 'Lock database' {
+        $TestDatabasePath | Should -Not -Exist
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
+        $TestDatabasePath | Should -Exist
+
+        $TestDatabase.IsLocked() | Should -BeFalse
+        Lock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
+        $TestDatabase.IsLocked() | Should -BeTrue
+
+        { Lock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment } | Should -Throw 'Database is already locked for backup.'
+    }
+
+
+    It 'Unlock database' {
+        $TestDatabasePath | Should -Not -Exist
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
+        $TestDatabasePath | Should -Exist
+
+        Lock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
+        $TestDatabase.IsLocked() | Should -BeTrue
+
+        Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
+        $TestDatabase.IsLocked() | Should -BeFalse
+
+        { Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment } | Should -Throw 'Database is not locked for backup.'
+    }
+
+    It 'Unlock fixes missing .delta file' {
+        $TestDatabasePath | Should -Not -Exist
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
+        $TestDatabasePath | Should -Exist
+
+        Lock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
+        $TestDatabase.IsLocked() | Should -BeTrue
+
+        # Simulate missing .delta file by removing it
+        $deltaFile = "$($TestDatabasePath).delta"
+        Remove-Item -Path $deltaFile -Force
+
+        Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
+        $TestDatabase.IsLocked() | Should -BeFalse
+
+        { Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment } | Should -Throw 'Database is not locked for backup.'
     }
 }
