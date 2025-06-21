@@ -65,7 +65,7 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
     # Determine the target database for the restore.
     if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
         if (-not $Database) {
-            throw 'When using the pipeline as input, you must specify a -Database to restore to.'
+            throw 'When using -AsCommandLine, you must specify a -Database to restore to.'
         }
         $BackupFilePath = 'stdin'
     } else {

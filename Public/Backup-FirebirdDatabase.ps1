@@ -61,7 +61,7 @@ function Backup-FirebirdDatabase {
         [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
         [FirebirdDatabase]$Database,
 
-        [Parameter(Position = 1, Mandatory, ParameterSetName = 'BackupFilePath')]
+        [Parameter(Position = 1, ParameterSetName = 'BackupFilePath')]
         [string]$BackupFilePath,
 
         [Parameter(Mandatory, ParameterSetName = 'AsCommandLine')]
@@ -85,7 +85,7 @@ function Backup-FirebirdDatabase {
     } else {
         # If no file path is specified, derive it from the database path.
         if (-not $BackupFilePath) {
-            $BackupFilePath = [Io.Path]::ChangeExtension($Database.Path, '.gbk')
+            $BackupFilePath = [Io.Path]::ChangeExtension($Database.Path, '.fbk')
         }
 
         # Force deletion of existing file if specified.

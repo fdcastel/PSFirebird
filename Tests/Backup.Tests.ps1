@@ -17,7 +17,7 @@ Describe 'Backup' -ForEach $FirebirdVersions {
 
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
         $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
-        $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.gbk"
+        $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.fbk"
 
         # Set up the environment variables for Firebird
         $env:ISC_USER = 'SYSDBA'
@@ -63,6 +63,12 @@ Describe 'Backup' -ForEach $FirebirdVersions {
     It 'Backup a database with pipeline input' {
         $TestBackupFile | Should -Not -Exist
         $TestDatabase | Backup-FirebirdDatabase -BackupFilePath $TestBackupFile -Environment $TestEnvironment
+        $TestBackupFile | Should -Exist
+    }
+
+    It 'Backup a database with no backup file specified' {
+        $TestBackupFile | Should -Not -Exist
+        $TestDatabase | Backup-FirebirdDatabase -Environment $TestEnvironment
         $TestBackupFile | Should -Exist
     }
 

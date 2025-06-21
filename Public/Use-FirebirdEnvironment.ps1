@@ -11,7 +11,7 @@ function Use-FirebirdEnvironment {
     .EXAMPLE
         Use-FirebirdEnvironment -Environment $fbEnv {
             New-FirebirdDatabase -Database 'test.fdb'
-            Backup-FirebirdDatabase -Database 'test.fdb' -BackupFilePath 'backup.gbk'
+            Backup-FirebirdDatabase -Database 'test.fdb' -BackupFilePath 'backup.fbk'
         }
 
         Executes the commands using the specified environment context.

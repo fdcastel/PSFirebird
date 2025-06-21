@@ -17,7 +17,7 @@ Describe 'Restore' -ForEach $FirebirdVersions {
 
         $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
         $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
-        $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.gbk"
+        $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.fbk"
         $script:TestDatabaseRestored = "$RootFolder/$FirebirdVersion-tests.restored.fdb"
 
         # Create a backup file to restore from
