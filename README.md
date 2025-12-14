@@ -6,7 +6,7 @@ A PowerShell module for managing Firebird database environments, databases, and 
 
 ### Features
 
-- Download and run multiple Firebird embedded environments without installation.
+- Download and run multiple Firebird environments without installation.
 - Create and inspect Firebird databases.
 - Run SQL scripts and queries using Firebird's `isql` utility.
 - Backup and restore Firebird databases.
@@ -43,6 +43,10 @@ Install-Module -Name PSFirebird
 | &nbsp; [Get-FirebirdDatabase](#get-firebirddatabase)              | Get information about a Firebird database.                |
 | &nbsp; [Read-FirebirdDatabase](#read-firebirddatabase)            | Read detailed info from a Firebird database.              |
 | &nbsp; [Invoke-FirebirdIsql](#invoke-firebirdisql)                | Execute SQL statements using Firebird `isql`.             |
+| _Instance commands_                                                                                                           |
+| &nbsp; [Start-FirebirdInstance](#start-firebirdinstance)          | Start a Firebird server process.                          |
+| &nbsp; [Get-FirebirdInstance](#get-firebirdinstance)              | Get information about running Firebird server processes.  |
+| &nbsp; [Stop-FirebirdInstance](#stop-firebirdinstance)            | Stop a running Firebird server process.                   |
 | _Configuration commands_                                                                                                      |
 | &nbsp; [Read-FirebirdConfiguration](#read-firebirdconfiguration)  | Read settings from a Firebird configuration file.         |
 | &nbsp; [Write-FirebirdConfiguration](#write-firebirdconfiguration)| Update settings in a Firebird configuration file.         |
@@ -120,6 +124,69 @@ $fb5 | Use-FirebirdEnvironment -ScriptBlock {
     New-FirebirdDatabase -Database '/tmp/test.fdb'  # No -Environment needed here
     Backup-FirebirdDatabase -Database '/tmp/test.fdb' -BackupFilePath '/tmp/backup.fbk'
 }
+```
+
+
+
+## Instance commands
+
+### Start-FirebirdInstance
+
+_Start a Firebird server process._
+
+```
+Start-FirebirdInstance [-Port <int>] [-Environment <FirebirdEnvironment>] [<CommonParameters>]
+```
+
+Launches a Firebird server process from the specified environment and returns a `FirebirdInstance` object. The server runs on the specified port (default: 3050).
+
+```powershell
+# Example: Start a Firebird server on custom port
+$fb5 = New-FirebirdEnvironment -Version '5.0.2'
+$instance = Start-FirebirdInstance -Port 3051 -Environment $fb5
+```
+
+
+
+### Get-FirebirdInstance
+
+_Get information about running Firebird server processes._
+
+```
+Get-FirebirdInstance [<CommonParameters>]
+```
+
+Returns information about all running Firebird processes including process ID, path, version, command line, start time, and port number.
+
+```powershell
+# Example: List all running Firebird instances
+Get-FirebirdInstance
+
+# Example: Find instances on a specific port
+Get-FirebirdInstance | Where-Object { $_.Port -eq 3051 }
+```
+
+
+
+### Stop-FirebirdInstance
+
+_Stop a running Firebird server process._
+
+```
+Stop-FirebirdInstance -Id <int> [<CommonParameters>]
+```
+
+Terminates a Firebird server process by process ID. Can accept pipeline input from `Get-FirebirdInstance` or any object with an `Id` property.
+
+```powershell
+# Example: Stop a specific Firebird instance
+Stop-FirebirdInstance -Id 1234
+
+# Example: Stop all running Firebird instances
+Get-FirebirdInstance | Stop-FirebirdInstance
+
+# Example: Stop instances on a specific port
+Get-FirebirdInstance | Where-Object { $_.Port -eq 3051 } | Stop-FirebirdInstance
 ```
 
 

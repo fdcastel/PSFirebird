@@ -22,7 +22,7 @@ function New-FirebirdDatabase {
         New-FirebirdDatabase -Database '/tmp/test.fdb' -Force
         Creates a new database at the specified path, overwriting if it exists.
     .OUTPUTS
-        FirebirdDatabase object with Environment, Database, PageSize, and ODSVersion properties.
+        FirebirdDatabase object with Environment and database connection properties.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
@@ -45,16 +45,25 @@ function New-FirebirdDatabase {
 
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
-    if (Test-Path -Path $Database.Path -PathType Leaf) {
+    if ($Database.Host) {
+        # Remote database or local over xnet
         if ($Force) {
-            if ($PSCmdlet.ShouldProcess($Database.Path, 'Remove existing database file')) {
-                Write-VerboseMark -Message "Database file '$($Database.Path)' already exists and -Force specified. Removing database file..."
-                Remove-Item -Path $Database.Path -Force
+            throw "Cannot use -Force with remote databases or xnet protocol."
+        }
+    } else {
+        # Local database connection
+        if (Test-Path -Path $Database.Path -PathType Leaf) {
+            if ($Force) {
+                if ($PSCmdlet.ShouldProcess($Database.Path, 'Remove existing database file')) {
+                    Write-VerboseMark -Message "Database file '$($Database.Path)' already exists and -Force specified. Removing database file..."
+                    Remove-Item -Path $Database.Path -Force
+                }
+            } else {
+                throw "Database file '$($Database.Path)' already exists. Use -Force to overwrite."
             }
-        } else {
-            throw "Database file '$($Database.Path)' already exists. Use -Force to overwrite."
         }
     }
+
 
     if ($PSCmdlet.ShouldProcess($Database.Path, 'Create new Firebird database')) {
         $createDbCmd = @"
@@ -78,7 +87,6 @@ CREATE DATABASE '$($Database.Path)'
 
     # Return the database information as a FirebirdDatabase class instance.
     [FirebirdDatabase]::new(@{
-            Environment = $Environment
             Path        = $Database.Path
 
             PageSize    = $PageSize

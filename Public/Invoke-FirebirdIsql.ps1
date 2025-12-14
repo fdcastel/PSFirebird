@@ -36,10 +36,11 @@ function Invoke-FirebirdIsql {
 
     $isql = $Environment.GetIsqlPath()
 
-    Write-VerboseMark -Message "Piping Sql into: $isql $($RemainingArguments -join ' ') $($Database.Path)"
+    $connectionString = $Database.ConnectionString()
+    Write-VerboseMark -Message "Piping Sql into: $isql $($RemainingArguments -join ' ') $connectionString"
 
     $result = Invoke-ExternalCommand {
-        $Sql | & $isql @RemainingArguments $Database.Path
+        $Sql | & $isql @RemainingArguments $connectionString
     } -Passthru -ErrorMessage "Error running isql."    
 
     return $result.StdOut

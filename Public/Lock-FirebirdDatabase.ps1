@@ -11,7 +11,7 @@ function Lock-FirebirdDatabase {
     .PARAMETER RemainingArguments
         Additional arguments to pass to the nbackup tool.
     .EXAMPLE
-        Lock-FirebirdDatabase -Database $db -Environment $env
+        Lock-FirebirdDatabase -Database $db -Environment $fbEnv
     #>
     [CmdletBinding()]
     param(

@@ -32,11 +32,11 @@ Describe 'FirebirdEnvironment' -ForEach $FirebirdVersions {
 
     It 'Create a FirebirdEnvironment of the given version' {
         $TestEnvironmentPath | Should -Not -Exist
-        $env = New-FirebirdEnvironment -Version $FirebirdVersion -Path $TestEnvironmentPath
-        $env | Should -BeOfType FirebirdEnvironment
+        $fbEnv = New-FirebirdEnvironment -Version $FirebirdVersion -Path $TestEnvironmentPath
+        $fbEnv | Should -BeOfType FirebirdEnvironment
         $TestEnvironmentPath | Should -Exist
 
-        $v = $env.Version
+        $v = $fbEnv.Version
         [semver]::new($v.Major, $v.Minor, $v.Build) | Should -Be $FirebirdVersion
     }
 }

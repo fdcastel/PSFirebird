@@ -15,7 +15,7 @@ function Get-FirebirdDatabase {
         Get-FirebirdDatabase -Database '/tmp/test.fdb'
         Returns details for the database at '/tmp/test.fdb' using the current environment.
     .OUTPUTS
-        FirebirdDatabase object with Environment, Database, PageSize, and ODSVersion properties.
+        FirebirdDatabase object with Environment and database connection properties.
     #>
 
     [CmdletBinding()]
@@ -53,7 +53,6 @@ function Get-FirebirdDatabase {
 
     # Return the database information as a FirebirdDatabase class instance.
     [FirebirdDatabase]::new(@{
-            Environment  = $Environment
             Path = $Path
 
             PageSize     = $PageSize

@@ -30,6 +30,11 @@ class FirebirdEnvironment {
         return "Firebird $($this.Version) at $($this.Path)"
     }
 
+    # Return Firebird executable location
+    [System.Management.Automation.PathInfo] GetServerPath() {
+        return $this.GetFirebirdToolPath('firebird')
+    }
+
     # Return isql location
     [System.Management.Automation.PathInfo] GetIsqlPath() {
         return $this.GetFirebirdToolPath('isql')

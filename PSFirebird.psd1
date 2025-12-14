@@ -25,6 +25,7 @@
         
         'Get-FirebirdDatabase',
         'Get-FirebirdEnvironment',
+        'Get-FirebirdInstance',
 
         'Invoke-FirebirdIsql',
         'Lock-FirebirdDatabase'
@@ -36,6 +37,9 @@
         'Read-FirebirdDatabase',
 
         'Restore-FirebirdDatabase',
+
+        'Start-FirebirdInstance',
+        'Stop-FirebirdInstance',
 
         'Use-FirebirdEnvironment',
 

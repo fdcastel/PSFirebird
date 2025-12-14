@@ -5,6 +5,7 @@ $ErrorActionPreference = 'Stop'
 # Import types in dependency order
 $TypeFiles = @(
     'FirebirdEnvironment.ps1',
+    'FirebirdInstance.ps1',
     'FirebirdDatabase.ps1'
 )
 foreach ($TypeFile in $TypeFiles) {

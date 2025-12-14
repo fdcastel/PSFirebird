@@ -1,10 +1,13 @@
+. "$PSScriptRoot/../Private/Split-FirebirdConnectionString.ps1"
+
 class FirebirdDatabase {
     # Class properties
-    [FirebirdEnvironment] $Environment
+    [string] $Host
+    [int] $Port
     [string] $Path
 
-    [int]$PageSize
-    [version]$ODSVersion
+    [int] $PageSize
+    [version] $ODSVersion
 
     # Default constructor
     FirebirdDatabase() {
@@ -12,13 +15,14 @@ class FirebirdDatabase {
     }
 
     # String constructor for implicit type conversion
-    FirebirdDatabase([string]$Path) {
-        $this.Init(@{ Path = $Path })
+    FirebirdDatabase([string]$connectionString) {
+        $sp = Split-FirebirdConnectionString -ConnectionString $connectionString
+        $this.Init(@{ Host = $sp.Host; Port = [int]$sp.Port; Path = $sp.Path })
     }
 
     # Convenience constructor from hashtable
-    FirebirdDatabase([hashtable]$Properties) { 
-        $this.Init($Properties) 
+    FirebirdDatabase([hashtable]$Properties) {
+        $this.Init($Properties)
     }
 
     # Shared initializer method
@@ -30,14 +34,22 @@ class FirebirdDatabase {
 
     # Return a string representation of the class
     [string] ToString() {
-        return "Firebird Database $($this.ODSVersion) at $($this.Path)"
+        $connectionString = $this.ConnectionString()
+        if ($this.Host) {
+            return "Remote Firebird Database at $connectionString"
+        } else {
+            return "Local Firebird Database at $connectionString (ODS $($this.ODSVersion))"
+        }
     }
 
-    # Return if the database is locked
-    [bool] IsLocked() {
-        $gstat = $this.Environment.GetGstatPath()
-        return Invoke-ExternalCommand { & $gstat -h $this.Path } -Passthru |
-            Select-Object -ExpandProperty StdOut |
-                Select-String -Pattern '^\s+Attributes\s+(.*)(backup lock)' -Quiet
+    # Return a string representation of the class
+    [string] ConnectionString() {
+        if ($this.Host) {
+            if ($this.Port) {
+                return "$($this.Host)/$($this.Port):$($this.Path)"
+            }
+            return "$($this.Host):$($this.Path)"
+        }
+        return $this.Path
     }
 }

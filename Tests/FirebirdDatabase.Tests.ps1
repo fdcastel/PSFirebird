@@ -8,6 +8,17 @@ BeforeDiscovery {
     )
 }
 
+BeforeAll {
+    # Helper function to check if a database is locked
+    function Get-FirebirdDatabaseLocked(
+        [FirebirdDatabase]$Database,
+        [FirebirdEnvironment]$Environment
+    ) {
+        $info = Read-FirebirdDatabase -Database $Database -Environment $Environment
+        return $info['MON$BACKUP_STATE'] -ne 0
+    }
+}
+
 Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
     BeforeAll {
         $script:FirebirdVersion = $_
@@ -38,7 +49,6 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
     It 'Create database with default parameters' {
         $TestDatabasePath | Should -Not -Exist
         $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
-        $testDatabase.Environment | Should -Be $TestEnvironment
         $testDatabase.Path | Should -Be $TestDatabasePath
         $testDatabase.Path | Should -Exist
     }
@@ -68,9 +78,9 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
         $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
         $TestDatabasePath | Should -Exist
 
-        $TestDatabase.IsLocked() | Should -BeFalse
+        Get-FirebirdDatabaseLocked -Database $TestDatabase -Environment $TestEnvironment | Should -BeFalse
         Lock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
-        $TestDatabase.IsLocked() | Should -BeTrue
+        Get-FirebirdDatabaseLocked -Database $TestDatabase -Environment $TestEnvironment | Should -BeTrue
 
         { Lock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment } | Should -Throw 'Database is already locked for backup.'
     }
@@ -81,11 +91,12 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
         $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
         $TestDatabasePath | Should -Exist
 
+        
         Lock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
-        $TestDatabase.IsLocked() | Should -BeTrue
+        Get-FirebirdDatabaseLocked -Database $TestDatabase -Environment $TestEnvironment | Should -BeTrue
 
         Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
-        $TestDatabase.IsLocked() | Should -BeFalse
+        Get-FirebirdDatabaseLocked -Database $TestDatabase -Environment $TestEnvironment | Should -BeFalse
 
         { Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment } | Should -Throw 'Database is not locked for backup.'
     }
@@ -96,14 +107,14 @@ Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
         $TestDatabasePath | Should -Exist
 
         Lock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
-        $TestDatabase.IsLocked() | Should -BeTrue
+        Get-FirebirdDatabaseLocked -Database $TestDatabase -Environment $TestEnvironment | Should -BeTrue
 
         # Simulate missing .delta file by removing it
         $deltaFile = "$($TestDatabasePath).delta"
         Remove-Item -Path $deltaFile -Force
 
         Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment
-        $TestDatabase.IsLocked() | Should -BeFalse
+        Get-FirebirdDatabaseLocked -Database $TestDatabase -Environment $TestEnvironment | Should -BeFalse
 
         { Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment } | Should -Throw 'Database is not locked for backup.'
     }
