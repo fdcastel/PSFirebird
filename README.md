@@ -118,12 +118,18 @@ Temporarily sets the default Firebird environment for all commands executed with
 
 You can pass the environment as pipeline input. However, due to a limitation in PowerShell's parameter binding with pipeline inputs, you must explicitly specify the `-ScriptBlock` argument in this case.
 
+**Alternatively**, you can set the `FIREBIRD_ENVIRONMENT` environment variable to a Firebird installation path. This will be used as a fallback when no context environment is available and no `-Environment` parameter is provided.
+
 ```powershell
 # Example: Use a specific environment for a set of commands
 $fb5 | Use-FirebirdEnvironment -ScriptBlock {
     New-FirebirdDatabase -Database '/tmp/test.fdb'  # No -Environment needed here
     Backup-FirebirdDatabase -Database '/tmp/test.fdb' -BackupFilePath '/tmp/backup.fbk'
 }
+
+# Example: Set a default environment using an environment variable
+$env:FIREBIRD_ENVIRONMENT = '/tmp/firebird5'
+New-FirebirdDatabase -Database '/tmp/test.fdb'  # Uses the environment from $env:FIREBIRD_ENVIRONMENT
 ```
 
 

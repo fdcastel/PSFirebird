@@ -85,7 +85,14 @@ class FirebirdEnvironment {
             }
         }
 
+        # Try to get environment from FIREBIRD_ENVIRONMENT environment variable
+        $envPath = [System.Environment]::GetEnvironmentVariable('FIREBIRD_ENVIRONMENT')
+        if ($envPath) {
+            Write-Verbose "Using Firebird environment from FIREBIRD_ENVIRONMENT: $($envPath)"
+            return [FirebirdEnvironment]::new($envPath)
+        }
+
         # If no environment found, throw an error
-        throw 'No Firebird environment available. Use -Environment parameter or Use-FirebirdEnvironment to set one.'
+        throw 'No Firebird environment available. Use -Environment parameter, Use-FirebirdEnvironment, or set FIREBIRD_ENVIRONMENT environment variable.'
     }
 }
