@@ -16,6 +16,7 @@ function Lock-FirebirdDatabase {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory, Position = 0)]
+        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
         [FirebirdDatabase]$Database,
 
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
@@ -23,10 +24,6 @@ function Lock-FirebirdDatabase {
         [Parameter(ValueFromRemainingArguments)]
         $RemainingArguments
     )
-
-    if (-not (Test-Path $Database.Path)) {
-        throw "Database file '$($Database.Path)' does not exist."
-    }
 
     $nbackup = $Environment.GetNbackupPath()
     $nbackupArgs = @($RemainingArguments) + @('-lock', $Database.Path)

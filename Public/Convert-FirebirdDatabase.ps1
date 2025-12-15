@@ -42,6 +42,7 @@ function Convert-FirebirdDatabase {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
+        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
         [FirebirdDatabase]$SourceDatabase,
 
         [FirebirdDatabase]$TargetDatabase,
