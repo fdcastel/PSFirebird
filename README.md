@@ -26,6 +26,18 @@ Run the following command to install this package using [PowerShellGet](https://
 Install-Module -Name PSFirebird
 ```
 
+### Using in GitHub Actions
+
+A complete example of using PSFirebird in a CI/CD workflow is available in [.github/workflows/example.yml](.github/workflows/example.yml).
+
+This workflow demonstrates:
+- Installing PSFirebird from the PowerShell Gallery
+- Creating a Firebird environment for testing
+- Creating and configuring databases
+- Running SQL queries
+
+The example runs on both Windows and Linux platforms using a matrix build strategy.
+
 
 
 # Usage

@@ -1,0 +1,83 @@
+name: PSFirebird Usage Example
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-psfirebird:
+    name: Test PSFirebird on ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - os: Windows x64
+            runner: windows-latest
+            shell: pwsh
+          - os: Linux x64
+            runner: ubuntu-22.04    ## ubuntu 24.04 doesn't have a package for libncurses5
+            shell: pwsh
+    
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    
+    steps:
+      - name: Install PSFirebird from PowerShell Gallery
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PowerShellGet -Force -AllowClobber -Scope CurrentUser -ErrorAction Continue
+          
+          Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser -ForceBootstrap -ErrorAction Continue
+          Install-Module -Name PSFirebird -Force -AllowClobber -Scope CurrentUser -Repository PSGallery
+      
+      - name: Set temporary folder path
+        run: |
+          if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+            $tempPath = $env:TEMP
+          } else {
+            $tempPath = '/tmp'
+          }
+          $fbPath = Join-Path $tempPath 'fb50'
+          Write-Output "FB_PATH=$fbPath" >> $env:GITHUB_ENV
+          Write-Output "Firebird environment will be created at: $fbPath"
+      
+      - name: Create Firebird Environment
+        run: |
+          Write-Output "Creating Firebird Environment at $env:FB_PATH"
+          $fbEnv = New-FirebirdEnvironment -Path $env:FB_PATH -Version '5.0.3'
+          Write-Output $fbEnv
+          $global:LASTEXITCODE = 0
+      
+      - name: Create test database
+        run: |
+          $dbDir = Join-Path $env:FB_PATH 'db'
+          New-Item -ItemType Directory -Path $dbDir -Force | Out-Null
+          $dbPath = Join-Path $dbDir 'test.fb50.fdb'
+          Write-Output "Creating database at $dbPath"
+          New-FirebirdDatabase -Database $dbPath -Environment $env:FB_PATH
+          $global:LASTEXITCODE = 0
+      
+      - name: Configure DatabaseAccess restriction
+        run: |
+          $dbDir = Join-Path $env:FB_PATH 'db'
+          $confPath = Join-Path $env:FB_PATH 'firebird.conf'
+          Write-Output "Restricting DatabaseAccess to $dbDir"
+          Write-FirebirdConfiguration -Path $confPath -Configuration @{ 'DatabaseAccess' = "Restrict $dbDir" }
+          $global:LASTEXITCODE = 0
+      
+      - name: Run simple query
+        run: |
+          $dbPath = Join-Path $env:FB_PATH 'db/test.fb50.fdb'
+          Write-Output "Running query on database: $dbPath"
+          $result = Invoke-FirebirdIsql -Database $dbPath -Environment $env:FB_PATH -Sql 'SELECT 1 FROM rdb$database;'
+          Write-Output "Query result:"
+          Write-Output $result
+          
+          # Check if we got output (even if format varies by platform)
+          if ($result) {
+            Write-Output "✓ Query executed successfully!"
+            $global:LASTEXITCODE = 0
+          } else {
+            Write-Error "Query did not return any result"
+            exit 1
+          }
