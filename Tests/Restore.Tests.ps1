@@ -71,6 +71,16 @@ Describe 'Restore' -Tag 'Integration' -ForEach $FirebirdVersions {
         $TestDatabaseRestored | Should -Exist
     }
 
+    It 'Restored database has same ODS version as source' {
+        $TestDatabaseRestored | Should -Not -Exist
+        Restore-FirebirdDatabase -BackupFilePath $TestBackupFile -Database $TestDatabaseRestored -Environment $TestEnvironment
+        $TestDatabaseRestored | Should -Exist
+
+        $sourceODS = (Get-FirebirdDatabase -Path $TestDatabase.Path -Environment $TestEnvironment).ODSVersion
+        $restoredODS = (Get-FirebirdDatabase -Path $TestDatabaseRestored -Environment $TestEnvironment).ODSVersion
+        $restoredODS.Major | Should -Be $sourceODS.Major -Because 'restored database should have same ODS major version as source'
+    }
+
     It 'Return a command-line string for a streamed restore' {
         $TestDatabaseRestored | Should -Not -Exist
         $gbakArgs = Restore-FirebirdDatabase -AsCommandLine -Database $TestDatabaseRestored -Environment $TestEnvironment
