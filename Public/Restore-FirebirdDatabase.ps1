@@ -43,6 +43,7 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
     [CmdletBinding()]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'BackupFilePath')]
+        [Alias('BackupFile')]
         [string]$BackupFilePath,
 
         [Parameter(Mandatory, ParameterSetName = 'AsCommandLine')]

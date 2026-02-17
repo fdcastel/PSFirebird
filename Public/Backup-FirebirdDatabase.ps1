@@ -62,6 +62,7 @@ function Backup-FirebirdDatabase {
         [FirebirdDatabase]$Database,
 
         [Parameter(Position = 1, ParameterSetName = 'BackupFilePath')]
+        [Alias('BackupFile')]
         [string]$BackupFilePath,
 
         [Parameter(Mandatory, ParameterSetName = 'AsCommandLine')]

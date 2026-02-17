@@ -9,10 +9,10 @@ function Get-FirebirdDatabase {
     .PARAMETER Environment
         The Firebird environment to use. Defaults to the current environment if not specified.
     .EXAMPLE
-        Get-FirebirdDatabase -Database '/tmp/test.fdb' -Environment $fbEnv
+        Get-FirebirdDatabase -Path '/tmp/test.fdb' -Environment $fbEnv
         Returns details for the database at '/tmp/test.fdb' using the specified environment.
     .EXAMPLE
-        Get-FirebirdDatabase -Database '/tmp/test.fdb'
+        Get-FirebirdDatabase -Path '/tmp/test.fdb'
         Returns details for the database at '/tmp/test.fdb' using the current environment.
     .OUTPUTS
         FirebirdDatabase object with Environment and database connection properties.
