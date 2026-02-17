@@ -3,7 +3,7 @@
 class FirebirdDatabase {
     # Class properties
     [string] $Host
-    [int] $Port
+    [int] $Port     # 0 means not specified (PS classes don't support Nullable[int])
     [string] $Path
 
     [int] $PageSize
