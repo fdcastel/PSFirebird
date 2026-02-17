@@ -38,6 +38,8 @@
 
         'Remove-FirebirdDatabase',
 
+        'Remove-FirebirdEnvironment',
+
         'Restore-FirebirdDatabase',
 
         'Start-FirebirdInstance',
