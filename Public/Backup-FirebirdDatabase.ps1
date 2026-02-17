@@ -113,7 +113,7 @@ function Backup-FirebirdDatabase {
         '-statistics', 'T'
         $Database.Path
         $BackupFilePath
-    )
+    ) | Where-Object { $_ }
 
     if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
         Write-VerboseMark -Message "Returning: $gbakArgs"

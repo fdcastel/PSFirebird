@@ -49,17 +49,17 @@ Describe 'FirebirdInstance' -ForEach $FirebirdVersions {
             $testInstance.Process.HasExited | Should -BeFalse
 
             # Verify embedded connection
-            'SET LIST ON; SELECT mon$remote_protocol FROM mon$attachments WHERE mon$attachment_id = CURRENT_CONNECTION;' | 
-                Invoke-FirebirdIsql -Database $TestDatabase -Environment $TestEnvironment | 
-                    Select-Object -Skip 2 -First 1 | 
-                        Should -Match 'MON\$REMOTE_PROTOCOL\s+<null>'
+            $embeddedResult = 'SET LIST ON; SELECT mon$remote_protocol FROM mon$attachments WHERE mon$attachment_id = CURRENT_CONNECTION;' | 
+                Invoke-FirebirdIsql -Database $TestDatabase -Environment $TestEnvironment
+            $embeddedResult | Where-Object { $_ -match 'MON\$REMOTE_PROTOCOL' } |
+                Should -Match 'MON\$REMOTE_PROTOCOL\s+<null>'
 
             # Verify instance connection
             $instanceTestDatabase = "localhost/$($Port):$($TestDatabase.Path)"
-            'SET LIST ON; SELECT mon$remote_protocol FROM mon$attachments WHERE mon$attachment_id = CURRENT_CONNECTION;' | 
-                Invoke-FirebirdIsql -Database $instanceTestDatabase -Environment $TestEnvironment | 
-                    Select-Object -Skip 2 -First 1 | 
-                        Should -Match 'MON\$REMOTE_PROTOCOL\s+TCP.*'
+            $instanceResult = 'SET LIST ON; SELECT mon$remote_protocol FROM mon$attachments WHERE mon$attachment_id = CURRENT_CONNECTION;' | 
+                Invoke-FirebirdIsql -Database $instanceTestDatabase -Environment $TestEnvironment
+            $instanceResult | Where-Object { $_ -match 'MON\$REMOTE_PROTOCOL' } |
+                Should -Match 'MON\$REMOTE_PROTOCOL\s+TCP.*'
         } finally {
             $testInstance.Process | Stop-Process
         }
