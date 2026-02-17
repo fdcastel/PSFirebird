@@ -45,6 +45,8 @@
         'Start-FirebirdInstance',
         'Stop-FirebirdInstance',
 
+        'Test-FirebirdDatabase',
+
         'Use-FirebirdEnvironment',
 
         'Unlock-FirebirdDatabase',
