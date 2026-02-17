@@ -1,6 +1,6 @@
 # PSFirebird
 
-<img src="docs/PSFirebird-logo.png" alt="PSFirebird Logo" width="180" align="right" />
+<img src="docs/PSFirebird-logo-256.png" alt="PSFirebird Logo" width="180" align="right" />
 
 A PowerShell module for managing Firebird database environments, databases, and utilities on Windows and Linux.
 

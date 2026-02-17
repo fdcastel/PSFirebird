@@ -71,7 +71,7 @@
             ProjectUri   = 'https://github.com/fdcastel/PSFirebird'
 
             # A URL to an icon representing this module.
-            IconUri      = 'https://github.com/fdcastel/PSFirebird/blob/master/docs/PSFirebird-logo.png'
+            IconUri      = 'https://cdn.jsdelivr.net/gh/fdcastel/PSFirebird@master/docs/PSFirebird-logo-256.png'
 
             # ReleaseNotes of this module
             ReleaseNotes = 'https://github.com/fdcastel/PSFirebird/releases'
