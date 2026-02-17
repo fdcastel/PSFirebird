@@ -118,4 +118,54 @@ Describe 'FirebirdDatabase' -Tag 'Integration' -ForEach $FirebirdVersions {
 
         { Unlock-FirebirdDatabase -Database $TestDatabase -Environment $TestEnvironment } | Should -Throw 'Database is not locked for backup.'
     }
+
+    It 'Test a valid database returns true' {
+        $TestDatabasePath | Should -Not -Exist
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
+        $TestDatabasePath | Should -Exist
+
+        Test-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment | Should -BeTrue
+    }
+
+    It 'Test a non-existent database returns false' {
+        $fakePath = "$RootFolder/nonexistent-$FirebirdVersion.fdb"
+        $fakePath | Should -Not -Exist
+
+        $fakeDb = [FirebirdDatabase]::new($fakePath)
+        Test-FirebirdDatabase -Database $fakeDb -Environment $TestEnvironment | Should -BeFalse
+    }
+
+    It 'Test an invalid file returns false' {
+        $invalidPath = "$RootFolder/invalid-$FirebirdVersion.fdb"
+        $invalidPath | Should -Not -Exist
+
+        # Create a file with random content (not a valid database)
+        Set-Content -Path $invalidPath -Value 'this is not a database'
+        $invalidPath | Should -Exist
+
+        $invalidDb = [FirebirdDatabase]::new($invalidPath)
+        Test-FirebirdDatabase -Database $invalidDb -Environment $TestEnvironment | Should -BeFalse
+    }
+
+    It 'Remove a database with -Force' {
+        $TestDatabasePath | Should -Not -Exist
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
+        $TestDatabasePath | Should -Exist
+
+        Remove-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment -Force
+        $TestDatabasePath | Should -Not -Exist
+    }
+
+    It 'Remove a locked database throws' {
+        $TestDatabasePath | Should -Not -Exist
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
+        $TestDatabasePath | Should -Exist
+
+        Lock-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment
+
+        { Remove-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment -Force } | Should -Throw '*locked for backup*'
+
+        # Clean up: unlock so AfterAll can remove the folder
+        Unlock-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment
+    }
 }
