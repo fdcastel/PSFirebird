@@ -21,7 +21,7 @@ function Get-FirebirdDatabase {
     [CmdletBinding()]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
-        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
+        [ValidateScript({ Test-Path $_ }, ErrorMessage = 'The Database must exist.')]
         [string]$Path,
 
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()
@@ -33,7 +33,7 @@ function Get-FirebirdDatabase {
     Write-VerboseMark -Message "Checking database at '$($Path)'."
 
     $gstatResult = Invoke-ExternalCommand {
-        $query | & $gstat -h $Path
+        & $gstat -h $Path
     } -Passthru
 
     # Parse gstat output. Discard first 5 lines, stop at ODS Version.
