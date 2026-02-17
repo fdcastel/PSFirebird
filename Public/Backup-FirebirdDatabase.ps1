@@ -104,13 +104,14 @@ function Backup-FirebirdDatabase {
     #   https://firebirdsql.org/file/documentation/html/en/firebirddocs/gbak/firebird-gbak.html#gbak-backup-speedup
 
     $gbak = $Environment.GetGbakPath()
-    $gbakArgs = $($RemainingArguments) + @(
-        '-backup_database',
-        '-g',
-        ((-not $Transportable) ? '-nt' : $null),
-        '-verify',
-        '-statistics', 'T',
-        $Database.Path,
+    $gbakArgs = @(
+        $RemainingArguments
+        '-backup_database'
+        '-g'
+        if (-not $Transportable) { '-nt' }
+        '-verify'
+        '-statistics', 'T'
+        $Database.Path
         $BackupFilePath
     )
 
