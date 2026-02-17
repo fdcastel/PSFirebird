@@ -19,7 +19,7 @@ BeforeAll {
     }
 }
 
-Describe 'FirebirdDatabase' -ForEach $FirebirdVersions {
+Describe 'FirebirdDatabase' -Tag 'Integration' -ForEach $FirebirdVersions {
     BeforeAll {
         $script:FirebirdVersion = $_
 

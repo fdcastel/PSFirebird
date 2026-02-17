@@ -8,7 +8,7 @@ BeforeDiscovery {
     )
 }
 
-Describe 'Convert' {
+Describe 'Convert' -Tag 'Integration' {
     BeforeAll {
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)

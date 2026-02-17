@@ -1,6 +1,6 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
-Describe 'GitHub releases' {
+Describe 'GitHub releases' -Tag 'Unit' {
     InModuleScope 'PSFirebird' {
         BeforeEach {
             Mock Invoke-RestMethod {

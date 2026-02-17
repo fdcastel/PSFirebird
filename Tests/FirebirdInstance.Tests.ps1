@@ -8,7 +8,7 @@ BeforeDiscovery {
     )
 }
 
-Describe 'FirebirdInstance' -ForEach $FirebirdVersions {
+Describe 'FirebirdInstance' -Tag 'Integration' -ForEach $FirebirdVersions {
     BeforeAll {
         $script:FirebirdVersion = $_
 

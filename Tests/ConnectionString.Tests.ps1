@@ -1,6 +1,6 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
-Describe 'Split-FirebirdConnectionString' {
+Describe 'Split-FirebirdConnectionString' -Tag 'Unit' {
     InModuleScope 'PSFirebird' {
 
         # Source: https://firebirdsql.org/file/documentation/html/en/firebirddocs/qsg5/firebird-5-quickstartguide.html#qsg5-databases-connstrings
