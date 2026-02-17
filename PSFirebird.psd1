@@ -36,6 +36,8 @@
         'Read-FirebirdConfiguration',
         'Read-FirebirdDatabase',
 
+        'Remove-FirebirdDatabase',
+
         'Restore-FirebirdDatabase',
 
         'Start-FirebirdInstance',
