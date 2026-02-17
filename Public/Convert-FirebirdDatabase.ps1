@@ -72,7 +72,7 @@ function Convert-FirebirdDatabase {
     $backupArgs = Backup-FirebirdDatabase -Database $SourceDatabase -AsCommandLine -Environment $SourceEnvironment
 
     $restoreCmd = $TargetEnvironment.GetGbakPath()
-    $restoreArgs = Restore-FirebirdDatabase -AsCommandLine -Database $TargetDatabase -Environment $SourceEnvironment -Force:$Force
+    $restoreArgs = Restore-FirebirdDatabase -AsCommandLine -Database $TargetDatabase -Environment $TargetEnvironment -Force:$Force
 
     & $backupCmd $backupArgs | & $restoreCmd $restoreArgs
 }

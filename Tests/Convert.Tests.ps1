@@ -59,4 +59,38 @@ Describe 'Convert' {
             $e.DatabaseRestored | Should -Exist
         }
     }
+
+    It 'Convert a database across versions produces correct ODS' {
+        # Convert from the lowest to the highest Firebird version
+        $sortedKeys = $testEnvironments.Keys | Sort-Object
+        $sourceKey = $sortedKeys | Select-Object -First 1
+        $targetKey = $sortedKeys | Select-Object -Last 1
+
+        if ($sourceKey -eq $targetKey) {
+            Set-ItResult -Skipped -Because 'Only one Firebird version available'
+            return
+        }
+
+        $source = $testEnvironments[$sourceKey]
+        $target = $testEnvironments[$targetKey]
+
+        # Get the expected ODS major version from a database created natively with the target environment
+        $expectedBytes = Get-Content -Path $target.Database.Path -AsByteStream -TotalCount 20
+        $expectedODSMajor = [BitConverter]::ToUInt16($expectedBytes, 0x12) -band 0x7FFF
+
+        $convertedPath = "$RootFolder/converted-$($sourceKey)-to-$($targetKey).fdb"
+        $convertedPath | Should -Not -Exist
+
+        Convert-FirebirdDatabase -SourceDatabase $source.Database `
+                                 -SourceEnvironment $source.Environment `
+                                 -TargetDatabase $convertedPath `
+                                 -TargetEnvironment $target.Environment
+
+        $convertedPath | Should -Exist
+
+        # Verify the converted database has the ODS major version of the target environment
+        $convertedBytes = Get-Content -Path $convertedPath -AsByteStream -TotalCount 20
+        $convertedODSMajor = [BitConverter]::ToUInt16($convertedBytes, 0x12) -band 0x7FFF
+        $convertedODSMajor | Should -Be $expectedODSMajor -Because "converted database should have ODS major version from target environment (FB$($targetKey))"
+    }
 }
