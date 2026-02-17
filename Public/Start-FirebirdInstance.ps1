@@ -13,6 +13,7 @@ function Start-FirebirdInstance {
         Starts the Firebird server on port 3051 from the specified environment.
     #>
     [CmdletBinding()]
+    [OutputType([FirebirdInstance])]
     param(
         [int]$Port = 3050,
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()

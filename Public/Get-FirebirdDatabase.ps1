@@ -22,6 +22,7 @@ function Get-FirebirdDatabase {
     #>
 
     [CmdletBinding()]
+    [OutputType([FirebirdDatabase])]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateScript({ Test-Path $_ }, ErrorMessage = 'The Database must exist.')]

@@ -22,6 +22,7 @@ function New-FirebirdEnvironment {
         FirebirdEnvironment object with Path and Version properties.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
+    [OutputType([FirebirdEnvironment])]
     Param(
         [Parameter(Mandatory)]
         [semver]$Version,

@@ -18,6 +18,7 @@
 #>
 function Read-FirebirdDatabase {
     [CmdletBinding()]
+    [OutputType([hashtable])]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [FirebirdDatabase]$Database,

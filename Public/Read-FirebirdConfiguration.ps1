@@ -18,6 +18,7 @@ function Read-FirebirdConfiguration {
     Returns all active configuration entries from the specified file as a hashtable.
     #>
     [CmdletBinding()]
+    [OutputType([hashtable])]
     param(
         [Parameter(Mandatory)]
         [string]$Path

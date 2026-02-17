@@ -14,6 +14,7 @@ function Get-FirebirdEnvironment {
     #>
 
     [CmdletBinding()]
+    [OutputType([FirebirdEnvironment])]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [ValidateScript({ Test-Path $_ }, ErrorMessage = 'Path must be a valid path.')]

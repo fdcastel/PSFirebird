@@ -30,6 +30,7 @@ function New-FirebirdDatabase {
         FirebirdDatabase object with Environment and database connection properties.
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
+    [OutputType([FirebirdDatabase])]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [FirebirdDatabase]$Database,
