@@ -37,6 +37,8 @@ function Read-FirebirdConfiguration {
                 $value = $Matches[2]
                 $config[$key] = $value
             }
+        } else {
+            Write-VerboseMark -Message "Skipping line: $line"
         }
     }
     return $config

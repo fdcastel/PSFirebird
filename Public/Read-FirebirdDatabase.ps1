@@ -41,6 +41,7 @@ function Read-FirebirdDatabase {
         if ($line -match '^(\S+)\s+(.*)$') {
             $key = $Matches[1]
             $value = $Matches[2].Trim()
+            Write-VerboseMark -Message "Parsed: $key = $value"
             $result[$key] = $value
         }
     }

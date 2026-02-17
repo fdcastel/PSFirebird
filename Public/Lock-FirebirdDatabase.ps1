@@ -33,6 +33,7 @@ function Lock-FirebirdDatabase {
         Invoke-ExternalCommand { & $nbackup @nbackupArgs } -Passthru
     } catch {
         if ($_.Exception.Message -match 'Database is already in the physical backup mode') {
+            Write-VerboseMark -Message 'Database is already in physical backup mode.'
             throw 'Database is already locked for backup.'
         }
 

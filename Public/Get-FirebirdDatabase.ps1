@@ -43,10 +43,12 @@ function Get-FirebirdDatabase {
     foreach ($line in $lines) {
         if ($line -match '^\s+Page size\s+(\d+)') {
             $pageSize = [int]$Matches[1].Trim()
+            Write-VerboseMark -Message "Parsed Page size: $pageSize"
         }
 
         if ($line -match '^\s+ODS Version\s+([\d]+.[\d]+)') {
             $odsVersion = [version]$Matches[1].Trim()
+            Write-VerboseMark -Message "Parsed ODS Version: $odsVersion"
             break; # Stop processing further lines
         }
     }

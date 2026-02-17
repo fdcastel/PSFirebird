@@ -25,6 +25,7 @@ function Split-FirebirdConnectionString {
 
     # XNET: xnet://<path-or-alias>
     if ($proto -eq 'xnet') {
+        Write-VerboseMark -Message "Parsed XNET connection: Path='$cs'"
         return [PSCustomObject]@{
             Protocol = $proto
             Host = $null
@@ -35,6 +36,7 @@ function Split-FirebirdConnectionString {
 
     # Accept local absolute paths (Windows or Linux) before legacy host/path
     if ($cs -match '^(?:[a-zA-Z]:[\\/]|/).+') {
+        Write-VerboseMark -Message "Parsed local path connection: Path='$cs'"
         return [PSCustomObject]@{
             Protocol = $null
             Host = $null
@@ -46,6 +48,7 @@ function Split-FirebirdConnectionString {
     # INET: inet[4|6]://[host[:port]/]path-or-alias
     if ($proto -like 'inet*') {
         if ($cs -match '^(\[(?<host>[^\]]+)\]|(?<host>[^:/]+))(:?(?<port>[^/]+))?/(?<path>.+)$') {
+            Write-VerboseMark -Message "Parsed INET connection: Host='$($matches['host'])', Port='$($matches['port'])', Path='$($matches['path'])'"
             return [PSCustomObject]@{
                 Protocol = $proto
                 Host = $matches['host']
@@ -57,6 +60,7 @@ function Split-FirebirdConnectionString {
 
     # Legacy: <host>[/port]:<path-or-alias>
     if ($cs -match '^(\[(?<host>[^\]]+)\]|(?<host>[^:/]+))(?:/(?<port>[^:]+))?:(?<path>.+)$') {
+        Write-VerboseMark -Message "Parsed legacy connection: Host='$($matches['host'])', Port='$($matches['port'])', Path='$($matches['path'])'"
         return [PSCustomObject]@{
             Protocol = 'inet' # Default to inet for legacy format
             Host = $matches['host']

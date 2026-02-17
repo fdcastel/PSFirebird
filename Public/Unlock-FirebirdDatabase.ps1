@@ -36,6 +36,7 @@ function Unlock-FirebirdDatabase {
     } catch {
         if ($_.Exception.Message -match 'I/O error during(.*)\.delta') {
             # Database is missing .delta file. Call nbackup with -fixup to fix it.
+            Write-VerboseMark -Message "Missing .delta file detected. Calling nbackup -fixup."
 
             $nbackupArgs = @($RemainingArguments) + @('-fixup', $Database.Path)
             Invoke-ExternalCommand { & $nbackup @nbackupArgs }
@@ -43,6 +44,7 @@ function Unlock-FirebirdDatabase {
         }
         
         if ($_.Exception.Message -match 'Database is not in the physical backup mode') {
+            Write-VerboseMark -Message 'Database is not in physical backup mode.'
             throw 'Database is not locked for backup.'
         }
 

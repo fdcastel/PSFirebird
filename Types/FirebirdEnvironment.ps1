@@ -74,6 +74,7 @@ class FirebirdEnvironment {
                 $contextEnvironment = Get-Variable -Name 'FirebirdEnvironment' -Scope $scope -ValueOnly -ErrorAction SilentlyContinue
                 if ($contextEnvironment) {
                     # Found a FirebirdEnvironment in the current scope
+                    Write-Verbose "Found FirebirdEnvironment at scope $($scope): $($contextEnvironment)"
                     return $contextEnvironment
                 }
                 $scope++

@@ -102,14 +102,17 @@ function New-FirebirdEnvironment {
     if ($PSCmdlet.ShouldProcess($archiveFile, 'Extracting archive')) {
         Write-VerboseMark -Message "Extracting archive '$archiveFile'..."
         if ($IsWindows) {
+            Write-VerboseMark -Message 'Extracting Windows archive...'
             Expand-Archive -Path $fullArchiveFile -DestinationPath $Path
         } elseif ($IsLinux) {
             if ($rid.Contains('linux-arm64') -and ($Version.Major -lt 5)) {
                 # For Firebird 4.0 and earlier, the ARM64 archive has a different structure (no 'buildroot.tar.gz').
+                Write-VerboseMark -Message 'Extracting Linux ARM64 archive (pre-5.x structure)...'
                 Invoke-ExternalCommand {
                     & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
                 } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
             } else {
+                Write-VerboseMark -Message 'Extracting Linux archive with buildroot...'
                 Invoke-ExternalCommand {
                     & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
                 } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
@@ -142,10 +145,13 @@ function New-FirebirdEnvironment {
             $content = $content -replace '#IpcName = FIREBIRD', "IpcName = $ipcName"
             Set-Content -Path $firebirdConfPath -Value $content -Encoding Ascii
         }
+    } else {
+        Write-VerboseMark -Message 'Skipping IpcName configuration (not Windows).'
     }
 
     # Linux-only: Download additional packages and extract it to the `lib` directory.
     if ($IsLinux) {
+        Write-VerboseMark -Message 'Downloading additional Linux packages...'
         $libPath = Join-Path $Path 'lib'
 
         Invoke-AptDownloadAndExtract -PackageName 'libtommath1' `
@@ -154,6 +160,7 @@ function New-FirebirdEnvironment {
 
         # For FB3, we also need to download libncurses5
         if ($Version -ge [semver]3) {
+            Write-VerboseMark -Message 'Downloading libncurses5 and libtinfo5 for Firebird 3+...'
             Invoke-AptDownloadAndExtract -PackageName 'libncurses5' `
                 -SourcePattern './lib/*/*' `
                 -TargetFolder $libPath
@@ -165,6 +172,7 @@ function New-FirebirdEnvironment {
 
         # Fix libtommath for FB3 and FB4 -- https://github.com/FirebirdSQL/firebird/issues/5716#issuecomment-826239174
         if ($Version -lt [semver]5) {
+            Write-VerboseMark -Message 'Applying libtommath symlink fix for Firebird < 5...'
             if ($PSCmdlet.ShouldProcess("$libPath/libtommath.so.1", 'Creating symlink for libtommath.so.0...')) {
                 Write-VerboseMark -Message 'Creating symlink for libtommath.so.0...'
                 ln -sf "$libPath/libtommath.so.1" "$libPath/libtommath.so.0"
