@@ -6,6 +6,8 @@ function New-FirebirdDatabase {
         Generates a new Firebird database file with the given options and returns its details.
     .PARAMETER Database
         Full path and file name including its extension. Must not exist unless -Force is used.
+    .PARAMETER Credential
+        PSCredential for the database owner. Takes precedence over -User and -Password if specified.
     .PARAMETER User
         Username of the owner of the new database. Defaults to 'SYSDBA'.
     .PARAMETER Password
@@ -21,6 +23,9 @@ function New-FirebirdDatabase {
     .EXAMPLE
         New-FirebirdDatabase -Database '/tmp/test.fdb' -Force
         Creates a new database at the specified path, overwriting if it exists.
+    .EXAMPLE
+        New-FirebirdDatabase -Database '/tmp/test.fdb' -Credential (Get-Credential)
+        Creates a new database using a PSCredential object.
     .OUTPUTS
         FirebirdDatabase object with Environment and database connection properties.
     #>
@@ -28,6 +33,8 @@ function New-FirebirdDatabase {
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
         [FirebirdDatabase]$Database,
+
+        [PSCredential]$Credential,
 
         [string]$User = 'SYSDBA',
 
@@ -44,6 +51,13 @@ function New-FirebirdDatabase {
     )
 
     Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+
+    # If Credential is specified, extract User and Password from it
+    if ($Credential) {
+        $User = $Credential.UserName
+        $Password = $Credential.GetNetworkCredential().Password
+        Write-VerboseMark -Message "Using credentials from -Credential parameter for user '$User'."
+    }
 
     if ($Database.Host) {
         # Remote database or local over xnet
