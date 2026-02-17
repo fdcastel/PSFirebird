@@ -7,11 +7,12 @@ A PowerShell module for managing Firebird database environments, databases, and 
 ### Features
 
 - Download and run multiple Firebird environments without installation.
-- Create and inspect Firebird databases.
+- Create, inspect, and remove Firebird databases.
 - Run SQL scripts and queries using Firebird's `isql` utility.
 - Backup and restore Firebird databases.
 - Convert databases between Firebird versions using high-speed backup/restore streaming.
 - Read and write Firebird configuration files.
+- Test database validity for health checks and CI/CD pipelines.
 
 ### Requirements
 
@@ -49,10 +50,13 @@ The example runs on both Windows and Linux platforms using a matrix build strate
 | _Environment commands_                                                                                                        |
 | &nbsp; [New-FirebirdEnvironment](#new-firebirdenvironment)        | Download and set up a Firebird environment.               |
 | &nbsp; [Get-FirebirdEnvironment](#get-firebirdenvironment)        | Get information about a Firebird environment.             |
+| &nbsp; [Remove-FirebirdEnvironment](#remove-firebirdenvironment)  | Remove a Firebird environment directory.                  |
 | &nbsp; [Use-FirebirdEnvironment](#use-firebirdenvironment)        | Set the default Firebird environment for a given context. |
 | _Database commands_                                                                                                           |
 | &nbsp; [New-FirebirdDatabase](#new-firebirddatabase)              | Create a new Firebird database.                           |
 | &nbsp; [Get-FirebirdDatabase](#get-firebirddatabase)              | Get information about a Firebird database.                |
+| &nbsp; [Test-FirebirdDatabase](#test-firebirddatabase)            | Test if a Firebird database is valid and accessible.      |
+| &nbsp; [Remove-FirebirdDatabase](#remove-firebirddatabase)        | Safely remove a Firebird database file.                   |
 | &nbsp; [Read-FirebirdDatabase](#read-firebirddatabase)            | Read detailed info from a Firebird database.              |
 | &nbsp; [Invoke-FirebirdIsql](#invoke-firebirdisql)                | Execute SQL statements using Firebird `isql`.             |
 | _Instance commands_                                                                                                           |
@@ -114,6 +118,25 @@ Returns a `FirebirdEnvironment` object with details about the specified or curre
 ```powershell
 # Example: Get environment info for a specific path
 Get-FirebirdEnvironment -Path '/tmp/firebird5'
+```
+
+
+
+### Remove-FirebirdEnvironment
+
+_Remove a Firebird environment directory._
+
+```
+Remove-FirebirdEnvironment [-Path] <string> [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+Removes a previously created Firebird environment directory after verifying it contains a valid Firebird installation (checks for the `gstat` binary).
+
+Use `-Force` to suppress confirmation prompts.
+
+```powershell
+# Example: Remove a Firebird environment
+Remove-FirebirdEnvironment -Path '/tmp/firebird-5.0.2' -Force
 ```
 
 
@@ -216,10 +239,11 @@ Get-FirebirdInstance | Where-Object { $_.Port -eq 3051 } | Stop-FirebirdInstance
 _Create a new Firebird database._
 
 ```
-New-FirebirdDatabase -Database <string> [-User <string>] [-Password <string>] [-PageSize <int>] [-Charset <string>] [-Environment <FirebirdEnvironment>] [-Force] [<CommonParameters>]
+New-FirebirdDatabase -Database <string> [-Credential <PSCredential>] [-User <string>] [-Password <string>] [-PageSize <int>] [-Charset <string>] [-Environment <FirebirdEnvironment>] [-Force] [<CommonParameters>]
 ```
 
 Creates a new Firebird database file. You can specify the following database options:
+- `-Credential` (a `PSCredential` object; overrides `-User` and `-Password` when specified)
 - `-User` (default: `SYSDBA`)
 - `-Password` (default: `masterkey`)
 - `-PageSize` (default: `8192`)
@@ -230,6 +254,9 @@ Use `-Force` ⚠️ to overwrite an existing database.
 ```powershell
 # Example: Create a new database with custom options
 New-FirebirdDatabase -Database '/tmp/newdb.fdb'
+
+# Example: Create a database using PSCredential
+New-FirebirdDatabase -Database '/tmp/newdb.fdb' -Credential (Get-Credential)
 ```
 
 
@@ -239,14 +266,57 @@ New-FirebirdDatabase -Database '/tmp/newdb.fdb'
 _Get information about a Firebird database._
 
 ```
-Get-FirebirdDatabase -Path <string> [-Environment <FirebirdEnvironment>] [<CommonParameters>]
+Get-FirebirdDatabase [-Path] <string> [-Environment <FirebirdEnvironment>] [<CommonParameters>]
 ```
 
 Returns a `FirebirdDatabase` object with details such as environment, page size, and ODS version.
 
+Supports pipeline input from `Get-ChildItem` via the `FullName` property.
+
 ```powershell
 # Example: Get database info
 Get-FirebirdDatabase -Path '/tmp/mydb.fdb'
+
+# Example: Get info for all databases in a directory
+Get-ChildItem *.fdb | Get-FirebirdDatabase
+```
+
+
+
+### Test-FirebirdDatabase
+
+_Test if a Firebird database is valid and accessible._
+
+```
+Test-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [<CommonParameters>]
+```
+
+Checks if the specified database file exists and can be read by `gstat`. Returns `$true` if the database is valid and accessible, `$false` otherwise. Useful for CI/CD pipelines and health checks.
+
+```powershell
+# Example: Test a database
+if (Test-FirebirdDatabase -Database '/tmp/mydb.fdb') {
+    Write-Host 'Database is valid'
+}
+```
+
+
+
+### Remove-FirebirdDatabase
+
+_Safely remove a Firebird database file._
+
+```
+Remove-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+Removes a Firebird database file after verifying it is not locked for backup (no `.delta` file present).
+
+Use `-Force` to suppress confirmation prompts.
+
+```powershell
+# Example: Remove a database
+Remove-FirebirdDatabase -Database '/tmp/mydb.fdb' -Force
 ```
 
 
@@ -312,7 +382,7 @@ Read-FirebirdConfiguration -Path '/opt/firebird/firebird.conf'
 _Update settings in a Firebird configuration file._
 
 ```
-Write-FirebirdConfiguration -Path <string> -Configuration <hashtable> [<CommonParameters>]
+Write-FirebirdConfiguration -Path <string> -Configuration <hashtable> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 Updates, adds, or comments out configuration entries in the file based on the provided hashtable. Use `$null` as a value to comment out a key.
@@ -344,7 +414,7 @@ Always restore a backup to a _different_ database file. The `Restore-FirebirdDat
 _Create a backup file from a Firebird database._
 
 ```
-Backup-FirebirdDatabase [-Database] <FirebirdDatabase> [[-BackupFilePath] <String>] [-Environment <FirebirdEnvironment>] [-Force] [-Transportable] [-RemainingArguments <Object>] [<CommonParameters>]
+Backup-FirebirdDatabase [-Database] <FirebirdDatabase> [[-BackupFilePath] <String>] [-Environment <FirebirdEnvironment>] [-Force] [-Transportable] [-WhatIf] [-Confirm] [-RemainingArguments <Object>] [<CommonParameters>]
 Backup-FirebirdDatabase [-Database] <FirebirdDatabase> -AsCommandLine [-Environment <FirebirdEnvironment>] [-Force] [-Transportable] [-RemainingArguments <Object>] [<CommonParameters>]
 ```
 
@@ -371,7 +441,7 @@ Backup-FirebirdDatabase -Database '/tmp/mydb.fdb' -BackupFile '/backups/mydb.fbk
 _Restore a Firebird database from a backup file._
 
 ```
-Restore-FirebirdDatabase [-BackupFilePath] <string> [[-Database] <FirebirdDatabase>] [-Environment <FirebirdEnvironment>] [-Force] [-RemainingArguments <Object>] [<CommonParameters>]
+Restore-FirebirdDatabase [-BackupFilePath] <string> [[-Database] <FirebirdDatabase>] [-Environment <FirebirdEnvironment>] [-Force] [-WhatIf] [-Confirm] [-RemainingArguments <Object>] [<CommonParameters>]
 Restore-FirebirdDatabase -AsCommandLine -Database <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-Force] [-RemainingArguments <Object>] [<CommonParameters>]
 ```
 
@@ -395,7 +465,7 @@ Restore-FirebirdDatabase -BackupFile '/backups/mydb.fbk' -Database '/tmp/mydb.re
 _Perform backup and restore operations using streaming._
 
 ```
-Convert-FirebirdDatabase -SourceDatabase <string> -TargetDatabase <string> [-SourceEnvironment <FirebirdEnvironment>] [-TargetEnvironment <FirebirdEnvironment>] [-Force] [<CommonParameters>]
+Convert-FirebirdDatabase -SourceDatabase <string> -TargetDatabase <string> [-SourceEnvironment <FirebirdEnvironment>] [-TargetEnvironment <FirebirdEnvironment>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 Start two `gbak` instances (one to perform the backup and the other to restore) by piping the output of the first directly into the second. This enables a full backup/restore cycle without creating intermediate files.
@@ -422,7 +492,7 @@ Convert-FirebirdDatabase -SourceDatabase '/tmp/mydb3.fdb' `
 _Lock a database for filesystem copy._
 
 ```
-Lock-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-RemainingArguments <Object>] [<CommonParameters>]
+Lock-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-WhatIf] [-Confirm] [-RemainingArguments <Object>] [<CommonParameters>]
 ```
 
 Locks a Firebird database for safe filesystem-level copying.
@@ -441,7 +511,7 @@ Lock-FirebirdDatabase -Database '/tmp/mydb.fdb' -Environment $fb5
 _Unlock a database after filesystem copy._
 
 ```
-Unlock-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-RemainingArguments <Object>] [<CommonParameters>]
+Unlock-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-WhatIf] [-Confirm] [-RemainingArguments <Object>] [<CommonParameters>]
 ```
 
 Unlocks a Firebird database after a filesystem-level copy.
@@ -474,7 +544,14 @@ Unlock-FirebirdDatabase -Database '/tmp/mydb.fdb' -Environment $fb5
 Run the included Pester (v5+) tests:
 
 ```powershell
+# Run all tests
 Invoke-Pester
+
+# Run only fast unit tests (no network or Firebird downloads)
+Invoke-Pester -Tag 'Unit'
+
+# Run only integration tests (requires network access)
+Invoke-Pester -Tag 'Integration'
 ```
 
 
