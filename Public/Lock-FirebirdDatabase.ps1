@@ -13,7 +13,7 @@ function Lock-FirebirdDatabase {
     .EXAMPLE
         Lock-FirebirdDatabase -Database $db -Environment $fbEnv
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory, Position = 0)]
         [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
@@ -29,14 +29,16 @@ function Lock-FirebirdDatabase {
     $nbackupArgs = @($RemainingArguments) + @('-lock', $Database.Path)
 
     Write-VerboseMark -Message "Calling: $nbackup $nbackupArgs"
-    try {
-        Invoke-ExternalCommand { & $nbackup @nbackupArgs } -Passthru
-    } catch {
-        if ($_.Exception.Message -match 'Database is already in the physical backup mode') {
-            Write-VerboseMark -Message 'Database is already in physical backup mode.'
-            throw 'Database is already locked for backup.'
-        }
+    if ($PSCmdlet.ShouldProcess($Database.Path, 'Lock Firebird database for backup')) {
+        try {
+            Invoke-ExternalCommand { & $nbackup @nbackupArgs } -Passthru
+        } catch {
+            if ($_.Exception.Message -match 'Database is already in the physical backup mode') {
+                Write-VerboseMark -Message 'Database is already in physical backup mode.'
+                throw 'Database is already locked for backup.'
+            }
 
-        throw
+            throw
+        }
     }
 }

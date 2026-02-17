@@ -39,7 +39,7 @@ Converts 'legacy.fdb' using the default environments for both backup and restore
 None. Creates a new database file with a versioned extension in the same directory as the source.
 #>
 function Convert-FirebirdDatabase {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
         [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
@@ -72,5 +72,7 @@ function Convert-FirebirdDatabase {
     $restoreCmd = $TargetEnvironment.GetGbakPath()
     $restoreArgs = Restore-FirebirdDatabase -AsCommandLine -Database $TargetDatabase -Environment $TargetEnvironment -Force:$Force
 
-    & $backupCmd $backupArgs | & $restoreCmd $restoreArgs
+    if ($PSCmdlet.ShouldProcess("$($SourceDatabase.Path) -> $($TargetDatabase.Path)", 'Convert Firebird database')) {
+        & $backupCmd $backupArgs | & $restoreCmd $restoreArgs
+    }
 }

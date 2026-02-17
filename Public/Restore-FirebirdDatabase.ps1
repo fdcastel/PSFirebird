@@ -40,7 +40,7 @@ Restores and overwrites the target database if it exists.
 .OUTPUTS
 None by default. If -AsCommandLine is used, returns the gbak command-line arguments as a string array.
 #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'BackupFilePath')]
         [Alias('BackupFile')]
@@ -105,5 +105,7 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
     }
 
     Write-VerboseMark -Message "Calling: $gbak $gbakArgs"
-    & $gbak @gbakArgs
+    if ($PSCmdlet.ShouldProcess($Database.Path, 'Restore Firebird database')) {
+        & $gbak @gbakArgs
+    }
 }

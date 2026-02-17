@@ -15,7 +15,7 @@ function Unlock-FirebirdDatabase {
     .EXAMPLE
         Unlock-FirebirdDatabase -Database $db -Environment $fbEnv
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory, Position = 0)]
         [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
@@ -31,23 +31,25 @@ function Unlock-FirebirdDatabase {
     $nbackupArgs = @($RemainingArguments) + @('-unlock', $Database.Path)
 
     Write-VerboseMark -Message "Calling: $nbackup $nbackupArgs"
-    try {
-        Invoke-ExternalCommand { & $nbackup @nbackupArgs }
-    } catch {
-        if ($_.Exception.Message -match 'I/O error during(.*)\.delta') {
-            # Database is missing .delta file. Call nbackup with -fixup to fix it.
-            Write-VerboseMark -Message "Missing .delta file detected. Calling nbackup -fixup."
-
-            $nbackupArgs = @($RemainingArguments) + @('-fixup', $Database.Path)
+    if ($PSCmdlet.ShouldProcess($Database.Path, 'Unlock Firebird database')) {
+        try {
             Invoke-ExternalCommand { & $nbackup @nbackupArgs }
-            return;
-        }
-        
-        if ($_.Exception.Message -match 'Database is not in the physical backup mode') {
-            Write-VerboseMark -Message 'Database is not in physical backup mode.'
-            throw 'Database is not locked for backup.'
-        }
+        } catch {
+            if ($_.Exception.Message -match 'I/O error during(.*)\.delta') {
+                # Database is missing .delta file. Call nbackup with -fixup to fix it.
+                Write-VerboseMark -Message "Missing .delta file detected. Calling nbackup -fixup."
 
-        throw
+                $nbackupArgs = @($RemainingArguments) + @('-fixup', $Database.Path)
+                Invoke-ExternalCommand { & $nbackup @nbackupArgs }
+                return;
+            }
+            
+            if ($_.Exception.Message -match 'Database is not in the physical backup mode') {
+                Write-VerboseMark -Message 'Database is not in physical backup mode.'
+                throw 'Database is not locked for backup.'
+            }
+
+            throw
+        }
     }
 }

@@ -54,7 +54,7 @@ will prompt for BackupFilePath.
 #>
 
 function Backup-FirebirdDatabase {
-    [CmdletBinding(DefaultParameterSetName = 'BackupFilePath')]
+    [CmdletBinding(DefaultParameterSetName = 'BackupFilePath', SupportsShouldProcess)]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'BackupFilePath')]
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'AsCommandLine')]
@@ -122,5 +122,7 @@ function Backup-FirebirdDatabase {
     }
 
     Write-VerboseMark -Message "Calling: $gbak $gbakArgs"
-    & $gbak @gbakArgs
+    if ($PSCmdlet.ShouldProcess($Database.Path, 'Backup Firebird database')) {
+        & $gbak @gbakArgs
+    }
 }

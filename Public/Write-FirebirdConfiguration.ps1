@@ -21,7 +21,7 @@ function Write-FirebirdConfiguration {
     Write-FirebirdConfiguration -Path 'C:/Firebird/firebird.conf' -Configuration @{ 'Key' = $null }
     Comments out the specified key in the configuration file.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
         [string]$Path,
@@ -72,5 +72,7 @@ function Write-FirebirdConfiguration {
             Write-VerboseMark -Message "Appended $key to file."
         }
     }
-    Set-Content -Path $Path -Value $output
+    if ($PSCmdlet.ShouldProcess($Path, 'Update Firebird configuration file')) {
+        Set-Content -Path $Path -Value $output
+    }
 }
