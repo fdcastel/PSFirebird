@@ -66,6 +66,9 @@
 
     # Private data to pass to the module specified in ModuleToProcess. This may also contain a PSData hashtable with additional module metadata.
     PrivateData       = @{
+        # Default Firebird version used by integration tests when FIREBIRD_VERSION env var is not set.
+        DefaultFirebirdVersion = '5.0.3'
+
         PSData = @{
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags         = @('firebird', 'database', 'administration', 'admin')

@@ -9,8 +9,8 @@ on:
   pull_request:
 
 jobs:
-  test:
-    name: Pester Tests (${{ matrix.os }})
+  unit-tests:
+    name: Unit (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -23,7 +23,49 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Pester tests
+      - name: Run unit tests
         shell: pwsh
         run: |
-          Invoke-Pester -Path ./Tests -Output Detailed
+          Invoke-Pester -Path ./Tests -Tag 'Unit' -Output Detailed
+
+  integration-tests:
+    name: Integration (${{ matrix.os }}, FB ${{ matrix.firebird-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - windows-latest
+        firebird-version:
+          - '3.0.12'
+          - '4.0.5'
+          - '5.0.3'
+    env:
+      FIREBIRD_VERSION: ${{ matrix.firebird-version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run integration tests
+        shell: pwsh
+        run: |
+          Invoke-Pester -Path ./Tests -Tag 'Integration' -Output Detailed
+
+  cross-version-tests:
+    name: Cross-Version (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run cross-version tests
+        shell: pwsh
+        run: |
+          Invoke-Pester -Path ./Tests -Tag 'CrossVersion' -Output Detailed

@@ -1,17 +1,8 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
+. "$PSScriptRoot/TestHelper.ps1"
 
-BeforeDiscovery {
-    $script:FirebirdVersions = @(
-        '3.0.12',
-        '4.0.5',
-        '5.0.2'
-    )
-}
-
-Describe 'Backup' -Tag 'Integration' -ForEach $FirebirdVersions {
+Describe 'Backup' -Tag 'Integration' {
     BeforeAll {
-        $script:FirebirdVersion = $_
-
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 

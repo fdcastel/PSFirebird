@@ -1,12 +1,5 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
-
-BeforeDiscovery {
-    $script:FirebirdVersions = @(
-        '3.0.12',
-        '4.0.5',
-        '5.0.2'
-    )
-}
+. "$PSScriptRoot/TestHelper.ps1"
 
 BeforeAll {
     # Helper function to check if a database is locked
@@ -19,10 +12,8 @@ BeforeAll {
     }
 }
 
-Describe 'FirebirdDatabase' -Tag 'Integration' -ForEach $FirebirdVersions {
+Describe 'FirebirdDatabase' -Tag 'Integration' {
     BeforeAll {
-        $script:FirebirdVersion = $_
-
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
