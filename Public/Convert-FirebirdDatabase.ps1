@@ -63,7 +63,8 @@ function Convert-FirebirdDatabase {
     $v = $TargetEnvironment.Version
     if (-not $TargetDatabase) {
         $targetDatabasePath = [Io.Path]::ChangeExtension($SourceDatabase.Path, ".FB$($v.Major)$($v.Minor).fdb")
-        $TargetDatabase = Get-FirebirdDatabase -Path $targetDatabasePath -Environment $TargetEnvironment
+        Write-VerboseMark -Message "No target database specified. Using derived path: $targetDatabasePath"
+        $TargetDatabase = [FirebirdDatabase]::new($targetDatabasePath)
     }
     Write-VerboseMark -Message "Target environment at '$($TargetEnvironment.Path)'"
     Write-VerboseMark -Message "Target database is '$($TargetDatabase.Path)'"

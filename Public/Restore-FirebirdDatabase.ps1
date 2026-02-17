@@ -78,7 +78,8 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
         # If no database path is specified, derive it from the file path.
         if (-not $Database) {
             $databasePath = [Io.Path]::ChangeExtension($BackupFilePath, '.restored.fdb')
-            $Database = Get-FirebirdDatabase -Path $databasePath -Environment $Environment
+            Write-VerboseMark -Message "No database specified. Using derived path: $databasePath"
+            $Database = [FirebirdDatabase]::new($databasePath)
         }
     }    
 
