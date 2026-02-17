@@ -28,6 +28,11 @@ jobs:
         run: |
           Invoke-Pester -Path ./Tests -Tag 'Unit' -Output Detailed
 
+      - name: Run cross-version tests
+        shell: pwsh
+        run: |
+          Invoke-Pester -Path ./Tests -Tag 'CrossVersion' -Output Detailed
+
   integration-tests:
     name: Integration (${{ matrix.os }}, FB ${{ matrix.firebird-version }})
     runs-on: ${{ matrix.os }}
@@ -51,21 +56,3 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Pester -Path ./Tests -Tag 'Integration' -Output Detailed
-
-  cross-version-tests:
-    name: Cross-Version (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-22.04
-          - windows-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run cross-version tests
-        shell: pwsh
-        run: |
-          Invoke-Pester -Path ./Tests -Tag 'CrossVersion' -Output Detailed
