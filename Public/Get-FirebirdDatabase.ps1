@@ -14,50 +14,56 @@ function Get-FirebirdDatabase {
     .EXAMPLE
         Get-FirebirdDatabase -Path '/tmp/test.fdb'
         Returns details for the database at '/tmp/test.fdb' using the current environment.
+    .EXAMPLE
+        Get-ChildItem *.fdb | Get-FirebirdDatabase
+        Returns details for all .fdb files in the current directory.
     .OUTPUTS
         FirebirdDatabase object with Environment and database connection properties.
     #>
 
     [CmdletBinding()]
     param(
-        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateScript({ Test-Path $_ }, ErrorMessage = 'The Database must exist.')]
+        [Alias('FullName')]
         [string]$Path,
 
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()
     )
 
-    Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+    process {
+        Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
-    $gstat = $Environment.GetGstatPath()
-    Write-VerboseMark -Message "Checking database at '$($Path)'."
+        $gstat = $Environment.GetGstatPath()
+        Write-VerboseMark -Message "Checking database at '$($Path)'."
 
-    $gstatResult = Invoke-ExternalCommand {
-        & $gstat -h $Path
-    } -Passthru
+        $gstatResult = Invoke-ExternalCommand {
+            & $gstat -h $Path
+        } -Passthru
 
-    # Parse gstat output. Discard first 5 lines, stop at ODS Version.
-    $pageSize = $null
-    $odsVersion = $null
-    $lines = $gstatResult.StdOut | Select-Object -Skip 5
-    foreach ($line in $lines) {
-        if ($line -match '^\s+Page size\s+(\d+)') {
-            $pageSize = [int]$Matches[1].Trim()
-            Write-VerboseMark -Message "Parsed Page size: $pageSize"
+        # Parse gstat output. Discard first 5 lines, stop at ODS Version.
+        $pageSize = $null
+        $odsVersion = $null
+        $lines = $gstatResult.StdOut | Select-Object -Skip 5
+        foreach ($line in $lines) {
+            if ($line -match '^\s+Page size\s+(\d+)') {
+                $pageSize = [int]$Matches[1].Trim()
+                Write-VerboseMark -Message "Parsed Page size: $pageSize"
+            }
+
+            if ($line -match '^\s+ODS Version\s+([\d]+.[\d]+)') {
+                $odsVersion = [version]$Matches[1].Trim()
+                Write-VerboseMark -Message "Parsed ODS Version: $odsVersion"
+                break; # Stop processing further lines
+            }
         }
 
-        if ($line -match '^\s+ODS Version\s+([\d]+.[\d]+)') {
-            $odsVersion = [version]$Matches[1].Trim()
-            Write-VerboseMark -Message "Parsed ODS Version: $odsVersion"
-            break; # Stop processing further lines
-        }
+        # Return the database information as a FirebirdDatabase class instance.
+        [FirebirdDatabase]::new(@{
+                Path = $Path
+
+                PageSize     = $PageSize
+                ODSVersion   = $ODSVersion
+            })
     }
-
-    # Return the database information as a FirebirdDatabase class instance.
-    [FirebirdDatabase]::new(@{
-            Path = $Path
-
-            PageSize     = $PageSize
-            ODSVersion   = $ODSVersion
-        })
 }
