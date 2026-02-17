@@ -27,7 +27,7 @@ foreach ($TypeFile in $TypeFiles) {
 
 # Define the types to export with type accelerators.
 $ExportableTypes = @(
-    [FirebirdEnvironment], [FirebirdDatabase]
+    [FirebirdEnvironment], [FirebirdInstance], [FirebirdDatabase]
 )
 # Get the internal TypeAccelerators class to use its static methods.
 $TypeAcceleratorsClass = [psobject].Assembly.GetType(
