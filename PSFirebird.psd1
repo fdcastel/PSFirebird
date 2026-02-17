@@ -28,7 +28,7 @@
         'Get-FirebirdInstance',
 
         'Invoke-FirebirdIsql',
-        'Lock-FirebirdDatabase'
+        'Lock-FirebirdDatabase',
 
         'New-FirebirdDatabase',
         'New-FirebirdEnvironment',
