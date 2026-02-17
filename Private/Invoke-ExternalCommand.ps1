@@ -20,6 +20,8 @@ function Invoke-ExternalCommand(
         $exceptionMessages = @()
         if ($stderr) {
             $exceptionMessages = @("$ErrorMessage. Output is:") + $stderr
+        } else {
+            $exceptionMessages = @($ErrorMessage)
         }
 
         throw $($exceptionMessages -join [Environment]::NewLine)
