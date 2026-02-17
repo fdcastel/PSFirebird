@@ -64,10 +64,10 @@ function Write-FirebirdConfiguration {
             $value = $Configuration[$key]
             if ($null -eq $value) {
                 $output += "#$($key) = "
-                Write-VerboseMark "Key '$key' not found in file. Appending as commented out."
+                Write-VerboseMark -Message "Key '$key' not found in file. Appending as commented out."
             } else {
                 $output += "$($key) = $($value)"
-                Write-VerboseMark "Key '$key' not found in file. Appending at end."
+                Write-VerboseMark -Message "Key '$key' not found in file. Appending at end."
             }
             Write-VerboseMark -Message "Appended $key to file."
         }

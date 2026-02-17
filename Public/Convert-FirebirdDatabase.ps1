@@ -13,7 +13,7 @@ the output of Backup-FirebirdDatabase could simply be piped directly into Restor
 .PARAMETER SourceDatabase
 The path to the Firebird database file to convert. This parameter is required and must exist.
 
-.PARAMETER SourceDatabase
+.PARAMETER TargetDatabase
 The path to the Firebird database file to create. If not specified, the function will create a new database file with a versioned extension in the same directory as the source database.
 
 .PARAMETER SourceEnvironment
@@ -54,9 +54,6 @@ function Convert-FirebirdDatabase {
         [switch]$Force
     )
 
-    if (-not (Test-Path -Path $SourceDatabase.Path -PathType Leaf)) {
-        throw "Database path '$($SourceDatabase.Path)' does not exist."
-    }
     Write-VerboseMark -Message "Source environment at '$($SourceEnvironment.Path)'"
     Write-VerboseMark -Message "Source database is '$($SourceDatabase.Path)'"
 

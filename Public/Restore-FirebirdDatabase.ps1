@@ -1,5 +1,5 @@
 function Restore-FirebirdDatabase {
-<#!
+<#
 .SYNOPSIS
 Restores a Firebird database from a backup file using gbak.
 

@@ -47,24 +47,24 @@ function New-FirebirdEnvironment {
     if ($supportedRIDs -notcontains $rid) {
         throw "Unsupported RuntimeIdentifier: $rid. Supported: $($supportedRIDs -join ', ')"
     }
-    Write-VerboseMark "RuntimeIdentifier is '$rid'."
+    Write-VerboseMark -Message "RuntimeIdentifier is '$rid'."
 
     $minVersion = [semver]'3.0.9'
     if ($Version -lt $minVersion) {
         throw 'Firebird minimal supported version is 3.0.9.'
     }
-    Write-VerboseMark "Requested Firebird version '$($Version)'"
+    Write-VerboseMark -Message "Requested Firebird version '$($Version)'"
 
     $tempRoot = [System.IO.Path]::GetTempPath()
 
     if (-not $Path) {
         $Path = Join-Path $tempRoot "firebird-$($Version)"
-        Write-VerboseMark "No Path specified. Using temporary folder: $Path"
+        Write-VerboseMark -Message "No Path specified. Using temporary folder: $Path"
     }
 
     if (Test-Path $Path) {
         if (-not $Force) {
-            Write-VerboseMark "Path '$Path' already exists and -Force not specified."
+            Write-VerboseMark -Message "Path '$Path' already exists and -Force not specified."
 
             # Check if the existing path is a valid Firebird environment
             $existingEnvironment = Get-FirebirdEnvironment -Path $Path
@@ -89,18 +89,18 @@ function New-FirebirdEnvironment {
     }
 
     $downloadUrl = Get-FirebirdReleaseUrl -Version $Version -RuntimeIdentifier $rid
-    Write-VerboseMark "Release URL is '$($downloadUrl)'"
+    Write-VerboseMark -Message "Release URL is '$($downloadUrl)'"
 
     $archiveFile = ([uri]$downloadUrl).Segments[-1]
     $fullArchiveFile = Join-Path $tempRoot $archiveFile
 
     if ($PSCmdlet.ShouldProcess($archiveFile, 'Downloading Firebird archive')) {
-        Write-VerboseMark "Downloading Firebird archive '$archiveFile'..."
+        Write-VerboseMark -Message "Downloading Firebird archive '$archiveFile'..."
         Invoke-WebRequest $downloadUrl -OutFile $fullArchiveFile -Verbose:$false
     }
 
     if ($PSCmdlet.ShouldProcess($archiveFile, 'Extracting archive')) {
-        Write-VerboseMark "Extracting archive '$archiveFile'..."
+        Write-VerboseMark -Message "Extracting archive '$archiveFile'..."
         if ($IsWindows) {
             Expand-Archive -Path $fullArchiveFile -DestinationPath $Path
         } elseif ($IsLinux) {
@@ -122,7 +122,7 @@ function New-FirebirdEnvironment {
     }
 
     if ($PSCmdlet.ShouldProcess($fullArchiveFile, 'Removing archive')) {
-        Write-VerboseMark "Removing archive '$fullArchiveFile'..."
+        Write-VerboseMark -Message "Removing archive '$fullArchiveFile'..."
         Remove-Item -Path @(
             # On Linux, also remove the buildroot archive
             "$Path/buildroot.tar.gz",
@@ -137,7 +137,7 @@ function New-FirebirdEnvironment {
         $ipcName = "FIREBIRD-$($Version -replace '\.','_')"
         $firebirdConfPath = Join-Path $Path 'firebird.conf'
         if ($PSCmdlet.ShouldProcess($firebirdConfPath, "Setting IpcName to '$ipcName' in firebird.conf")) {
-            Write-VerboseMark "Setting IpcName to '$ipcName' in firebird.conf..."
+            Write-VerboseMark -Message "Setting IpcName to '$ipcName' in firebird.conf..."
             $content = Get-Content $firebirdConfPath
             $content = $content -replace '#IpcName = FIREBIRD', "IpcName = $ipcName"
             Set-Content -Path $firebirdConfPath -Value $content -Encoding Ascii
@@ -166,7 +166,7 @@ function New-FirebirdEnvironment {
         # Fix libtommath for FB3 and FB4 -- https://github.com/FirebirdSQL/firebird/issues/5716#issuecomment-826239174
         if ($Version -lt [semver]5) {
             if ($PSCmdlet.ShouldProcess("$libPath/libtommath.so.1", 'Creating symlink for libtommath.so.0...')) {
-                Write-VerboseMark 'Creating symlink for libtommath.so.0...'
+                Write-VerboseMark -Message 'Creating symlink for libtommath.so.0...'
                 ln -sf "$libPath/libtommath.so.1" "$libPath/libtommath.so.0"
             }
         }
@@ -180,14 +180,14 @@ function New-FirebirdEnvironment {
     }
     
     if ($PSCmdlet.ShouldProcess($databasesConfPath, 'Removing sample database')) {
-        Write-VerboseMark "Removing sample database from '$databasesConfPath'..."
+        Write-VerboseMark -Message "Removing sample database from '$databasesConfPath'..."
         $content = Get-Content $databasesConfPath
         $content | Where-Object { $_ -notmatch '^employee' } | Set-Content $databasesConfPath
     }
 
     # Clean up the output directory
     if ($PSCmdlet.ShouldProcess($Path, 'Cleaning up output directory')) {
-        Write-VerboseMark 'Cleaning up output directory...'
+        Write-VerboseMark -Message 'Cleaning up output directory...'
         Remove-Item -Path @(
             # Windows-specific
             "$Path/system32",
@@ -225,12 +225,12 @@ function Invoke-AptDownloadAndExtract {
             # The apt-get download command does not have a built-in option to set the download directory
             Push-Location $tempFolder
             try {
-                Write-VerboseMark "Downloading '$PackageName' package..."
+                Write-VerboseMark -Message "Downloading '$PackageName' package..."
                 Invoke-ExternalCommand {
                     & apt-get download -y $PackageName
                 } -ErrorMessage "Failed to download '$PackageName' package. Cannot continue."
 
-                Write-VerboseMark "Extracting '$PackageName' to '$TargetFolder'..."
+                Write-VerboseMark -Message "Extracting '$PackageName' to '$TargetFolder'..."
                 $fullPackagePath = Resolve-Path "$($PackageName)_*.deb"
                 Invoke-ExternalCommand {
                     & dpkg-deb -X $fullPackagePath .

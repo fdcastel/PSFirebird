@@ -24,7 +24,7 @@ function Get-FirebirdODSVersion {
     )
 
     # Read the first 80 bytes of the database file
-    Write-VerboseMark "Reading header from file '$Database'..."
+    Write-VerboseMark -Message "Reading header from file '$Database'..."
     $bytes = Get-Content -Path $Database.Path -AsByteStream -TotalCount 80
     if ($bytes.Length -lt 80) {
         throw "File '$($Database.Path)' is not a valid Firebird database."
@@ -36,12 +36,12 @@ function Get-FirebirdODSVersion {
     #   Two bytes, unsigned. Bytes 0x12 and 0x13 on the page. The ODS major version for the database. 
     #   The format of this word is the ODS major version ANDed with the Firebird flag of 0x8000.
     $odsVersion = [BitConverter]::ToUInt16($bytes, 0x12) -band 0x7FFF
-    Write-VerboseMark "odsVersion = $($odsVersion)"
+    Write-VerboseMark -Message "odsVersion = $($odsVersion)"
 
     # hdr_ods_minor_original
     #   Two bytes, unsigned. Bytes 0x40 and 0x41 on the page. The ODS minor version when the database was originally created.
     $odsMinorOriginal = [BitConverter]::ToUInt16($bytes, 0x40)
-    Write-VerboseMark "odsMinorOriginal = $($odsMinorOriginal)"
+    Write-VerboseMark -Message "odsMinorOriginal = $($odsMinorOriginal)"
 
     # Return as [version] object
     return [version]::new($odsVersion, $odsMinorOriginal)

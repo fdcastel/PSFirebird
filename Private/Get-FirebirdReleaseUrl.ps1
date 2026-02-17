@@ -28,7 +28,7 @@ function Get-FirebirdReleaseUrl {
     if (-not $RuntimeIdentifier) {
         $RuntimeIdentifier = [System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier
     }
-    Write-VerboseMark "Requested Firebird version: $($Version), RID: $RuntimeIdentifier"
+    Write-VerboseMark -Message "Requested Firebird version: $($Version), RID: $RuntimeIdentifier"
 
     $supportedRIDs = @('win-x86', 'win-x64', 'win-arm64', 'linux-x64', 'linux-arm64')
     if ($supportedRIDs -notcontains $RuntimeIdentifier) {
@@ -43,7 +43,7 @@ function Get-FirebirdReleaseUrl {
     # Uses GitHub access token from environment variable if available
     [string]$githubAccessToken = $env:API_GITHUB_ACCESS_TOKEN
     if ($githubAccessToken) {
-        Write-VerboseMark '- Using authenticated GitHub API requests'
+        Write-VerboseMark -Message '- Using authenticated GitHub API requests'
         $headers['Authorization'] = "Bearer $githubAccessToken"
     }
 
@@ -54,7 +54,7 @@ function Get-FirebirdReleaseUrl {
     if (-not $release) {
         throw "Could not find Firebird release for version $versionString on GitHub."
     }
-    Write-VerboseMark "Found release: $($release.tag_name)"
+    Write-VerboseMark -Message "Found release: $($release.tag_name)"
 
     $asset = $null
     $major = $Version.Major
@@ -101,6 +101,6 @@ function Get-FirebirdReleaseUrl {
         throw "Could not find a suitable asset for $RuntimeIdentifier in release $versionString."
     }
 
-    Write-VerboseMark "Selected asset: $($asset[0].name)"
+    Write-VerboseMark -Message "Selected asset: $($asset[0].name)"
     return $asset[0].browser_download_url
 }

@@ -97,7 +97,7 @@ function Backup-FirebirdDatabase {
 
     # Using -NT option makes backup 5% faster (tested with a 320GB database)
     if ($Transportable) {
-        Write-VerboseMark 'Using transportable backup (no -nt).'
+        Write-VerboseMark -Message 'Using transportable backup (no -nt).'
     }
 
     # Using -G option inhibits Firebird garbage collection, speeding up the backup process if a lot of updates have been done.
