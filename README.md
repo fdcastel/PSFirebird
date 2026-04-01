@@ -55,6 +55,7 @@ The example runs on both Windows and Linux platforms using a matrix build strate
 | _Database commands_                                                                                                           |
 | &nbsp; [New-FirebirdDatabase](#new-firebirddatabase)              | Create a new Firebird database.                           |
 | &nbsp; [Get-FirebirdDatabase](#get-firebirddatabase)              | Get information about a Firebird database.                |
+| &nbsp; [Get-FirebirdDatabaseStatistics](#get-firebirddatabasestatistics) | Collect statistics for a Firebird database.        |
 | &nbsp; [Test-FirebirdDatabase](#test-firebirddatabase)            | Test if a Firebird database is valid and accessible.      |
 | &nbsp; [Remove-FirebirdDatabase](#remove-firebirddatabase)        | Safely remove a Firebird database file.                   |
 | &nbsp; [Read-FirebirdDatabase](#read-firebirddatabase)            | Read detailed info from a Firebird database.              |
@@ -279,6 +280,32 @@ Get-FirebirdDatabase -Path '/tmp/mydb.fdb'
 
 # Example: Get info for all databases in a directory
 Get-ChildItem *.fdb | Get-FirebirdDatabase
+```
+
+
+
+### Get-FirebirdDatabaseStatistics
+
+_Collect statistics for a Firebird database._
+
+```
+Get-FirebirdDatabaseStatistics [-Database] <FirebirdDatabase> [-TableName <string[]>] [-Environment <FirebirdEnvironment>] [<CommonParameters>]
+```
+
+Runs the `gstat` utility with the `-a` (analyze all tables) and `-r` (record versions) flags to collect detailed statistics for the database, then parses the output into a structured object.
+
+The returned object has two array properties:
+- `tables` — one record per table with page layout, record counts, version info, and fill distribution.
+- `indices` — one record per index with depth, node counts, key lengths, clustering factor, and fill distribution.
+
+Use `-TableName` to restrict the analysis to one or more specific tables and their indices.
+
+```powershell
+# Example: Get statistics for all tables
+Get-FirebirdDatabaseStatistics -Database '/tmp/mydb.fdb'
+
+# Example: Get statistics for specific tables only
+Get-FirebirdDatabaseStatistics -Database '/tmp/mydb.fdb' -TableName 'CUSTOMERS', 'ORDERS'
 ```
 
 

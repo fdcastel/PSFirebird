@@ -24,6 +24,7 @@
         'Convert-FirebirdDatabase',
         
         'Get-FirebirdDatabase',
+        'Get-FirebirdDatabaseStatistics',
         'Get-FirebirdEnvironment',
         'Get-FirebirdInstance',
 
