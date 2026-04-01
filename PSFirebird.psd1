@@ -27,12 +27,14 @@
         'Get-FirebirdDatabaseStatistics',
         'Get-FirebirdEnvironment',
         'Get-FirebirdInstance',
+        'Get-FirebirdService',
 
         'Invoke-FirebirdIsql',
         'Lock-FirebirdDatabase',
 
         'New-FirebirdDatabase',
         'New-FirebirdEnvironment',
+        'New-FirebirdService',
 
         'Read-FirebirdConfiguration',
         'Read-FirebirdDatabase',
@@ -40,6 +42,7 @@
         'Remove-FirebirdDatabase',
 
         'Remove-FirebirdEnvironment',
+        'Remove-FirebirdService',
 
         'Restore-FirebirdDatabase',
 

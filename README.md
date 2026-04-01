@@ -64,6 +64,10 @@ The example runs on both Windows and Linux platforms using a matrix build strate
 | &nbsp; [Start-FirebirdInstance](#start-firebirdinstance)          | Start a Firebird server process.                          |
 | &nbsp; [Get-FirebirdInstance](#get-firebirdinstance)              | Get information about running Firebird server processes.  |
 | &nbsp; [Stop-FirebirdInstance](#stop-firebirdinstance)            | Stop a running Firebird server process.                   |
+| _Service commands_                                                                                                            |
+| &nbsp; [New-FirebirdService](#new-firebirdservice)                | Register a Firebird environment as a system service.      |
+| &nbsp; [Get-FirebirdService](#get-firebirdservice)                | Get information about registered Firebird services.       |
+| &nbsp; [Remove-FirebirdService](#remove-firebirdservice)          | Remove a Firebird system service.                         |
 | _Configuration commands_                                                                                                      |
 | &nbsp; [Read-FirebirdConfiguration](#read-firebirdconfiguration)  | Read settings from a Firebird configuration file.         |
 | &nbsp; [Write-FirebirdConfiguration](#write-firebirdconfiguration)| Update settings in a Firebird configuration file.         |
@@ -381,6 +385,90 @@ Invoke-FirebirdIsql -Database '/tmp/mydb.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
 
 # Example: Using pipeline input
 'SELECT COUNT(*) FROM MY_TABLE;' | Invoke-FirebirdIsql -Database '/tmp/mydb.fdb'
+```
+
+
+
+## Service commands
+
+### New-FirebirdService
+
+_Register a Firebird environment as a system service._
+
+```
+New-FirebirdService -Environment <FirebirdEnvironment> [-Port <int>] [-Name <string>] [-NoStart] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+Installs a Firebird server as a system service (Windows Service Manager on Windows, systemd on Linux). The listening port is configured in the environment's `firebird.conf` via `RemoteServicePort`.
+
+Use `-Port` to set the TCP listening port (default: 3050).
+
+Use `-Name` to set a custom service name. If not specified, the name defaults to `Firebird-{MajorVersion}` (e.g., `Firebird-5`).
+
+Use `-NoStart` to register the service without starting it.
+
+Requires elevated privileges (Administrator on Windows, root on Linux).
+
+```powershell
+# Example: Install Firebird 5 as a service on port 3055
+$fb5 = New-FirebirdEnvironment -Version '5.0.3'
+New-FirebirdService -Environment $fb5 -Port 3055
+
+# Example: Run multiple Firebird versions side by side
+$fb3 = New-FirebirdEnvironment -Version '3.0.12'
+$fb4 = New-FirebirdEnvironment -Version '4.0.6'
+$fb5 = New-FirebirdEnvironment -Version '5.0.3'
+New-FirebirdService -Environment $fb3 -Port 3053
+New-FirebirdService -Environment $fb4 -Port 3054
+New-FirebirdService -Environment $fb5 -Port 3055
+```
+
+
+
+### Get-FirebirdService
+
+_Get information about registered Firebird services._
+
+```
+Get-FirebirdService [-Name <string>] [<CommonParameters>]
+```
+
+Returns details of Firebird services registered on the system, including the service name, status, port, and environment path.
+
+```powershell
+# Example: List all Firebird services
+Get-FirebirdService
+
+# Example: Get a specific service
+Get-FirebirdService -Name 'Firebird-5'
+```
+
+
+
+### Remove-FirebirdService
+
+_Remove a Firebird system service._
+
+```
+Remove-FirebirdService [-Name] <string> [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-FirebirdService -Environment <FirebirdEnvironment> [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+Stops and unregisters a Firebird service from the system. Accepts pipeline input from `Get-FirebirdService`.
+
+You can specify the service by `-Name` or by `-Environment` (which derives the default name).
+
+Use `-Force` to suppress confirmation prompts.
+
+```powershell
+# Example: Remove a service by name
+Remove-FirebirdService -Name 'Firebird-5' -Force
+
+# Example: Remove a service by environment
+Remove-FirebirdService -Environment $fb5 -Force
+
+# Example: Remove all Firebird services
+Get-FirebirdService | Remove-FirebirdService -Force
 ```
 
 
