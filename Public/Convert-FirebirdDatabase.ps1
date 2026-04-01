@@ -10,6 +10,10 @@ the output of Backup-FirebirdDatabase could simply be piped directly into Restor
 
 (...and **believe me**, I tried!)
 
+Backup and restore authenticate through the Firebird utilities. In a fresh shell, set
+ISC_USER and ISC_PASSWORD, or use another authentication mechanism understood by Firebird,
+before calling this command.
+
 .PARAMETER SourceDatabase
 The path to the Firebird database file to convert. This parameter is required and must exist.
 
@@ -26,6 +30,8 @@ The Firebird environment object to use for the restore operation. Optional.
 If specified, overwrites the target database if it already exists.
 
 .EXAMPLE
+$env:ISC_USER = 'SYSDBA'
+$env:ISC_PASSWORD = 'masterkey'
 Convert-FirebirdDatabase -SourceDatabase 'C:/data/legacy.fdb' -SourceEnvironment $src -TargetEnvironment $tgt
 
 Converts 'legacy.fdb' using the specified source and target environments.
@@ -73,6 +79,14 @@ function Convert-FirebirdDatabase {
     $restoreArgs = Restore-FirebirdDatabase -AsCommandLine -Database $TargetDatabase -Environment $TargetEnvironment -Force:$Force
 
     if ($PSCmdlet.ShouldProcess("$($SourceDatabase.Path) -> $($TargetDatabase.Path)", 'Convert Firebird database')) {
-        & $backupCmd $backupArgs | & $restoreCmd $restoreArgs
+        Write-VerboseMark -Message 'Running streamed gbak backup/restore pipeline.'
+
+        $previousPSNativeCommandUseErrorActionPreference = $PSNativeCommandUseErrorActionPreference
+        $PSNativeCommandUseErrorActionPreference = $true
+        try {
+            & $backupCmd @backupArgs | & $restoreCmd @restoreArgs
+        } finally {
+            $PSNativeCommandUseErrorActionPreference = $previousPSNativeCommandUseErrorActionPreference
+        }
     }
 }

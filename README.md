@@ -522,6 +522,8 @@ Write-FirebirdConfiguration -Path '/opt/firebird/firebird.conf' -Configuration @
 
 Always restore a backup to a _different_ database file. The `Restore-FirebirdDatabase` command’s default behavior of appending a `.restore` suffix when no database file is specified is a good practice.
 
+The backup, restore, and convert commands authenticate through the Firebird utilities. In a fresh shell, set `ISC_USER` and `ISC_PASSWORD` to the database owner or `SYSDBA` before using them.
+
 
 
 ### Backup-FirebirdDatabase
@@ -591,6 +593,9 @@ The target database must not already exist. Use the `-Force` ⚠️ option to ov
 
 ```powershell
 # Example: Convert a Firebird database from v3 to v5
+$env:ISC_USER = 'SYSDBA'
+$env:ISC_PASSWORD = 'masterkey'
+
 $fb3 = New-FirebirdEnvironment -Version '3.0.12'
 $fb5 = New-FirebirdEnvironment -Version '5.0.2'
 
