@@ -39,12 +39,18 @@ function Get-FirebirdReleaseUrl {
     Write-VerboseMark -Message "Querying GitHub API for releases: $apiUrl"
 
     $headers = @{ 'User-Agent' = 'PSFirebird' }
-        
-    # Uses GitHub access token from environment variable if available
+
+    # Use an access token for authenticated GitHub API requests (5000 req/hour instead of 60).
+    # Prefer API_GITHUB_ACCESS_TOKEN; fall back to GITHUB_TOKEN (automatically available in GitHub Actions).
     [string]$githubAccessToken = $env:API_GITHUB_ACCESS_TOKEN
+    if (-not $githubAccessToken) {
+        $githubAccessToken = $env:GITHUB_TOKEN
+    }
     if ($githubAccessToken) {
         Write-VerboseMark -Message '- Using authenticated GitHub API requests'
         $headers['Authorization'] = "Bearer $githubAccessToken"
+    } else {
+        Write-VerboseMark -Message '- Using unauthenticated GitHub API requests (60 req/hour limit)'
     }
 
     $releases = Invoke-RestMethod -Uri $apiUrl -Headers $headers -Verbose:$false
