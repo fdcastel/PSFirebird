@@ -29,3 +29,8 @@ jobs:
 
           Write-Host "Publishing to PowerShell Gallery..."
           Publish-Module -Path '.' -NuGetApiKey $env:PSGALLERY_API_KEY -Verbose
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --generate-notes
