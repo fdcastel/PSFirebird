@@ -82,6 +82,8 @@ PSFirebird automatically uses `GITHUB_TOKEN` when it is available (it is set by 
 | &nbsp; [Convert-FirebirdDatabase](#convert-firebirddatabase)      | Perform backup and restore operations using streaming.    |
 | &nbsp; [Lock-FirebirdDatabase](#lock-firebirddatabase)            | Lock a database for filesystem copy.                      |
 | &nbsp; [Unlock-FirebirdDatabase](#unlock-firebirddatabase)        | Unlock a database after filesystem copy.                  |
+| _Utility commands_                                                                                                            |
+| &nbsp; [Get-FirebirdVersion](#get-firebirdversion)                | Parse a Firebird version string into a structured object. |
 
 
 
@@ -750,3 +752,31 @@ Invoke-Pester -Tag 'Integration'
 ## Contributing
 
 Contributions, issues, and feature requests are welcome! Please open an issue or submit a pull request.
+
+
+## Utility commands
+
+### Get-FirebirdVersion
+
+_Parse a Firebird version string into a structured object._
+
+```
+Get-FirebirdVersion [-VersionString] <string> [<CommonParameters>]
+```
+
+Parses version strings produced by Firebird tools (`gstat -z`, `isql -z`, etc.) into a structured object with platform, version, build number, and server name. Accepts pipeline input.
+
+```powershell
+# Example: Parse a version string from gstat output
+$v = Get-FirebirdVersion 'LI-V5.0.3.1683 Firebird 5.0'
+$v.Platform    # Linux
+$v.Version     # 5.0.3 (as [semver])
+$v.Build       # 1683
+$v.ServerName  # Firebird 5.0
+
+# Example: Parse a Windows version string via pipeline
+'WI-V4.0.5.3140 Firebird 4.0' | Get-FirebirdVersion
+
+# Example: Parse just a version prefix (no server name)
+Get-FirebirdVersion 'LI-V3.0.12.33787'
+```

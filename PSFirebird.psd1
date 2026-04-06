@@ -31,6 +31,7 @@
         'Get-FirebirdEnvironment',
         'Get-FirebirdInstance',
         'Get-FirebirdService',
+        'Get-FirebirdVersion',
 
         'Invoke-FirebirdIsql',
         'Lock-FirebirdDatabase',
