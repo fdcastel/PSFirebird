@@ -56,6 +56,7 @@ PSFirebird automatically uses `GITHUB_TOKEN` when it is available (it is set by 
 | &nbsp; [Use-FirebirdEnvironment](#use-firebirdenvironment)        | Set the default Firebird environment for a given context. |
 | _Release commands_                                                                                                            |
 | &nbsp; [Find-FirebirdRelease](#find-firebirdrelease)              | Find the download URL and metadata for an official Firebird release. |
+| &nbsp; [Find-FirebirdSnapshotRelease](#find-firebirdsnapshotrelease) | Find the latest snapshot build for a Firebird branch. |
 | _Database commands_                                                                                                           |
 | &nbsp; [New-FirebirdDatabase](#new-firebirddatabase)              | Create a new Firebird database.                           |
 | &nbsp; [Get-FirebirdDatabase](#get-firebirddatabase)              | Get information about a Firebird database.                |
@@ -206,6 +207,39 @@ $release.Version   # 5.0.2
 
 # Example: Find the Firebird 4.0.5 release for Windows x64
 Find-FirebirdRelease -Version '4.0.5' -RuntimeIdentifier 'win-x64'
+```
+
+
+
+### Find-FirebirdSnapshotRelease
+
+_Find the latest snapshot build for a Firebird branch._
+
+```
+Find-FirebirdSnapshotRelease -Branch <string> [-RuntimeIdentifier <string>] [<CommonParameters>]
+```
+
+Queries the GitHub API for `FirebirdSQL/snapshots` releases and returns a structured object with the download URL, file name, SHA-256 digest, branch, and upload timestamp.
+
+Asset discovery is done by substring matching rather than filename reconstruction, making the function robust to upstream naming changes.
+
+Available branches:
+
+| Branch          | Description                                 | Tag                       |
+|-----------------|---------------------------------------------|---------------------------|
+| `master`        | Firebird 6.x development builds             | `snapshot-master`         |
+| `v5.0-release`  | Firebird 5.x next-patch builds              | `snapshot-v5.0-release`   |
+| `v4.0`          | Firebird 4.x next-patch builds              | `snapshot-v4.0`           |
+
+```powershell
+# Example: Get the latest Firebird 5 snapshot for amd64
+$snap = Find-FirebirdSnapshotRelease -Branch 'v5.0-release'
+$snap.FileName   # Firebird-5.0.4.1803-4daf29e-linux-x64.tar.gz
+$snap.Url        # https://github.com/FirebirdSQL/snapshots/releases/download/...
+$snap.Sha256     # 6741e2d89aadc6acce...
+
+# Example: Get the Firebird 6 development build for arm64
+Find-FirebirdSnapshotRelease -Branch 'master' -RuntimeIdentifier 'linux-arm64'
 ```
 
 

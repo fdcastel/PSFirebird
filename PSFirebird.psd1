@@ -24,6 +24,7 @@
         'Convert-FirebirdDatabase',
 
         'Find-FirebirdRelease',
+        'Find-FirebirdSnapshotRelease',
         
         'Get-FirebirdDatabase',
         'Get-FirebirdDatabaseStatistics',
