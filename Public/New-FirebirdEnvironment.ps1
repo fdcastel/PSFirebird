@@ -89,10 +89,11 @@ function New-FirebirdEnvironment {
         New-Item -ItemType Directory $Path -Force > $null
     }
 
-    $downloadUrl = Get-FirebirdReleaseUrl -Version $Version -RuntimeIdentifier $rid
+    $releaseInfo = Get-FirebirdReleaseUrl -Version $Version -RuntimeIdentifier $rid
+    $downloadUrl = $releaseInfo.Url
     Write-VerboseMark -Message "Release URL is '$($downloadUrl)'"
 
-    $archiveFile = ([uri]$downloadUrl).Segments[-1]
+    $archiveFile = $releaseInfo.FileName
     $fullArchiveFile = Join-Path $tempRoot $archiveFile
 
     if ($PSCmdlet.ShouldProcess($archiveFile, 'Downloading Firebird archive')) {

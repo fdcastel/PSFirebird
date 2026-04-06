@@ -22,6 +22,8 @@
     FunctionsToExport = @(
         'Backup-FirebirdDatabase',
         'Convert-FirebirdDatabase',
+
+        'Find-FirebirdRelease',
         
         'Get-FirebirdDatabase',
         'Get-FirebirdDatabaseStatistics',

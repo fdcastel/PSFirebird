@@ -1,13 +1,13 @@
 function Get-FirebirdReleaseUrl {
     <#
     .SYNOPSIS
-        Returns the download URL for the Firebird package for a given version and runtime identifier (RID).
+        Returns the download URL and asset metadata for the Firebird package for a given version and runtime identifier (RID).
     .PARAMETER Version
         The Firebird version to install (minimum 3.0.9), as a [semver] object.
     .PARAMETER RuntimeIdentifier
         Optional. The runtime identifier (RID) to use. If not provided, uses the current platform RID.
     .OUTPUTS
-        [string] The download URL for the Firebird package.
+        [PSCustomObject] with Url, FileName, and Version properties.
     #>
     [CmdletBinding()]
     Param(
@@ -107,6 +107,12 @@ function Get-FirebirdReleaseUrl {
         throw "Could not find a suitable asset for $RuntimeIdentifier in release $versionString."
     }
 
-    Write-VerboseMark -Message "Selected asset: $($asset[0].name)"
-    return $asset[0].browser_download_url
+    $selectedAsset = $asset[0]
+    Write-VerboseMark -Message "Selected asset: $($selectedAsset.name)"
+
+    return [PSCustomObject]@{
+        Version  = $Version
+        FileName = $selectedAsset.name
+        Url      = $selectedAsset.browser_download_url
+    }
 }

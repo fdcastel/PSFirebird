@@ -54,6 +54,8 @@ PSFirebird automatically uses `GITHUB_TOKEN` when it is available (it is set by 
 | &nbsp; [Get-FirebirdEnvironment](#get-firebirdenvironment)        | Get information about a Firebird environment.             |
 | &nbsp; [Remove-FirebirdEnvironment](#remove-firebirdenvironment)  | Remove a Firebird environment directory.                  |
 | &nbsp; [Use-FirebirdEnvironment](#use-firebirdenvironment)        | Set the default Firebird environment for a given context. |
+| _Release commands_                                                                                                            |
+| &nbsp; [Find-FirebirdRelease](#find-firebirdrelease)              | Find the download URL and metadata for an official Firebird release. |
 | _Database commands_                                                                                                           |
 | &nbsp; [New-FirebirdDatabase](#new-firebirddatabase)              | Create a new Firebird database.                           |
 | &nbsp; [Get-FirebirdDatabase](#get-firebirddatabase)              | Get information about a Firebird database.                |
@@ -177,6 +179,33 @@ $fb5 | Use-FirebirdEnvironment -ScriptBlock {
 # Example: Set a default environment using an environment variable
 $env:FIREBIRD_ENVIRONMENT = '/tmp/firebird5'
 New-FirebirdDatabase -Database '/tmp/test.fdb'  # Uses the environment from $env:FIREBIRD_ENVIRONMENT
+```
+
+
+
+## Release commands
+
+### Find-FirebirdRelease
+
+_Find the download URL and metadata for an official Firebird release._
+
+```
+Find-FirebirdRelease -Version <semver> [-RuntimeIdentifier <string>] [<CommonParameters>]
+```
+
+Queries the GitHub API for `FirebirdSQL/firebird` releases and returns a structured object with the download URL, file name, and version for the matching asset.
+
+This function exposes the same GitHub release lookup logic used internally by `New-FirebirdEnvironment`, allowing external consumers to resolve release URLs without installing Firebird locally.
+
+```powershell
+# Example: Find the Firebird 5.0.2 release for Linux x64
+$release = Find-FirebirdRelease -Version '5.0.2' -RuntimeIdentifier 'linux-x64'
+$release.Url       # https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-linux-x64.tar.gz
+$release.FileName  # Firebird-5.0.2.1613-0-linux-x64.tar.gz
+$release.Version   # 5.0.2
+
+# Example: Find the Firebird 4.0.5 release for Windows x64
+Find-FirebirdRelease -Version '4.0.5' -RuntimeIdentifier 'win-x64'
 ```
 
 

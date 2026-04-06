@@ -8,46 +8,79 @@ Describe 'GitHub releases' -Tag 'Unit' {
             }
         }
 
-        It 'Returns releases URL for Firebird 5.x' {
-            Get-FirebirdReleaseUrl -Version '5.0.2' -RuntimeIdentifier 'win-x64' |
-                Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-windows-x64.zip'
+        It 'Returns release info for Firebird 5.x' {
+            $result = Get-FirebirdReleaseUrl -Version '5.0.2' -RuntimeIdentifier 'win-x64'
+            $result.Url | Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-windows-x64.zip'
+            $result.FileName | Should -Be 'Firebird-5.0.2.1613-0-windows-x64.zip'
+            $result.Version | Should -Be '5.0.2'
 
-            Get-FirebirdReleaseUrl -Version '5.0.1' -RuntimeIdentifier 'win-x86' |
+            (Get-FirebirdReleaseUrl -Version '5.0.1' -RuntimeIdentifier 'win-x86').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.1/Firebird-5.0.1.1469-0-windows-x86.zip'
 
-            Get-FirebirdReleaseUrl -Version '5.0.0' -RuntimeIdentifier 'linux-x64' |
+            (Get-FirebirdReleaseUrl -Version '5.0.0' -RuntimeIdentifier 'linux-x64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.0/Firebird-5.0.0.1306-0-linux-x64.tar.gz'
 
-            Get-FirebirdReleaseUrl -Version '5.0.0' -RuntimeIdentifier 'linux-arm64' |
+            (Get-FirebirdReleaseUrl -Version '5.0.0' -RuntimeIdentifier 'linux-arm64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.0/Firebird-5.0.0.1306-0-linux-arm64.tar.gz'
         }
 
-        It 'Returns releases URL for Firebird 4.x' {
-            Get-FirebirdReleaseUrl -Version '4.0.5' -RuntimeIdentifier 'win-x64' |
+        It 'Returns release info for Firebird 4.x' {
+            (Get-FirebirdReleaseUrl -Version '4.0.5' -RuntimeIdentifier 'win-x64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v4.0.5/Firebird-4.0.5.3140-0-x64.zip'
 
-            Get-FirebirdReleaseUrl -Version '4.0.4' -RuntimeIdentifier 'win-x86' |
+            (Get-FirebirdReleaseUrl -Version '4.0.4' -RuntimeIdentifier 'win-x86').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v4.0.4/Firebird-4.0.4.3010-0-Win32.zip'
 
-            Get-FirebirdReleaseUrl -Version '4.0.3' -RuntimeIdentifier 'linux-x64' |
+            (Get-FirebirdReleaseUrl -Version '4.0.3' -RuntimeIdentifier 'linux-x64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v4.0.3/Firebird-4.0.3.2975-0.amd64.tar.gz'
 
-            Get-FirebirdReleaseUrl -Version '4.0.2' -RuntimeIdentifier 'linux-arm64' |
+            (Get-FirebirdReleaseUrl -Version '4.0.2' -RuntimeIdentifier 'linux-arm64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v4.0.2/Firebird-4.0.2.2816-0.arm64.tar.gz'
         }
 
-        It 'Returns releases URL for Firebird 3.x' {
-            Get-FirebirdReleaseUrl -Version '3.0.12' -RuntimeIdentifier 'win-x64' |
+        It 'Returns release info for Firebird 3.x' {
+            (Get-FirebirdReleaseUrl -Version '3.0.12' -RuntimeIdentifier 'win-x64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v3.0.12/Firebird-3.0.12.33787-0-x64.zip'
 
-            Get-FirebirdReleaseUrl -Version '3.0.11' -RuntimeIdentifier 'win-x86' |
+            (Get-FirebirdReleaseUrl -Version '3.0.11' -RuntimeIdentifier 'win-x86').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v3.0.11/Firebird-3.0.11.33703-0_Win32.zip'
 
-            Get-FirebirdReleaseUrl -Version '3.0.10' -RuntimeIdentifier 'linux-x64' |
+            (Get-FirebirdReleaseUrl -Version '3.0.10' -RuntimeIdentifier 'linux-x64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v3.0.10/Firebird-3.0.10.33601-0.amd64.tar.gz'
 
-            Get-FirebirdReleaseUrl -Version '3.0.9' -RuntimeIdentifier 'linux-arm64' |
+            (Get-FirebirdReleaseUrl -Version '3.0.9' -RuntimeIdentifier 'linux-arm64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v3.0.9/Firebird-3.0.9.33560-0.arm64.tar.gz'
+        }
+    }
+
+    Context 'Find-FirebirdRelease (public)' {
+        BeforeEach {
+            Mock Invoke-RestMethod {
+                Get-Content "$PSScriptRoot/assets/github-releases.json" -Raw | ConvertFrom-Json
+            } -ModuleName 'PSFirebird'
+        }
+
+        It 'Returns a PSCustomObject with Version, FileName, and Url' {
+            $result = Find-FirebirdRelease -Version '5.0.2' -RuntimeIdentifier 'linux-x64'
+            $result | Should -Not -BeNullOrEmpty
+            $result.Version | Should -Be '5.0.2'
+            $result.FileName | Should -Be 'Firebird-5.0.2.1613-0-linux-x64.tar.gz'
+            $result.Url | Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-linux-x64.tar.gz'
+        }
+
+        It 'Works for all major versions' {
+            $r5 = Find-FirebirdRelease -Version '5.0.0' -RuntimeIdentifier 'linux-arm64'
+            $r5.FileName | Should -BeLike 'Firebird-5.0.0*linux-arm64*'
+
+            $r4 = Find-FirebirdRelease -Version '4.0.5' -RuntimeIdentifier 'linux-x64'
+            $r4.FileName | Should -BeLike 'Firebird-4.0.5*'
+
+            $r3 = Find-FirebirdRelease -Version '3.0.12' -RuntimeIdentifier 'win-x64'
+            $r3.FileName | Should -BeLike 'Firebird-3.0.12*'
+        }
+
+        It 'Throws for unsupported versions' {
+            { Find-FirebirdRelease -Version '2.5.9' } | Should -Throw '*minimal supported version*'
         }
     }
 }
