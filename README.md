@@ -47,43 +47,43 @@ PSFirebird automatically uses `GITHUB_TOKEN` when it is available (it is set by 
 
 ### Command summary
 
-| Command                                                           | Description                                               |
-|-------------------------------------------------------------------|-----------------------------------------------------------|
-| _Environment commands_                                                                                                        |
-| &nbsp; [New-FirebirdEnvironment](#new-firebirdenvironment)        | Download and set up a Firebird environment.               |
-| &nbsp; [Get-FirebirdEnvironment](#get-firebirdenvironment)        | Get information about a Firebird environment.             |
-| &nbsp; [Remove-FirebirdEnvironment](#remove-firebirdenvironment)  | Remove a Firebird environment directory.                  |
-| &nbsp; [Use-FirebirdEnvironment](#use-firebirdenvironment)        | Set the default Firebird environment for a given context. |
-| _Release commands_                                                                                                            |
-| &nbsp; [Find-FirebirdRelease](#find-firebirdrelease)              | Find the download URL and metadata for an official Firebird release. |
-| &nbsp; [Find-FirebirdSnapshotRelease](#find-firebirdsnapshotrelease) | Find the latest snapshot build for a Firebird branch. |
-| _Database commands_                                                                                                           |
-| &nbsp; [New-FirebirdDatabase](#new-firebirddatabase)              | Create a new Firebird database.                           |
-| &nbsp; [Get-FirebirdDatabase](#get-firebirddatabase)              | Get information about a Firebird database.                |
-| &nbsp; [Get-FirebirdDatabaseStatistics](#get-firebirddatabasestatistics) | Collect statistics for a Firebird database.        |
-| &nbsp; [Test-FirebirdDatabase](#test-firebirddatabase)            | Test if a Firebird database is valid and accessible.      |
-| &nbsp; [Remove-FirebirdDatabase](#remove-firebirddatabase)        | Safely remove a Firebird database file.                   |
-| &nbsp; [Read-FirebirdDatabase](#read-firebirddatabase)            | Read detailed info from a Firebird database.              |
-| &nbsp; [Invoke-FirebirdIsql](#invoke-firebirdisql)                | Execute SQL statements using Firebird `isql`.             |
-| _Instance commands_                                                                                                           |
-| &nbsp; [Start-FirebirdInstance](#start-firebirdinstance)          | Start a Firebird server process.                          |
-| &nbsp; [Get-FirebirdInstance](#get-firebirdinstance)              | Get information about running Firebird server processes.  |
-| &nbsp; [Stop-FirebirdInstance](#stop-firebirdinstance)            | Stop a running Firebird server process.                   |
-| _Service commands_                                                                                                            |
-| &nbsp; [New-FirebirdService](#new-firebirdservice)                | Register a Firebird environment as a system service.      |
-| &nbsp; [Get-FirebirdService](#get-firebirdservice)                | Get information about registered Firebird services.       |
-| &nbsp; [Remove-FirebirdService](#remove-firebirdservice)          | Remove a Firebird system service.                         |
-| _Configuration commands_                                                                                                      |
-| &nbsp; [Read-FirebirdConfiguration](#read-firebirdconfiguration)  | Read settings from a Firebird configuration file.         |
-| &nbsp; [Write-FirebirdConfiguration](#write-firebirdconfiguration)| Update settings in a Firebird configuration file.         |
-| _Backup and restore commands_                                                                                                 |
-| &nbsp; [Backup-FirebirdDatabase](#backup-firebirddatabase)        | Create a backup file from a Firebird database.            |
-| &nbsp; [Restore-FirebirdDatabase](#restore-firebirddatabase)      | Restore a Firebird database from a backup file.           |
-| &nbsp; [Convert-FirebirdDatabase](#convert-firebirddatabase)      | Perform backup and restore operations using streaming.    |
-| &nbsp; [Lock-FirebirdDatabase](#lock-firebirddatabase)            | Lock a database for filesystem copy.                      |
-| &nbsp; [Unlock-FirebirdDatabase](#unlock-firebirddatabase)        | Unlock a database after filesystem copy.                  |
-| _Utility commands_                                                                                                            |
-| &nbsp; [Get-FirebirdVersion](#get-firebirdversion)                | Parse a Firebird version string into a structured object. |
+| Command                                                                  | Description                                                          |
+|--------------------------------------------------------------------------|----------------------------------------------------------------------|
+| _Environment commands_                                                                                                                          |
+| &nbsp; [New-FirebirdEnvironment](#new-firebirdenvironment)               | Download and set up a Firebird environment.                          |
+| &nbsp; [Get-FirebirdEnvironment](#get-firebirdenvironment)               | Get information about a Firebird environment.                        |
+| &nbsp; [Remove-FirebirdEnvironment](#remove-firebirdenvironment)         | Remove a Firebird environment directory.                             |
+| &nbsp; [Use-FirebirdEnvironment](#use-firebirdenvironment)               | Set the default Firebird environment for a given context.            |
+| _Database commands_                                                                                                                             |
+| &nbsp; [New-FirebirdDatabase](#new-firebirddatabase)                     | Create a new Firebird database.                                      |
+| &nbsp; [Get-FirebirdDatabase](#get-firebirddatabase)                     | Get information about a Firebird database.                           |
+| &nbsp; [Get-FirebirdDatabaseStatistics](#get-firebirddatabasestatistics) | Collect statistics for a Firebird database.                          |
+| &nbsp; [Test-FirebirdDatabase](#test-firebirddatabase)                   | Test if a Firebird database is valid and accessible.                 |
+| &nbsp; [Remove-FirebirdDatabase](#remove-firebirddatabase)               | Safely remove a Firebird database file.                              |
+| &nbsp; [Read-FirebirdDatabase](#read-firebirddatabase)                   | Read detailed info from a Firebird database.                         |
+| &nbsp; [Invoke-FirebirdIsql](#invoke-firebirdisql)                       | Execute SQL statements using Firebird `isql`.                        |
+| _Instance commands_                                                                                                                             |
+| &nbsp; [Start-FirebirdInstance](#start-firebirdinstance)                 | Start a Firebird server process.                                     |
+| &nbsp; [Get-FirebirdInstance](#get-firebirdinstance)                     | Get information about running Firebird server processes.             |
+| &nbsp; [Stop-FirebirdInstance](#stop-firebirdinstance)                   | Stop a running Firebird server process.                              |
+| _Service commands_                                                                                                                              |
+| &nbsp; [New-FirebirdService](#new-firebirdservice)                       | Register a Firebird environment as a system service.                 |
+| &nbsp; [Get-FirebirdService](#get-firebirdservice)                       | Get information about registered Firebird services.                  |
+| &nbsp; [Remove-FirebirdService](#remove-firebirdservice)                 | Remove a Firebird system service.                                    |
+| _Configuration commands_                                                                                                                        |
+| &nbsp; [Read-FirebirdConfiguration](#read-firebirdconfiguration)         | Read settings from a Firebird configuration file.                    |
+| &nbsp; [Write-FirebirdConfiguration](#write-firebirdconfiguration)       | Update settings in a Firebird configuration file.                    |
+| _Backup and restore commands_                                                                                                                   |
+| &nbsp; [Backup-FirebirdDatabase](#backup-firebirddatabase)               | Create a backup file from a Firebird database.                       |
+| &nbsp; [Restore-FirebirdDatabase](#restore-firebirddatabase)             | Restore a Firebird database from a backup file.                      |
+| &nbsp; [Convert-FirebirdDatabase](#convert-firebirddatabase)             | Perform backup and restore operations using streaming.               |
+| &nbsp; [Lock-FirebirdDatabase](#lock-firebirddatabase)                   | Lock a database for filesystem copy.                                 |
+| &nbsp; [Unlock-FirebirdDatabase](#unlock-firebirddatabase)               | Unlock a database after filesystem copy.                             |
+| _Release commands_                                                                                                                              |
+| &nbsp; [Find-FirebirdRelease](#find-firebirdrelease)                     | Find the download URL and metadata for an official Firebird release. |
+| &nbsp; [Find-FirebirdSnapshotRelease](#find-firebirdsnapshotrelease)     | Find the latest snapshot build for a Firebird branch.                |
+| _Utility commands_                                                                                                                              |
+| &nbsp; [Get-FirebirdVersion](#get-firebirdversion)                       | Parse a Firebird version string into a structured object.            |
 
 
 
@@ -182,130 +182,6 @@ $fb5 | Use-FirebirdEnvironment -ScriptBlock {
 # Example: Set a default environment using an environment variable
 $env:FIREBIRD_ENVIRONMENT = '/tmp/firebird5'
 New-FirebirdDatabase -Database '/tmp/test.fdb'  # Uses the environment from $env:FIREBIRD_ENVIRONMENT
-```
-
-
-
-## Release commands
-
-### Find-FirebirdRelease
-
-_Find the download URL and metadata for an official Firebird release._
-
-```
-Find-FirebirdRelease -Version <semver> [-RuntimeIdentifier <string>] [<CommonParameters>]
-```
-
-Queries the GitHub API for `FirebirdSQL/firebird` releases and returns a structured object with the download URL, file name, version, and SHA-256 digest for the matching asset. The SHA-256 digest is available for releases published from July 2025 onward; older releases return `$null`.
-
-This function exposes the same GitHub release lookup logic used internally by `New-FirebirdEnvironment`, allowing external consumers to resolve release URLs without installing Firebird locally.
-
-```powershell
-# Example: Find the Firebird 5.0.2 release for Linux x64
-$release = Find-FirebirdRelease -Version '5.0.2' -RuntimeIdentifier 'linux-x64'
-$release.Url       # https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-linux-x64.tar.gz
-$release.FileName  # Firebird-5.0.2.1613-0-linux-x64.tar.gz
-$release.Version   # 5.0.2
-$release.Sha256    # a1b2c3d4... (or $null for older releases)
-
-# Example: Find the Firebird 4.0.5 release for Windows x64
-Find-FirebirdRelease -Version '4.0.5' -RuntimeIdentifier 'win-x64'
-```
-
-
-
-### Find-FirebirdSnapshotRelease
-
-_Find the latest snapshot build for a Firebird branch._
-
-```
-Find-FirebirdSnapshotRelease -Branch <string> [-RuntimeIdentifier <string>] [<CommonParameters>]
-```
-
-Queries the GitHub API for `FirebirdSQL/snapshots` releases and returns a structured object with the download URL, file name, SHA-256 digest, branch, and upload timestamp.
-
-Asset discovery is done by substring matching rather than filename reconstruction, making the function robust to upstream naming changes.
-
-Available branches:
-
-| Branch          | Description                                 | Tag                       |
-|-----------------|---------------------------------------------|---------------------------|
-| `master`        | Firebird 6.x development builds             | `snapshot-master`         |
-| `v5.0-release`  | Firebird 5.x next-patch builds              | `snapshot-v5.0-release`   |
-| `v4.0`          | Firebird 4.x next-patch builds              | `snapshot-v4.0`           |
-
-```powershell
-# Example: Get the latest Firebird 5 snapshot for amd64
-$snap = Find-FirebirdSnapshotRelease -Branch 'v5.0-release'
-$snap.FileName   # Firebird-5.0.4.1803-4daf29e-linux-x64.tar.gz
-$snap.Url        # https://github.com/FirebirdSQL/snapshots/releases/download/...
-$snap.Sha256     # 6741e2d89aadc6acce...
-
-# Example: Get the Firebird 6 development build for arm64
-Find-FirebirdSnapshotRelease -Branch 'master' -RuntimeIdentifier 'linux-arm64'
-```
-
-
-
-## Instance commands
-
-### Start-FirebirdInstance
-
-_Start a Firebird server process._
-
-```
-Start-FirebirdInstance [-Port <int>] [-Environment <FirebirdEnvironment>] [<CommonParameters>]
-```
-
-Launches a Firebird server process from the specified environment and returns a `FirebirdInstance` object. The server runs on the specified port (default: 3050).
-
-```powershell
-# Example: Start a Firebird server on custom port
-$fb5 = New-FirebirdEnvironment -Version '5.0.2'
-$instance = Start-FirebirdInstance -Port 3051 -Environment $fb5
-```
-
-
-
-### Get-FirebirdInstance
-
-_Get information about running Firebird server processes._
-
-```
-Get-FirebirdInstance [<CommonParameters>]
-```
-
-Returns information about all running Firebird processes including process ID, path, version, command line, start time, and port number.
-
-```powershell
-# Example: List all running Firebird instances
-Get-FirebirdInstance
-
-# Example: Find instances on a specific port
-Get-FirebirdInstance | Where-Object { $_.Port -eq 3051 }
-```
-
-
-
-### Stop-FirebirdInstance
-
-_Stop a running Firebird server process._
-
-```
-Stop-FirebirdInstance -Id <int> [<CommonParameters>]
-```
-
-Terminates a Firebird server process by process ID. Can accept pipeline input from `Get-FirebirdInstance` or any object with an `Id` property.
-
-```powershell
-# Example: Stop a specific Firebird instance
-Stop-FirebirdInstance -Id 1234
-
-# Example: Stop all running Firebird instances
-Get-FirebirdInstance | Stop-FirebirdInstance
-
-# Example: Stop instances on a specific port
-Get-FirebirdInstance | Where-Object { $_.Port -eq 3051 } | Stop-FirebirdInstance
 ```
 
 
@@ -458,6 +334,69 @@ Invoke-FirebirdIsql -Database '/tmp/mydb.fdb' -Sql 'SELECT * FROM RDB$DATABASE;'
 
 # Example: Using pipeline input
 'SELECT COUNT(*) FROM MY_TABLE;' | Invoke-FirebirdIsql -Database '/tmp/mydb.fdb'
+```
+
+
+
+## Instance commands
+
+### Start-FirebirdInstance
+
+_Start a Firebird server process._
+
+```
+Start-FirebirdInstance [-Port <int>] [-Environment <FirebirdEnvironment>] [<CommonParameters>]
+```
+
+Launches a Firebird server process from the specified environment and returns a `FirebirdInstance` object. The server runs on the specified port (default: 3050).
+
+```powershell
+# Example: Start a Firebird server on custom port
+$fb5 = New-FirebirdEnvironment -Version '5.0.2'
+$instance = Start-FirebirdInstance -Port 3051 -Environment $fb5
+```
+
+
+
+### Get-FirebirdInstance
+
+_Get information about running Firebird server processes._
+
+```
+Get-FirebirdInstance [<CommonParameters>]
+```
+
+Returns information about all running Firebird processes including process ID, path, version, command line, start time, and port number.
+
+```powershell
+# Example: List all running Firebird instances
+Get-FirebirdInstance
+
+# Example: Find instances on a specific port
+Get-FirebirdInstance | Where-Object { $_.Port -eq 3051 }
+```
+
+
+
+### Stop-FirebirdInstance
+
+_Stop a running Firebird server process._
+
+```
+Stop-FirebirdInstance -Id <int> [<CommonParameters>]
+```
+
+Terminates a Firebird server process by process ID. Can accept pipeline input from `Get-FirebirdInstance` or any object with an `Id` property.
+
+```powershell
+# Example: Stop a specific Firebird instance
+Stop-FirebirdInstance -Id 1234
+
+# Example: Stop all running Firebird instances
+Get-FirebirdInstance | Stop-FirebirdInstance
+
+# Example: Stop instances on a specific port
+Get-FirebirdInstance | Where-Object { $_.Port -eq 3051 } | Stop-FirebirdInstance
 ```
 
 
@@ -720,6 +659,96 @@ Unlock-FirebirdDatabase -Database '/tmp/mydb.fdb' -Environment $fb5
 
 
 
+## Release commands
+
+### Find-FirebirdRelease
+
+_Find the download URL and metadata for an official Firebird release._
+
+```
+Find-FirebirdRelease -Version <semver> [-RuntimeIdentifier <string>] [<CommonParameters>]
+```
+
+Queries the GitHub API for `FirebirdSQL/firebird` releases and returns a structured object with the download URL, file name, version, and SHA-256 digest for the matching asset. The SHA-256 digest is available for releases published from July 2025 onward; older releases return `$null`.
+
+This function exposes the same GitHub release lookup logic used internally by `New-FirebirdEnvironment`, allowing external consumers to resolve release URLs without installing Firebird locally.
+
+```powershell
+# Example: Find the Firebird 5.0.2 release for Linux x64
+$release = Find-FirebirdRelease -Version '5.0.2' -RuntimeIdentifier 'linux-x64'
+$release.Url       # https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-linux-x64.tar.gz
+$release.FileName  # Firebird-5.0.2.1613-0-linux-x64.tar.gz
+$release.Version   # 5.0.2
+$release.Sha256    # a1b2c3d4... (or $null for older releases)
+
+# Example: Find the Firebird 4.0.5 release for Windows x64
+Find-FirebirdRelease -Version '4.0.5' -RuntimeIdentifier 'win-x64'
+```
+
+
+
+### Find-FirebirdSnapshotRelease
+
+_Find the latest snapshot build for a Firebird branch._
+
+```
+Find-FirebirdSnapshotRelease -Branch <string> [-RuntimeIdentifier <string>] [<CommonParameters>]
+```
+
+Queries the GitHub API for `FirebirdSQL/snapshots` releases and returns a structured object with the download URL, file name, SHA-256 digest, branch, and upload timestamp.
+
+Asset discovery is done by substring matching rather than filename reconstruction, making the function robust to upstream naming changes.
+
+Available branches:
+
+| Branch          | Description                                 | Tag                       |
+|-----------------|---------------------------------------------|---------------------------|
+| `master`        | Firebird 6.x development builds             | `snapshot-master`         |
+| `v5.0-release`  | Firebird 5.x next-patch builds              | `snapshot-v5.0-release`   |
+| `v4.0`          | Firebird 4.x next-patch builds              | `snapshot-v4.0`           |
+
+```powershell
+# Example: Get the latest Firebird 5 snapshot for amd64
+$snap = Find-FirebirdSnapshotRelease -Branch 'v5.0-release'
+$snap.FileName   # Firebird-5.0.4.1803-4daf29e-linux-x64.tar.gz
+$snap.Url        # https://github.com/FirebirdSQL/snapshots/releases/download/...
+$snap.Sha256     # 6741e2d89aadc6acce...
+
+# Example: Get the Firebird 6 development build for arm64
+Find-FirebirdSnapshotRelease -Branch 'master' -RuntimeIdentifier 'linux-arm64'
+```
+
+
+
+## Utility commands
+
+### Get-FirebirdVersion
+
+_Parse a Firebird version string into a structured object._
+
+```
+Get-FirebirdVersion [-VersionString] <string> [<CommonParameters>]
+```
+
+Parses version strings produced by Firebird tools (`gstat -z`, `isql -z`, etc.) into a structured object with platform, version, build number, and server name. Accepts pipeline input.
+
+```powershell
+# Example: Parse a version string from gstat output
+$v = Get-FirebirdVersion 'LI-V5.0.3.1683 Firebird 5.0'
+$v.Platform    # Linux
+$v.Version     # 5.0.3 (as [semver])
+$v.Build       # 1683
+$v.ServerName  # Firebird 5.0
+
+# Example: Parse a Windows version string via pipeline
+'WI-V4.0.5.3140 Firebird 4.0' | Get-FirebirdVersion
+
+# Example: Parse just a version prefix (no server name)
+Get-FirebirdVersion 'LI-V3.0.12.33787'
+```
+
+
+
 # Development notes
 
 - Keep one function per file, unless the functions are closely related.
@@ -752,31 +781,3 @@ Invoke-Pester -Tag 'Integration'
 ## Contributing
 
 Contributions, issues, and feature requests are welcome! Please open an issue or submit a pull request.
-
-
-## Utility commands
-
-### Get-FirebirdVersion
-
-_Parse a Firebird version string into a structured object._
-
-```
-Get-FirebirdVersion [-VersionString] <string> [<CommonParameters>]
-```
-
-Parses version strings produced by Firebird tools (`gstat -z`, `isql -z`, etc.) into a structured object with platform, version, build number, and server name. Accepts pipeline input.
-
-```powershell
-# Example: Parse a version string from gstat output
-$v = Get-FirebirdVersion 'LI-V5.0.3.1683 Firebird 5.0'
-$v.Platform    # Linux
-$v.Version     # 5.0.3 (as [semver])
-$v.Build       # 1683
-$v.ServerName  # Firebird 5.0
-
-# Example: Parse a Windows version string via pipeline
-'WI-V4.0.5.3140 Firebird 4.0' | Get-FirebirdVersion
-
-# Example: Parse just a version prefix (no server name)
-Get-FirebirdVersion 'LI-V3.0.12.33787'
-```
