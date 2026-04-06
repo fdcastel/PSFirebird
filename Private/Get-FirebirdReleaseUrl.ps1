@@ -110,9 +110,12 @@ function Get-FirebirdReleaseUrl {
     $selectedAsset = $asset[0]
     Write-VerboseMark -Message "Selected asset: $($selectedAsset.name)"
 
+    $sha256 = if ($selectedAsset.digest -match '^sha256:(.+)$') { $Matches[1] } else { $null }
+
     return [PSCustomObject]@{
         Version  = $Version
         FileName = $selectedAsset.name
         Url      = $selectedAsset.browser_download_url
+        Sha256   = $sha256
     }
 }

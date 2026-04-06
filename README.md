@@ -194,7 +194,7 @@ _Find the download URL and metadata for an official Firebird release._
 Find-FirebirdRelease -Version <semver> [-RuntimeIdentifier <string>] [<CommonParameters>]
 ```
 
-Queries the GitHub API for `FirebirdSQL/firebird` releases and returns a structured object with the download URL, file name, and version for the matching asset.
+Queries the GitHub API for `FirebirdSQL/firebird` releases and returns a structured object with the download URL, file name, version, and SHA-256 digest for the matching asset. The SHA-256 digest is available for releases published from July 2025 onward; older releases return `$null`.
 
 This function exposes the same GitHub release lookup logic used internally by `New-FirebirdEnvironment`, allowing external consumers to resolve release URLs without installing Firebird locally.
 
@@ -204,6 +204,7 @@ $release = Find-FirebirdRelease -Version '5.0.2' -RuntimeIdentifier 'linux-x64'
 $release.Url       # https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-linux-x64.tar.gz
 $release.FileName  # Firebird-5.0.2.1613-0-linux-x64.tar.gz
 $release.Version   # 5.0.2
+$release.Sha256    # a1b2c3d4... (or $null for older releases)
 
 # Example: Find the Firebird 4.0.5 release for Windows x64
 Find-FirebirdRelease -Version '4.0.5' -RuntimeIdentifier 'win-x64'

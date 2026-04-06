@@ -13,6 +13,7 @@ Describe 'GitHub releases' -Tag 'Unit' {
             $result.Url | Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-windows-x64.zip'
             $result.FileName | Should -Be 'Firebird-5.0.2.1613-0-windows-x64.zip'
             $result.Version | Should -Be '5.0.2'
+            $result.Sha256 | Should -Be 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4'
 
             (Get-FirebirdReleaseUrl -Version '5.0.1' -RuntimeIdentifier 'win-x86').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.1/Firebird-5.0.1.1469-0-windows-x86.zip'
@@ -51,6 +52,15 @@ Describe 'GitHub releases' -Tag 'Unit' {
             (Get-FirebirdReleaseUrl -Version '3.0.9' -RuntimeIdentifier 'linux-arm64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v3.0.9/Firebird-3.0.9.33560-0.arm64.tar.gz'
         }
+        It 'Returns Sha256 when digest field is available (v5.0.2)' {
+            $result = Get-FirebirdReleaseUrl -Version '5.0.2' -RuntimeIdentifier 'linux-x64'
+            $result.Sha256 | Should -Be 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2'
+        }
+
+        It 'Returns null Sha256 when digest field is not available (v4.0.5)' {
+            $result = Get-FirebirdReleaseUrl -Version '4.0.5' -RuntimeIdentifier 'linux-x64'
+            $result.Sha256 | Should -BeNullOrEmpty
+        }
     }
 
     Context 'Find-FirebirdRelease (public)' {
@@ -60,12 +70,13 @@ Describe 'GitHub releases' -Tag 'Unit' {
             } -ModuleName 'PSFirebird'
         }
 
-        It 'Returns a PSCustomObject with Version, FileName, and Url' {
+        It 'Returns a PSCustomObject with Version, FileName, Url, and Sha256' {
             $result = Find-FirebirdRelease -Version '5.0.2' -RuntimeIdentifier 'linux-x64'
             $result | Should -Not -BeNullOrEmpty
             $result.Version | Should -Be '5.0.2'
             $result.FileName | Should -Be 'Firebird-5.0.2.1613-0-linux-x64.tar.gz'
             $result.Url | Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-linux-x64.tar.gz'
+            $result.Sha256 | Should -Be 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2'
         }
 
         It 'Works for all major versions' {
