@@ -30,8 +30,8 @@ Restore-FirebirdDatabase -BackupFilePath 'backup.fbk' -Database 'restored.fdb'
 Restores the backup file 'backup.fbk' to 'restored.fdb'.
 
 .EXAMPLE
-Get-Content 'backup.fbk' | Restore-FirebirdDatabase -Database 'restored.fdb'
-Restores a database from backup data provided via pipeline.
+'backup.fbk' | Restore-FirebirdDatabase -Database 'restored.fdb'
+Restores a database from a backup file path provided via pipeline.
 
 .EXAMPLE
 Restore-FirebirdDatabase -BackupFilePath 'backup.fbk' -Database 'restored.fdb' -Force
@@ -91,13 +91,14 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
     }
 
     $gbak = $Environment.GetGbakPath()
-    $gbakArgs = $($RemainingArguments) + @(
-        '-create_database',
-        '-verify',
-        '-statistics', 'T',
-        $BackupFilePath,
+    $gbakArgs = @(
+        $RemainingArguments
+        '-create_database'
+        '-verify'
+        '-statistics', 'T'
+        $BackupFilePath
         $Database.ConnectionString()
-    )
+    ) | Where-Object { $_ }
 
     if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
         Write-VerboseMark -Message "Returning: $gbakArgs"

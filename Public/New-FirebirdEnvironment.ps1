@@ -107,18 +107,14 @@ function New-FirebirdEnvironment {
             Write-VerboseMark -Message 'Extracting Windows archive...'
             Expand-Archive -Path $fullArchiveFile -DestinationPath $Path
         } elseif ($IsLinux) {
-            if ($rid.Contains('linux-arm64') -and ($Version.Major -lt 5)) {
-                # For Firebird 4.0 and earlier, the ARM64 archive has a different structure (no 'buildroot.tar.gz').
-                Write-VerboseMark -Message 'Extracting Linux ARM64 archive (pre-5.x structure)...'
-                Invoke-ExternalCommand {
-                    & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
-                } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
-            } else {
-                Write-VerboseMark -Message 'Extracting Linux archive with buildroot...'
-                Invoke-ExternalCommand {
-                    & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
-                } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
+            Write-VerboseMark -Message 'Extracting Linux archive...'
+            Invoke-ExternalCommand {
+                & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
+            } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
 
+            if (-not ($rid.Contains('linux-arm64') -and ($Version.Major -lt 5))) {
+                # For Firebird 5.x+ and non-ARM64, extract the nested buildroot archive.
+                Write-VerboseMark -Message 'Extracting buildroot archive...'
                 Invoke-ExternalCommand {
                     & tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
                 } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."

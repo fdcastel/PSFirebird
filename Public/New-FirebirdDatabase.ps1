@@ -99,11 +99,12 @@ CREATE DATABASE '$($Database.ConnectionString())'
     }
 
     $odsVersion = $null
-    if ($Database.IsLocal()) {
-        Write-VerboseMark -Message 'Local database detected. Reading ODS version from file header.'
-        $odsVersion = Get-FirebirdODSVersion -Database $Database
-    } else {
-        Write-VerboseMark -Message 'Remote database detected. Skipping ODS version detection.'
+    try {
+        Write-VerboseMark -Message 'Reading ODS version via gstat.'
+        $header = Get-FirebirdDatabaseHeader -Database $Database -Environment $Environment
+        $odsVersion = $header.ODSVersion
+    } catch {
+        Write-VerboseMark -Message "Could not read ODS version: $($_.Exception.Message)"
     }
 
     # Return the database information as a FirebirdDatabase class instance.

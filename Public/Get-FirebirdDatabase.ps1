@@ -35,30 +35,7 @@ function Get-FirebirdDatabase {
     process {
         Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
-        $connectionString = $Database.ConnectionString()
-        $gstat = $Environment.GetGstatPath()
-        Write-VerboseMark -Message "Checking database at '$connectionString'."
-
-        $gstatResult = Invoke-ExternalCommand {
-            & $gstat -h $connectionString
-        } -Passthru
-
-        # Parse gstat output. Discard first 5 lines, stop at ODS Version.
-        $pageSize = $null
-        $odsVersion = $null
-        $lines = $gstatResult.StdOut | Select-Object -Skip 5
-        foreach ($line in $lines) {
-            if ($line -match '^\s+Page size\s+(\d+)') {
-                $pageSize = [int]$Matches[1].Trim()
-                Write-VerboseMark -Message "Parsed Page size: $pageSize"
-            }
-
-            if ($line -match '^\s+ODS Version\s+([\d]+.[\d]+)') {
-                $odsVersion = [version]$Matches[1].Trim()
-                Write-VerboseMark -Message "Parsed ODS Version: $odsVersion"
-                break; # Stop processing further lines
-            }
-        }
+        $header = Get-FirebirdDatabaseHeader -Database $Database -Environment $Environment
 
         # Return the database information as a FirebirdDatabase class instance.
         [FirebirdDatabase]::new(@{
@@ -67,8 +44,8 @@ function Get-FirebirdDatabase {
                 Port        = $Database.Port
                 Path        = $Database.Path
 
-                PageSize    = $PageSize
-                ODSVersion  = $ODSVersion
+                PageSize    = $header.PageSize
+                ODSVersion  = $header.ODSVersion
             })
     }
 }
