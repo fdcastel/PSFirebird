@@ -151,3 +151,230 @@ Describe 'Split-FirebirdConnectionString' -Tag 'Unit' {
         }
     }
 }
+
+Describe 'FirebirdDatabase' -Tag 'Unit' {
+
+    Context 'Constructor and properties' {
+
+        It 'constructs from local Linux path' {
+            $db = [FirebirdDatabase]::new('/opt/firebird/db.fdb')
+            $db.Protocol | Should -BeNullOrEmpty
+            $db.Host | Should -BeNullOrEmpty
+            $db.Port | Should -BeNullOrEmpty
+            $db.Path | Should -Be '/opt/firebird/db.fdb'
+        }
+
+        It 'constructs from local Windows path' {
+            $db = [FirebirdDatabase]::new('C:\data\test.fdb')
+            $db.Protocol | Should -BeNullOrEmpty
+            $db.Host | Should -BeNullOrEmpty
+            $db.Port | Should -BeNullOrEmpty
+            $db.Path | Should -Be 'C:\data\test.fdb'
+        }
+
+        It 'constructs from xnet connection' {
+            $db = [FirebirdDatabase]::new('xnet://security.db')
+            $db.Protocol | Should -Be 'xnet'
+            $db.Host | Should -BeNullOrEmpty
+            $db.Port | Should -BeNullOrEmpty
+            $db.Path | Should -Be 'security.db'
+        }
+
+        It 'constructs from legacy host:path' {
+            $db = [FirebirdDatabase]::new('myserver:/opt/db.fdb')
+            $db.Protocol | Should -Be 'inet'
+            $db.Host | Should -Be 'myserver'
+            $db.Port | Should -BeNullOrEmpty
+            $db.Path | Should -Be '/opt/db.fdb'
+        }
+
+        It 'constructs from legacy host/port:path' {
+            $db = [FirebirdDatabase]::new('myserver/3051:/opt/db.fdb')
+            $db.Protocol | Should -Be 'inet'
+            $db.Host | Should -Be 'myserver'
+            $db.Port | Should -Be '3051'
+            $db.Path | Should -Be '/opt/db.fdb'
+        }
+
+        It 'constructs from legacy host with service-name port' {
+            $db = [FirebirdDatabase]::new('inca/fb_db:D:\Traffic\Roads.fdb')
+            $db.Protocol | Should -Be 'inet'
+            $db.Host | Should -Be 'inca'
+            $db.Port | Should -Be 'fb_db'
+            $db.Path | Should -Be 'D:\Traffic\Roads.fdb'
+        }
+
+        It 'constructs from inet://host/path' {
+            $db = [FirebirdDatabase]::new('inet://pongo//opt/db.fdb')
+            $db.Protocol | Should -Be 'inet'
+            $db.Host | Should -Be 'pongo'
+            $db.Port | Should -BeNullOrEmpty
+            $db.Path | Should -Be '/opt/db.fdb'
+        }
+
+        It 'constructs from inet://host:port/path' {
+            $db = [FirebirdDatabase]::new('inet://bongo:3052/fury')
+            $db.Protocol | Should -Be 'inet'
+            $db.Host | Should -Be 'bongo'
+            $db.Port | Should -Be '3052'
+            $db.Path | Should -Be 'fury'
+        }
+
+        It 'constructs from inet6://[::1]/path' {
+            $db = [FirebirdDatabase]::new('inet6://[::1]/mydb.fdb')
+            $db.Protocol | Should -Be 'inet6'
+            $db.Host | Should -Be '::1'
+            $db.Port | Should -BeNullOrEmpty
+            $db.Path | Should -Be 'mydb.fdb'
+        }
+
+        It 'constructs from inet4://host:port/path' {
+            $db = [FirebirdDatabase]::new('inet4://myserver:3051/mydb.fdb')
+            $db.Protocol | Should -Be 'inet4'
+            $db.Host | Should -Be 'myserver'
+            $db.Port | Should -Be '3051'
+            $db.Path | Should -Be 'mydb.fdb'
+        }
+
+        It 'constructs from hashtable' {
+            $db = [FirebirdDatabase]::new(@{
+                Protocol = 'inet'
+                Host     = 'server1'
+                Port     = '3055'
+                Path     = '/data/test.fdb'
+            })
+            $db.Protocol | Should -Be 'inet'
+            $db.Host | Should -Be 'server1'
+            $db.Port | Should -Be '3055'
+            $db.Path | Should -Be '/data/test.fdb'
+        }
+    }
+
+    Context 'IsLocal' {
+
+        It 'returns true for local path' {
+            $db = [FirebirdDatabase]::new('/opt/db.fdb')
+            $db.IsLocal() | Should -BeTrue
+        }
+
+        It 'returns true for xnet connection' {
+            $db = [FirebirdDatabase]::new('xnet://security.db')
+            $db.IsLocal() | Should -BeTrue
+        }
+
+        It 'returns false for remote connection' {
+            $db = [FirebirdDatabase]::new('myserver:/opt/db.fdb')
+            $db.IsLocal() | Should -BeFalse
+        }
+
+        It 'returns false for inet6 connection' {
+            $db = [FirebirdDatabase]::new('inet6://[::1]/mydb.fdb')
+            $db.IsLocal() | Should -BeFalse
+        }
+    }
+
+    Context 'PortNumber' {
+
+        It 'returns integer for numeric port' {
+            $db = [FirebirdDatabase]::new('myserver/3051:/opt/db.fdb')
+            $db.PortNumber() | Should -Be 3051
+            $db.PortNumber() | Should -BeOfType [int]
+        }
+
+        It 'returns null for service-name port' {
+            $db = [FirebirdDatabase]::new('inca/fb_db:D:\Traffic\Roads.fdb')
+            $db.PortNumber() | Should -BeNull
+        }
+
+        It 'returns null when no port specified' {
+            $db = [FirebirdDatabase]::new('/opt/db.fdb')
+            $db.PortNumber() | Should -BeNull
+        }
+    }
+
+    Context 'ConnectionString round-trip' {
+
+        It 'round-trips local Linux path' {
+            $db = [FirebirdDatabase]::new('/opt/db.fdb')
+            $db.ConnectionString() | Should -Be '/opt/db.fdb'
+        }
+
+        It 'round-trips local Windows path' {
+            $db = [FirebirdDatabase]::new('C:\data\test.fdb')
+            $db.ConnectionString() | Should -Be 'C:\data\test.fdb'
+        }
+
+        It 'round-trips xnet connection' {
+            $db = [FirebirdDatabase]::new('xnet://security.db')
+            $db.ConnectionString() | Should -Be 'xnet://security.db'
+        }
+
+        It 'round-trips xnet with Windows path' {
+            $db = [FirebirdDatabase]::new('xnet://C:\Programmas\Firebird\security3.fdb')
+            $db.ConnectionString() | Should -Be 'xnet://C:\Programmas\Firebird\security3.fdb'
+        }
+
+        It 'round-trips legacy host:path' {
+            $db = [FirebirdDatabase]::new('myserver:/opt/db.fdb')
+            $db.ConnectionString() | Should -Be 'myserver:/opt/db.fdb'
+        }
+
+        It 'round-trips legacy host/port:path' {
+            $db = [FirebirdDatabase]::new('myserver/3051:/opt/db.fdb')
+            $db.ConnectionString() | Should -Be 'myserver/3051:/opt/db.fdb'
+        }
+
+        It 'round-trips legacy host with service-name port' {
+            $db = [FirebirdDatabase]::new('inca/fb_db:D:\Traffic\Roads.fdb')
+            $db.ConnectionString() | Should -Be 'inca/fb_db:D:\Traffic\Roads.fdb'
+        }
+
+        It 'normalizes inet:// to legacy format' {
+            $db = [FirebirdDatabase]::new('inet://pongo//opt/db.fdb')
+            $db.ConnectionString() | Should -Be 'pongo:/opt/db.fdb'
+        }
+
+        It 'normalizes inet://host:port to legacy format' {
+            $db = [FirebirdDatabase]::new('inet://bongo:3052/fury')
+            $db.ConnectionString() | Should -Be 'bongo/3052:fury'
+        }
+
+        It 'round-trips inet6 with IPv6 address' {
+            $db = [FirebirdDatabase]::new('inet6://[::1]/mydb.fdb')
+            $db.ConnectionString() | Should -Be 'inet6://[::1]/mydb.fdb'
+        }
+
+        It 'round-trips inet4 with port' {
+            $db = [FirebirdDatabase]::new('inet4://myserver:3051/mydb.fdb')
+            $db.ConnectionString() | Should -Be 'inet4://myserver:3051/mydb.fdb'
+        }
+
+        It 'round-trips inet4 without port' {
+            $db = [FirebirdDatabase]::new('inet4://myserver/mydb.fdb')
+            $db.ConnectionString() | Should -Be 'inet4://myserver/mydb.fdb'
+        }
+
+        It 'round-trips IP address with path' {
+            $db = [FirebirdDatabase]::new('112.179.0.1:/var/db/butterflies.fdb')
+            $db.ConnectionString() | Should -Be '112.179.0.1:/var/db/butterflies.fdb'
+        }
+
+        It 'round-trips alias via localhost' {
+            $db = [FirebirdDatabase]::new('127.0.0.1:Borrowers')
+            $db.ConnectionString() | Should -Be '127.0.0.1:Borrowers'
+        }
+    }
+
+    Context 'ToString' {
+
+        It 'includes Remote for remote databases' {
+            $db = [FirebirdDatabase]::new('myserver:/opt/db.fdb')
+            $db.ToString() | Should -Match 'Remote'
+        }
+
+        It 'includes Local for local databases' {
+            $db = [FirebirdDatabase]::new('/opt/db.fdb')
+            $db.ToString() | Should -Match 'Local'
+        }
+    }
+}

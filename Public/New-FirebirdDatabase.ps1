@@ -98,10 +98,19 @@ CREATE DATABASE '$($Database.Path)'
         Write-VerboseMark -Message "Database created successfully at '$($Database.Path)'"
     }
 
-    $odsVersion = Get-FirebirdODSVersion -Database $Database.Path
+    $odsVersion = $null
+    if ($Database.IsLocal()) {
+        Write-VerboseMark -Message 'Local database detected. Reading ODS version from file header.'
+        $odsVersion = Get-FirebirdODSVersion -Database $Database
+    } else {
+        Write-VerboseMark -Message 'Remote database detected. Skipping ODS version detection.'
+    }
 
     # Return the database information as a FirebirdDatabase class instance.
     [FirebirdDatabase]::new(@{
+            Protocol    = $Database.Protocol
+            Host        = $Database.Host
+            Port        = $Database.Port
             Path        = $Database.Path
 
             PageSize    = $PageSize
