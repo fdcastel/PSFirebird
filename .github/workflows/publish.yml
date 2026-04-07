@@ -30,9 +30,24 @@ jobs:
           (Get-Content $psd1) -replace "(?<=ModuleVersion\s*=\s*)'[^']+'", "'$tag'" | Set-Content $psd1
 
           Write-Host "Publishing to PowerShell Gallery..."
-          Publish-Module -Path '.' -NuGetApiKey $env:PSGALLERY_API_KEY -Verbose
+          try {
+            Publish-Module -Path '.' -NuGetApiKey $env:PSGALLERY_API_KEY -Verbose
+          } catch {
+            if ($_.Exception.Message -like "*is already available in the repository*") {
+              Write-Host "Version $tag is already published to PSGallery. Skipping."
+            } else {
+              throw
+            }
+          }
 
       - name: Create GitHub Release
+        shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --generate-notes
+        run: |
+          $release = gh release view "${{ github.ref_name }}" 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release ${{ github.ref_name }} already exists. Skipping."
+          } else {
+            gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --generate-notes
+          }
