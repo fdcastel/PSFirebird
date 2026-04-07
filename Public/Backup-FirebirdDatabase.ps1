@@ -58,7 +58,6 @@ function Backup-FirebirdDatabase {
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'BackupFilePath')]
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'AsCommandLine')]
-        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
         [FirebirdDatabase]$Database,
 
         [Parameter(Position = 1, ParameterSetName = 'BackupFilePath')]
@@ -112,7 +111,7 @@ function Backup-FirebirdDatabase {
         if (-not $Transportable) { '-nt' }
         '-verify'
         '-statistics', 'T'
-        $Database.Path
+        $Database.ConnectionString()
         $BackupFilePath
     ) | Where-Object { $_ }
 

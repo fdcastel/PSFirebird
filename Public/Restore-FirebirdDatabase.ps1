@@ -96,7 +96,7 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
         '-verify',
         '-statistics', 'T',
         $BackupFilePath,
-        $Database.Path
+        $Database.ConnectionString()
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {

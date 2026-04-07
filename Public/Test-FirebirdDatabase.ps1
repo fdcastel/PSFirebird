@@ -27,20 +27,15 @@ function Test-FirebirdDatabase {
     )
 
     process {
-        $dbPath = $Database.Path
-        Write-VerboseMark -Message "Testing database at '$dbPath'."
-
-        if (-not (Test-Path $dbPath)) {
-            Write-VerboseMark -Message "Database file '$dbPath' does not exist."
-            return $false
-        }
+        $connectionString = $Database.ConnectionString()
+        Write-VerboseMark -Message "Testing database at '$connectionString'."
 
         try {
             $gstat = $Environment.GetGstatPath()
-            Write-VerboseMark -Message "Running gstat header check on '$dbPath'."
+            Write-VerboseMark -Message "Running gstat header check on '$connectionString'."
 
             $gstatResult = Invoke-ExternalCommand {
-                & $gstat -h $dbPath
+                & $gstat -h $connectionString
             } -Passthru
 
             # Verify we got valid ODS version from the output

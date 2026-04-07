@@ -24,16 +24,22 @@ function Remove-FirebirdDatabase {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     param(
         [Parameter(Mandatory, Position = 0, ValueFromPipeline)]
-        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
         [FirebirdDatabase]$Database,
-
-        [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
 
         [switch]$Force
     )
 
     process {
+        if (-not $Database.IsLocal()) {
+            throw 'Remove-FirebirdDatabase only supports local databases. Use a Firebird administration tool for remote databases.'
+        }
+
         $dbPath = $Database.Path
+
+        if (-not (Test-Path $dbPath)) {
+            throw "Database file '$dbPath' does not exist."
+        }
+
         Write-VerboseMark -Message "Attempting to remove database at '$dbPath'."
 
         # Check for .delta file which indicates the database is locked for backup

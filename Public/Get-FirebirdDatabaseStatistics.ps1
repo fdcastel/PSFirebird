@@ -31,7 +31,6 @@ function Get-FirebirdDatabaseStatistics {
     [CmdletBinding()]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
-        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
         [FirebirdDatabase]$Database,
 
         [string[]]$TableName,
@@ -49,7 +48,7 @@ function Get-FirebirdDatabaseStatistics {
             '-t'
             $table
         }
-        $Database.Path
+        $Database.ConnectionString()
     )
 
     Write-VerboseMark -Message "Calling: $gstat $gstatArgs"

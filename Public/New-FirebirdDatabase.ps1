@@ -82,7 +82,7 @@ function New-FirebirdDatabase {
 
     if ($PSCmdlet.ShouldProcess($Database.Path, 'Create new Firebird database')) {
         $createDbCmd = @"
-CREATE DATABASE '$($Database.Path)' 
+CREATE DATABASE '$($Database.ConnectionString())' 
     USER '$User' 
     PASSWORD '$Password' 
     PAGE_SIZE $PageSize 

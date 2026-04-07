@@ -143,7 +143,7 @@ Describe 'FirebirdDatabase' -Tag 'Integration' {
         $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
         $TestDatabasePath | Should -Exist
 
-        Remove-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment -Force
+        Remove-FirebirdDatabase -Database $testDatabase -Force
         $TestDatabasePath | Should -Not -Exist
     }
 
@@ -154,9 +154,14 @@ Describe 'FirebirdDatabase' -Tag 'Integration' {
 
         Lock-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment
 
-        { Remove-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment -Force } | Should -Throw '*locked for backup*'
+        { Remove-FirebirdDatabase -Database $testDatabase -Force } | Should -Throw '*locked for backup*'
 
         # Clean up: unlock so AfterAll can remove the folder
         Unlock-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment
+    }
+
+    It 'Remove a remote database throws' {
+        $remoteDb = [FirebirdDatabase]::new('myserver:/opt/data/test.fdb')
+        { Remove-FirebirdDatabase -Database $remoteDb -Force } | Should -Throw '*local databases*'
     }
 }

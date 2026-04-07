@@ -4,16 +4,17 @@ function Get-FirebirdDatabase {
         Retrieves information about a Firebird database and its environment.
     .DESCRIPTION
         Returns a FirebirdDatabase object with details about the specified database and environment.
-    .PARAMETER Path
-        Path to the Firebird database file to inspect. Must exist.
+        Supports both local and remote databases via connection strings.
+    .PARAMETER Database
+        The Firebird database to inspect. Accepts connection strings, paths, or FirebirdDatabase objects.
     .PARAMETER Environment
         The Firebird environment to use. Defaults to the current environment if not specified.
     .EXAMPLE
-        Get-FirebirdDatabase -Path '/tmp/test.fdb' -Environment $fbEnv
+        Get-FirebirdDatabase -Database '/tmp/test.fdb' -Environment $fbEnv
         Returns details for the database at '/tmp/test.fdb' using the specified environment.
     .EXAMPLE
-        Get-FirebirdDatabase -Path '/tmp/test.fdb'
-        Returns details for the database at '/tmp/test.fdb' using the current environment.
+        Get-FirebirdDatabase -Database 'localhost:/tmp/test.fdb'
+        Returns details for a remote database using the current environment.
     .EXAMPLE
         Get-ChildItem *.fdb | Get-FirebirdDatabase
         Returns details for all .fdb files in the current directory.
@@ -25,9 +26,8 @@ function Get-FirebirdDatabase {
     [OutputType([FirebirdDatabase])]
     param(
         [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [ValidateScript({ Test-Path $_ }, ErrorMessage = 'The Database must exist.')]
-        [Alias('FullName')]
-        [string]$Path,
+        [Alias('FullName', 'Path')]
+        [FirebirdDatabase]$Database,
 
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()
     )
@@ -35,11 +35,12 @@ function Get-FirebirdDatabase {
     process {
         Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
+        $connectionString = $Database.ConnectionString()
         $gstat = $Environment.GetGstatPath()
-        Write-VerboseMark -Message "Checking database at '$($Path)'."
+        Write-VerboseMark -Message "Checking database at '$connectionString'."
 
         $gstatResult = Invoke-ExternalCommand {
-            & $gstat -h $Path
+            & $gstat -h $connectionString
         } -Passthru
 
         # Parse gstat output. Discard first 5 lines, stop at ODS Version.
@@ -61,10 +62,13 @@ function Get-FirebirdDatabase {
 
         # Return the database information as a FirebirdDatabase class instance.
         [FirebirdDatabase]::new(@{
-                Path = $Path
+                Protocol    = $Database.Protocol
+                Host        = $Database.Host
+                Port        = $Database.Port
+                Path        = $Database.Path
 
-                PageSize     = $PageSize
-                ODSVersion   = $ODSVersion
+                PageSize    = $PageSize
+                ODSVersion  = $ODSVersion
             })
     }
 }

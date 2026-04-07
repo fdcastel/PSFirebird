@@ -16,7 +16,6 @@ function Lock-FirebirdDatabase {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory, Position = 0)]
-        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
         [FirebirdDatabase]$Database,
 
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
@@ -26,7 +25,7 @@ function Lock-FirebirdDatabase {
     )
 
     $nbackup = $Environment.GetNbackupPath()
-    $nbackupArgs = @($RemainingArguments) + @('-lock', $Database.Path)
+    $nbackupArgs = @($RemainingArguments) + @('-lock', $Database.ConnectionString())
 
     Write-VerboseMark -Message "Calling: $nbackup $nbackupArgs"
     if ($PSCmdlet.ShouldProcess($Database.Path, 'Lock Firebird database for backup')) {

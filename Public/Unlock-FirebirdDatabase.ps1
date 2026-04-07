@@ -18,7 +18,6 @@ function Unlock-FirebirdDatabase {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory, Position = 0)]
-        [ValidateScript({ Test-Path $_.Path }, ErrorMessage = 'The Database must exist.')]
         [FirebirdDatabase]$Database,
 
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default(),
@@ -28,7 +27,7 @@ function Unlock-FirebirdDatabase {
     )
 
     $nbackup = $Environment.GetNbackupPath()
-    $nbackupArgs = @($RemainingArguments) + @('-unlock', $Database.Path)
+    $nbackupArgs = @($RemainingArguments) + @('-unlock', $Database.ConnectionString())
 
     Write-VerboseMark -Message "Calling: $nbackup $nbackupArgs"
     if ($PSCmdlet.ShouldProcess($Database.Path, 'Unlock Firebird database')) {
@@ -36,10 +35,14 @@ function Unlock-FirebirdDatabase {
             Invoke-ExternalCommand { & $nbackup @nbackupArgs }
         } catch {
             if ($_.Exception.Message -match 'I/O error during(.*)\.delta') {
+                if (-not $Database.IsLocal()) {
+                    Write-VerboseMark -Message 'Remote database - cannot auto-fix missing .delta file.'
+                    throw
+                }
                 # Database is missing .delta file. Call nbackup with -fixup to fix it.
-                Write-VerboseMark -Message "Missing .delta file detected. Calling nbackup -fixup."
+                Write-VerboseMark -Message 'Missing .delta file detected. Calling nbackup -fixup.'
 
-                $nbackupArgs = @($RemainingArguments) + @('-fixup', $Database.Path)
+                $nbackupArgs = @($RemainingArguments) + @('-fixup', $Database.ConnectionString())
                 Invoke-ExternalCommand { & $nbackup @nbackupArgs }
                 return;
             }
