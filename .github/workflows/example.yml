@@ -21,6 +21,9 @@ jobs:
       run:
         shell: ${{ matrix.shell }}
     
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+
     steps:
       - name: Install PSFirebird from PowerShell Gallery
         run: |
