@@ -47,7 +47,7 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run unit tests
         shell: pwsh
@@ -79,7 +79,7 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run integration tests
         shell: pwsh
