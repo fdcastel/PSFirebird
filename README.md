@@ -58,7 +58,7 @@ This workflow demonstrates:
 
 The example runs on both Windows and Linux platforms using a matrix build strategy.
 
-PSFirebird automatically uses `GITHUB_TOKEN` when it is available (it is set by default in every GitHub Actions run), increasing the rate limit to 5,000 requests/hour. No extra configuration is needed.
+PSFirebird automatically uses `GITHUB_TOKEN` when it is available, increasing the rate limit to 5,000 requests/hour. To enable this in your GitHub Actions workflows, add `GITHUB_TOKEN: ${{ github.token }}` to the job or step `env`.
 
 
 
@@ -136,7 +136,7 @@ Use-FirebirdEnvironment -Environment $fb5 {
 **NOTICE:** This command queries the GitHub API to retrieve the download URL for the specified version. GitHub enforces a **rate limit of 60 requests per hour** for unauthenticated requests.
 
 * To raise this limit to 5,000 requests per hour, define the `API_GITHUB_ACCESS_TOKEN` environment variable with a valid access token.
-* In GitHub Actions, the `GITHUB_TOKEN` environment variable is applied automatically (both variables are equivalent).
+* In GitHub Actions, add `GITHUB_TOKEN: ${{ github.token }}` to your job or step `env` to use the built-in token (both variables are equivalent).
 
 
 

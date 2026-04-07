@@ -9,8 +9,32 @@ on:
   pull_request:
 
 jobs:
+  check:
+    name: Check (already tested)
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - name: Check if SHA already has a passing CI run
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          count=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/ci.yml/runs?head_sha=${{ github.sha }}&status=success" \
+            --jq '.total_count' 2>/dev/null || echo 0)
+          if [ "$count" -gt "0" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "SHA ${{ github.sha }} already has $count successful CI run(s). Skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "No previous successful CI run for SHA ${{ github.sha }}. Running tests."
+          fi
+
   unit-tests:
     name: Unit (${{ matrix.os }})
+    needs: check
+    if: needs.check.outputs.skip != 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,6 +43,8 @@ jobs:
           ## ubuntu 24.04 doesn't have a package for libncurses5
           - ubuntu-22.04
           - windows-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,6 +61,8 @@ jobs:
 
   integration-tests:
     name: Integration (${{ matrix.os }}, FB ${{ matrix.firebird-version }})
+    needs: check
+    if: needs.check.outputs.skip != 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -48,6 +76,7 @@ jobs:
           - '5.0.3'
     env:
       FIREBIRD_VERSION: ${{ matrix.firebird-version }}
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
