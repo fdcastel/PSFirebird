@@ -81,4 +81,8 @@ Describe 'Restore' -Tag 'Integration' {
         $gbakArgs[-2] | Should -Be 'stdin'
         $gbakArgs[-1] | Should -Be $TestDatabaseRestored
     }
+
+    It 'Throws when restoring from a non-existent backup file' {
+        { Restore-FirebirdDatabase -BackupFilePath "$RootFolder/nonexistent.fbk" -Database "$RootFolder/fail.fdb" -Environment $TestEnvironment } | Should -Throw
+    }
 }

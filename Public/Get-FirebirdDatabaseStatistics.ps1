@@ -52,5 +52,8 @@ function Get-FirebirdDatabaseStatistics {
     )
 
     Write-VerboseMark -Message "Calling: $gstat $gstatArgs"
-    & $gstat @gstatArgs | ConvertFrom-Gstat
+    $gstatResult = Invoke-ExternalCommand {
+        & $gstat @gstatArgs
+    } -Passthru -ErrorMessage 'Error running gstat.'
+    $gstatResult.StdOut | ConvertFrom-Gstat
 }

@@ -73,4 +73,9 @@ Describe 'Backup' -Tag 'Integration' {
         $gbakArgs[-2] | Should -Be $TestDatabase.Path
         $gbakArgs[-1] | Should -Be 'stdout'
     }
+
+    It 'Throws when backing up a non-existent database' {
+        $fakeDb = [FirebirdDatabase]::new("$RootFolder/nonexistent.fdb")
+        { Backup-FirebirdDatabase -Database $fakeDb -BackupFilePath "$RootFolder/fail.fbk" -Environment $TestEnvironment } | Should -Throw
+    }
 }

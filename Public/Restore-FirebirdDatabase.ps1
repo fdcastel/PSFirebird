@@ -106,6 +106,8 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
 
     Write-VerboseMark -Message "Calling: $gbak $gbakArgs"
     if ($PSCmdlet.ShouldProcess($Database.Path, 'Restore Firebird database')) {
-        & $gbak @gbakArgs
+        Invoke-ExternalCommand {
+            & $gbak @gbakArgs
+        } -ErrorMessage 'Error running gbak restore.'
     }
 }

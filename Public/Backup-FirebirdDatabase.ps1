@@ -122,6 +122,8 @@ function Backup-FirebirdDatabase {
 
     Write-VerboseMark -Message "Calling: $gbak $gbakArgs"
     if ($PSCmdlet.ShouldProcess($Database.Path, 'Backup Firebird database')) {
-        & $gbak @gbakArgs
+        Invoke-ExternalCommand {
+            & $gbak @gbakArgs
+        } -ErrorMessage 'Error running gbak backup.'
     }
 }

@@ -86,4 +86,9 @@ CREATE TABLE ORDERS (ID INTEGER NOT NULL, CUSTOMER_ID INTEGER, AMOUNT DECIMAL(10
         $result | Should -Not -BeNull
         $result.tables.TableName | Should -Contain 'CUSTOMERS'
     }
+
+    It 'Throws when analyzing a non-existent database' {
+        $fakeDb = [FirebirdDatabase]::new("$RootFolder/nonexistent.fdb")
+        { Get-FirebirdDatabaseStatistics -Database $fakeDb -Environment $TestEnvironment } | Should -Throw
+    }
 }
