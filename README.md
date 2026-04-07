@@ -9,15 +9,34 @@ A PowerShell module for managing Firebird database environments, databases, and 
 - Download and run multiple Firebird environments without installation.
 - Create, inspect, and remove Firebird databases.
 - Run SQL scripts and queries using Firebird's `isql` utility.
-- Backup and restore Firebird databases.
+- Backup and restore Firebird databases (local and remote).
 - Convert databases between Firebird versions using high-speed backup/restore streaming.
 - Read and write Firebird configuration files.
 - Test database validity for health checks and CI/CD pipelines.
+- Remote database support via connection strings (`host:path`, `inet://`, `inet6://`).
 
 ### Requirements
 
 - PowerShell 7.4 or later
 - Windows or Linux (Debian-based for Linux)
+
+### Connection Strings
+
+Most database commands accept a `-Database` parameter that supports Firebird connection string formats:
+
+| Format | Example |
+|--------|---------|
+| Local path | `/data/mydb.fdb` or `C:\data\mydb.fdb` |
+| Legacy `host:path` | `myserver:/data/mydb.fdb` |
+| Legacy `host/port:path` | `myserver/3051:/data/mydb.fdb` |
+| URI `inet://host/path` | `inet://myserver/data/mydb.fdb` |
+| URI `inet4://host/path` | `inet4://myserver/data/mydb.fdb` |
+| URI `inet6://[host]/path` | `inet6://[::1]/data/mydb.fdb` |
+| Shared memory | `xnet://security.db` |
+
+Commands that support remote databases: `Backup-FirebirdDatabase`, `Restore-FirebirdDatabase`, `Convert-FirebirdDatabase`, `Get-FirebirdDatabase`, `Get-FirebirdDatabaseStatistics`, `Test-FirebirdDatabase`, `New-FirebirdDatabase`, `Invoke-FirebirdIsql`, `Read-FirebirdDatabase`, `Lock-FirebirdDatabase`, `Unlock-FirebirdDatabase`.
+
+Commands that require local databases: `Remove-FirebirdDatabase`.
 
 ### Installation
 
@@ -220,16 +239,19 @@ New-FirebirdDatabase -Database '/tmp/newdb.fdb' -Credential (Get-Credential)
 _Get information about a Firebird database._
 
 ```
-Get-FirebirdDatabase [-Path] <string> [-Environment <FirebirdEnvironment>] [<CommonParameters>]
+Get-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [<CommonParameters>]
 ```
 
-Returns a `FirebirdDatabase` object with details such as environment, page size, and ODS version.
+Returns a `FirebirdDatabase` object with details such as page size and ODS version. Supports both local and remote databases via connection strings.
 
 Supports pipeline input from `Get-ChildItem` via the `FullName` property.
 
 ```powershell
 # Example: Get database info
-Get-FirebirdDatabase -Path '/tmp/mydb.fdb'
+Get-FirebirdDatabase -Database '/tmp/mydb.fdb'
+
+# Example: Get info for a remote database
+Get-FirebirdDatabase -Database 'myserver:/data/mydb.fdb'
 
 # Example: Get info for all databases in a directory
 Get-ChildItem *.fdb | Get-FirebirdDatabase
@@ -287,10 +309,10 @@ if (Test-FirebirdDatabase -Database '/tmp/mydb.fdb') {
 _Safely remove a Firebird database file._
 
 ```
-Remove-FirebirdDatabase [-Database] <FirebirdDatabase> [-Environment <FirebirdEnvironment>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-FirebirdDatabase [-Database] <FirebirdDatabase> [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-Removes a Firebird database file after verifying it is not locked for backup (no `.delta` file present).
+Removes a local Firebird database file after verifying it is not locked for backup (no `.delta` file present). This command only supports local databases.
 
 Use `-Force` to suppress confirmation prompts.
 
@@ -561,6 +583,9 @@ Any extra arguments provided to this cmdlet will be forwarded to the `gbak` comm
 ```powershell
 # Example: Create a transportable backup.
 Backup-FirebirdDatabase -Database '/tmp/mydb.fdb' -BackupFile '/backups/mydb.fbk' -Transportable
+
+# Example: Backup a remote database.
+Backup-FirebirdDatabase -Database 'myserver:/data/mydb.fdb' -BackupFile '/backups/mydb.fbk'
 ```
 
 
