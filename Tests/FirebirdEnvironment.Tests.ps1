@@ -23,7 +23,7 @@ Describe 'FirebirdEnvironment' -Tag 'Integration' {
 
     It 'Create a FirebirdEnvironment of the given version' {
         $TestEnvironmentPath | Should -Not -Exist
-        $fbEnv = New-FirebirdEnvironment -Version $FirebirdVersion -Path $TestEnvironmentPath
+        $fbEnv = New-FirebirdEnvironment -Version $FirebirdVersion -Path $TestEnvironmentPath @FirebirdExtraParams
         $fbEnv | Should -BeOfType FirebirdEnvironment
         $TestEnvironmentPath | Should -Exist
 
@@ -33,7 +33,7 @@ Describe 'FirebirdEnvironment' -Tag 'Integration' {
 
     It 'Remove a FirebirdEnvironment with -Force' {
         $TestEnvironmentPath | Should -Not -Exist
-        New-FirebirdEnvironment -Version $FirebirdVersion -Path $TestEnvironmentPath
+        New-FirebirdEnvironment -Version $FirebirdVersion -Path $TestEnvironmentPath @FirebirdExtraParams
         $TestEnvironmentPath | Should -Exist
 
         Remove-FirebirdEnvironment -Path $TestEnvironmentPath -Force

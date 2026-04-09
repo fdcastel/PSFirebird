@@ -6,7 +6,7 @@ Describe 'Convert' -Tag 'Integration' {
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
-        $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
+        $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion @FirebirdExtraParams
         $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion.fdb" -Environment $TestEnvironment
         $script:DatabaseRestored = "$RootFolder/$FirebirdVersion.restored.fdb"
 
@@ -45,8 +45,8 @@ Describe 'Convert Cross-Version' -Tag 'CrossVersion' {
         $script:SourceVersion = '3.0.12'
         $script:TargetVersion = $FirebirdVersion
 
-        $script:SourceEnv = New-FirebirdEnvironment -Version $SourceVersion
-        $script:TargetEnv = New-FirebirdEnvironment -Version $TargetVersion
+        $script:SourceEnv = New-FirebirdEnvironment -Version $SourceVersion @FirebirdExtraParams
+        $script:TargetEnv = New-FirebirdEnvironment -Version $TargetVersion @FirebirdExtraParams
 
         $script:SourceDb = New-FirebirdDatabase -Database "$RootFolder/source.fdb" -Environment $SourceEnv
         $script:NativeTargetDb = New-FirebirdDatabase -Database "$RootFolder/native-target.fdb" -Environment $TargetEnv

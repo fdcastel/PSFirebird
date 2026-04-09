@@ -43,6 +43,7 @@ jobs:
           ## ubuntu 24.04 doesn't have a package for libncurses5
           - ubuntu-22.04
           - windows-latest
+          - windows-11-arm
     env:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
@@ -60,7 +61,7 @@ jobs:
           Invoke-Pester -Path ./Tests -Tag 'CrossVersion' -Output Detailed
 
   integration-tests:
-    name: Integration (${{ matrix.os }}, FB ${{ matrix.firebird-version }})
+    name: Integration (${{ matrix.os }}, FB ${{ matrix.firebird-version }}${{ matrix.firebird-rid && format(', {0}', matrix.firebird-rid) || '' }})
     needs: check
     if: needs.check.outputs.skip != 'true'
     runs-on: ${{ matrix.os }}
@@ -74,8 +75,26 @@ jobs:
           - '3.0.12'
           - '4.0.5'
           - '5.0.3'
+        firebird-rid:
+          - ''
+        include:
+          ## Win32 (x86) — runs x86 Firebird on x64 Windows
+          - os: windows-latest
+            firebird-version: '3.0.12'
+            firebird-rid: win-x86
+          - os: windows-latest
+            firebird-version: '4.0.5'
+            firebird-rid: win-x86
+          - os: windows-latest
+            firebird-version: '5.0.3'
+            firebird-rid: win-x86
+          ## Windows ARM64 (Firebird 5+ only — earlier versions have no ARM64 builds)
+          - os: windows-11-arm
+            firebird-version: '5.0.3'
+            firebird-rid: ''
     env:
       FIREBIRD_VERSION: ${{ matrix.firebird-version }}
+      FIREBIRD_RID: ${{ matrix.firebird-rid }}
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout repository

@@ -17,7 +17,7 @@ Describe 'FirebirdDatabase' -Tag 'Integration' {
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
-        $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
+        $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion @FirebirdExtraParams
         $script:TestDatabasePath = "$RootFolder/$FirebirdVersion-tests.fdb"
 
         # Set up the environment variables for Firebird

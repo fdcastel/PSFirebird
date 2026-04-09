@@ -6,7 +6,7 @@ Describe 'Remote Database Operations' -Tag 'Integration' {
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
-        $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion
+        $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion @FirebirdExtraParams
 
         # Set up the environment variables for Firebird
         $env:ISC_USER = 'SYSDBA'

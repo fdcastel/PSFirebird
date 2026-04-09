@@ -32,6 +32,30 @@ Describe 'Find-FirebirdSnapshotRelease' -Tag 'Unit' {
         $result.Sha256 | Should -Not -BeNullOrEmpty
     }
 
+    It 'Returns snapshot info for v5.0-release win-x64' {
+        $result = Find-FirebirdSnapshotRelease -Branch 'v5.0-release' -RuntimeIdentifier 'win-x64'
+        $result.FileName | Should -BeLike 'Firebird-5.0.*-windows-x64.zip'
+        $result.Sha256 | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns snapshot info for v5.0-release win-x86' {
+        $result = Find-FirebirdSnapshotRelease -Branch 'v5.0-release' -RuntimeIdentifier 'win-x86'
+        $result.FileName | Should -BeLike 'Firebird-5.0.*-windows-x86.zip'
+        $result.Sha256 | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns snapshot info for master win-arm64' {
+        $result = Find-FirebirdSnapshotRelease -Branch 'master' -RuntimeIdentifier 'win-arm64'
+        $result.FileName | Should -BeLike 'Firebird-6.0.*-windows-arm64.zip'
+        $result.Sha256 | Should -Not -BeNullOrEmpty
+    }
+
+    It 'Returns snapshot info for master win-x64' {
+        $result = Find-FirebirdSnapshotRelease -Branch 'master' -RuntimeIdentifier 'win-x64'
+        $result.FileName | Should -BeLike 'Firebird-6.0.*-windows-x64.zip'
+        $result.Sha256 | Should -Not -BeNullOrEmpty
+    }
+
     It 'Returns snapshot info for master linux-x64' {
         $result = Find-FirebirdSnapshotRelease -Branch 'master' -RuntimeIdentifier 'linux-x64'
         $result.Branch | Should -Be 'master'

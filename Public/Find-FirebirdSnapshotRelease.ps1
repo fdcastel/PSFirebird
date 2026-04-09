@@ -29,7 +29,7 @@ function Find-FirebirdSnapshotRelease {
         [ValidateSet('master', 'v5.0-release', 'v4.0')]
         [string]$Branch,
 
-        [ValidateSet('linux-x64', 'linux-arm64')]
+        [ValidateSet('win-x86', 'win-x64', 'win-arm64', 'linux-x64', 'linux-arm64')]
         [string]$RuntimeIdentifier = 'linux-x64'
     )
 
@@ -55,10 +55,13 @@ function Find-FirebirdSnapshotRelease {
     Write-VerboseMark -Message "Found release: $($release.tag_name) ($($release.name))"
 
     # Map RuntimeIdentifier to substrings that match asset names across naming conventions.
-    # v5/v6: '-linux-x64.tar.gz', '-linux-arm64.tar.gz'
+    # v5/v6: '-linux-x64.tar.gz', '-linux-arm64.tar.gz', '-windows-x64.zip', '-windows-x86.zip', '-windows-arm64.zip'
     # v4:    '.amd64.tar.gz' (no arm64 available)
     $ridSubstrings = @{
-        'linux-x64'   = @('linux-x64.tar.gz', '.amd64.tar.gz', '.x86_64.tar.gz')
+        'win-x86'      = @('windows-x86.zip')
+        'win-x64'      = @('windows-x64.zip')
+        'win-arm64'    = @('windows-arm64.zip')
+        'linux-x64'    = @('linux-x64.tar.gz', '.amd64.tar.gz', '.x86_64.tar.gz')
         'linux-arm64'  = @('linux-arm64.tar.gz', '.arm64.tar.gz')
     }
 
