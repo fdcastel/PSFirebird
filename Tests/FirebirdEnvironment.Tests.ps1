@@ -15,9 +15,12 @@ Describe 'FirebirdEnvironment' -Tag 'Integration' {
     }
 
     BeforeEach {
-        # Ensure the environment folder does not exist before each test
-        if (Test-Path $TestEnvironmentPath) {
+        # Ensure the environment folder does not exist before each test.
+        # Retry with a short delay to handle transient file locks (e.g. x64 emulation on ARM64 Windows).
+        for ($i = 0; $i -lt 5; $i++) {
+            if (-not (Test-Path $TestEnvironmentPath)) { break }
             Remove-Item -Path $TestEnvironmentPath -Recurse -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Milliseconds 500
         }
     }
 
