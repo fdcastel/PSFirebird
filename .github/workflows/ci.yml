@@ -88,10 +88,10 @@ jobs:
           - os: windows-latest
             firebird-version: '5.0.3'
             firebird-rid: win-x86
-          ## Windows ARM64 (Firebird 5+ only — earlier versions have no ARM64 builds)
+          ## Windows ARM64 — uses win-x64 (x64 emulation) because Firebird has no ARM64 Windows builds yet
           - os: windows-11-arm
             firebird-version: '5.0.3'
-            firebird-rid: ''
+            firebird-rid: win-x64
     env:
       FIREBIRD_VERSION: ${{ matrix.firebird-version }}
       FIREBIRD_RID: ${{ matrix.firebird-rid }}
