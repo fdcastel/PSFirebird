@@ -10,8 +10,10 @@ function Get-FirebirdVersion {
         - 'LI-V5.0.3.1683 Firebird 5.0'
         - 'WI-V4.0.5.3140 Firebird 4.0'
         - 'LI-V3.0.12.33787 Firebird 3.0'
+        - 'WI-T6.0.0.1887 Firebird 6.0 2e18929' (snapshot/test builds)
 
         Also accepts just the version prefix (e.g. 'LI-V5.0.3.1683').
+        The 'V' prefix indicates a release build; 'T' indicates a test/snapshot build.
     .PARAMETER VersionString
         The Firebird version string to parse. Can be piped.
     .EXAMPLE
@@ -29,7 +31,7 @@ function Get-FirebirdVersion {
     )
 
     process {
-        if ($VersionString -notmatch '^(LI|WI)-V(\d+\.\d+\.\d+)\.(\d+)(.*)$') {
+        if ($VersionString -notmatch '^(LI|WI)-([VT])(\d+\.\d+\.\d+)\.(\d+)(.*)$') {
             throw "Cannot parse Firebird version string: '$VersionString'"
         }
 
@@ -38,9 +40,10 @@ function Get-FirebirdVersion {
             'WI' { 'Windows' }
         }
 
-        $version = [semver]$Matches[2]
-        $build = [int]$Matches[3]
-        $remainder = $Matches[4].Trim()
+        $isSnapshot = $Matches[2] -eq 'T'
+        $version = [semver]$Matches[3]
+        $build = [int]$Matches[4]
+        $remainder = $Matches[5].Trim()
         $serverName = if ($remainder -ne '') { $remainder } else { $null }
 
         [PSCustomObject]@{
@@ -48,6 +51,7 @@ function Get-FirebirdVersion {
             Version    = $version
             Build      = $build
             ServerName = $serverName
+            IsSnapshot = $isSnapshot
         }
     }
 }

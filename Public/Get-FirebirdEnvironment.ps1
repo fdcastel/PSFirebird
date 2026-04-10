@@ -35,7 +35,8 @@ function Get-FirebirdEnvironment {
     } -SuccessExitCodes @(0,1) -Passthru -ErrorMessage 'Failed to run gstat command. Cannot determine Firebird version.'
 
     $version = $null
-    if ($gstatResult.StdOut[0] -match '\-V(\d+\.\d+\.\d+\.\d+)') {
+    if ($gstatResult.StdOut[0] -match '\-[VT](\d+\.\d+\.\d+\.\d+)') {
+        Write-VerboseMark -Message "Parsed Firebird version from gstat: $($matches[1])"
         $version = $matches[1]
     } else {
         throw "Cannot determine Firebird version. Unexpected gstat output: $($gstatResult.StdOut)"

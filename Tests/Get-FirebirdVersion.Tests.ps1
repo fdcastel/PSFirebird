@@ -1,12 +1,29 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
 Describe 'Get-FirebirdVersion' -Tag 'Unit' {
+    It 'Parses a Firebird 6.x snapshot (test build) version string' {
+        $result = Get-FirebirdVersion 'WI-T6.0.0.1887 Firebird 6.0 2e18929'
+        $result.Platform | Should -Be 'Windows'
+        $result.Version | Should -Be '6.0.0'
+        $result.Build | Should -Be 1887
+        $result.ServerName | Should -Be 'Firebird 6.0 2e18929'
+        $result.IsSnapshot | Should -BeTrue
+    }
+
+    It 'Parses a Linux snapshot version string' {
+        $result = Get-FirebirdVersion 'LI-T6.0.0.1887 Firebird 6.0 2e18929'
+        $result.Platform | Should -Be 'Linux'
+        $result.Version | Should -Be '6.0.0'
+        $result.IsSnapshot | Should -BeTrue
+    }
+
     It 'Parses a Firebird 5.x Linux version string' {
         $result = Get-FirebirdVersion 'LI-V5.0.3.1683 Firebird 5.0'
         $result.Platform | Should -Be 'Linux'
         $result.Version | Should -Be '5.0.3'
         $result.Build | Should -Be 1683
         $result.ServerName | Should -Be 'Firebird 5.0'
+        $result.IsSnapshot | Should -BeFalse
     }
 
     It 'Parses a Firebird 4.x Windows version string' {
