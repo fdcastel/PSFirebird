@@ -75,6 +75,15 @@ function New-FirebirdEnvironment {
         Write-VerboseMark -Message "Resolved snapshot version: $Version"
     } else {
         Write-VerboseMark -Message "Requested Firebird version '$($Version)'"
+
+        # Official Firebird releases only ship a Windows ARM64 binary from v6 onwards.
+        # Auto-fall back to win-x64 (x64 emulation) when the host is win-arm64 and no
+        # explicit -RuntimeIdentifier was provided, so callers on ARM64 Windows machines
+        # don't get a confusing "asset not found" error for v3/v4/v5 installs.
+        if ($rid -eq 'win-arm64' -and -not $RuntimeIdentifier -and $Version.Major -lt 6) {
+            Write-Warning "No win-arm64 Firebird $Version binary exists; falling back to win-x64 (x64 emulation)."
+            $rid = 'win-x64'
+        }
     }
 
     $minVersion = [semver]'3.0.9'
