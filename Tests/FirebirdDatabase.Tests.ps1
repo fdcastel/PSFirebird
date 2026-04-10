@@ -55,13 +55,13 @@ Describe 'FirebirdDatabase' -Tag 'Integration' {
 
     It 'Read database information' {
         $TestDatabasePath | Should -Not -Exist
-        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -PageSize 4096 -Environment $TestEnvironment
+        $testDatabase = New-FirebirdDatabase -Database $TestDatabasePath -PageSize 8192 -Environment $TestEnvironment
         $TestDatabasePath | Should -Exist
 
         $info = Read-FirebirdDatabase -Database $testDatabase -Environment $TestEnvironment
         $info.Environment | Should -BeOfType FirebirdEnvironment
         $info.Database | Should -Be $TestDatabase
-        $info['MON$PAGE_SIZE'] | Should -Be 4096
+        $info['MON$PAGE_SIZE'] | Should -Be 8192
     }
 
     It 'Lock database' {

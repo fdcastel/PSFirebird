@@ -188,12 +188,12 @@ function Process-GstatLine {
                 $script:currentIndex = $null
                 return
             }
-            '^\s*Index ([A-Z0-9_]+) \((\d+)\)$' {
+            '^\s*Index (?:"[^"]+"\.)?"?([^"()\s]+)"? \((\d+)\)$' {
                 Add-IndexResult -Index $script:currentIndex
                 Start-IndexRecord -IndexName $matches[1] -IndexId $matches[2]
                 return
             }
-            '^([A-Z0-9_]+) \((\d+)\)$' {
+            '^(?:"[^"]+"\.)?"?([^"()\s]+)"? \((\d+)\)$' {
                 Add-IndexResult -Index $script:currentIndex
                 $script:currentIndex = $null
                 Add-TableResult -Table $script:currentTable
@@ -210,7 +210,7 @@ function Process-GstatLine {
     }
 
     switch -Regex ($Line) {
-        '^([A-Z0-9_]+) \((\d+)\)$' {
+        '^(?:"[^"]+"\.)?"?([^"()\s]+)"? \((\d+)\)$' {
             Add-TableResult -Table $script:currentTable
             $script:currentTable = @{
                 TableName = $matches[1]
@@ -295,7 +295,7 @@ function Process-GstatLine {
             Start-FillDistributionCapture -Target $script:currentTable -Context 'Table'
             return
         }
-        '^\s*Index ([A-Z0-9_]+) \((\d+)\)$' {
+        '^\s*Index (?:"[^"]+"\.)?"?([^"()\s]+)"? \((\d+)\)$' {
             if ($null -ne $script:currentTable) {
                 Start-IndexRecord -IndexName $matches[1] -IndexId $matches[2]
             }
