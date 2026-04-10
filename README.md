@@ -120,7 +120,7 @@ New-FirebirdEnvironment -Branch <string> [-Path <string>] [-RuntimeIdentifier <s
 
 Downloads and extracts Firebird binaries to a directory. Two modes are supported:
 
-- **`-Version`** — downloads an official release (e.g. `5.0.3`, `4.0.5`, `3.0.12`).
+- **`-Version`** — downloads an official release (e.g. `5.0.3`, `4.0.6`, `3.0.13`).
 - **`-Branch`** — downloads the latest snapshot build for a development branch (e.g. `master` for Firebird 6.x). Available branches: `master`, `v5.0-release`, `v4.0`.
 
 Use `-Path` to indicate the target folder. If no path is given, a temporary directory is used.
@@ -457,7 +457,7 @@ $fb5 = New-FirebirdEnvironment -Version '5.0.3'
 New-FirebirdService -Environment $fb5 -Port 3055
 
 # Example: Run multiple Firebird versions side by side
-$fb3 = New-FirebirdEnvironment -Version '3.0.12'
+$fb3 = New-FirebirdEnvironment -Version '3.0.13'
 $fb4 = New-FirebirdEnvironment -Version '4.0.6'
 $fb5 = New-FirebirdEnvironment -Version '5.0.3'
 New-FirebirdService -Environment $fb3 -Port 3053
@@ -641,7 +641,7 @@ The target database must not already exist. Use the `-Force` ⚠️ option to ov
 $env:ISC_USER = 'SYSDBA'
 $env:ISC_PASSWORD = 'masterkey'
 
-$fb3 = New-FirebirdEnvironment -Version '3.0.12'
+$fb3 = New-FirebirdEnvironment -Version '3.0.13'
 $fb5 = New-FirebirdEnvironment -Version '5.0.3'
 
 Convert-FirebirdDatabase -SourceDatabase '/tmp/mydb3.fdb' `

@@ -42,7 +42,7 @@ Describe 'Convert Cross-Version' -Tag 'CrossVersion' {
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
         # Cross-version test: convert from oldest (3.x) to newest
-        $script:SourceVersion = '3.0.12'
+        $script:SourceVersion = '3.0.13'
 
         # FB3 has no win-arm64 binary (available only from FB6+).
         # When the target env uses win-arm64, fall back to win-x64 (x64 emulation) for the FB3 source.

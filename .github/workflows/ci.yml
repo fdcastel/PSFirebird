@@ -77,8 +77,8 @@ jobs:
           - ubuntu-24.04-arm
           - windows-2022
         firebird-version:
-          - '3.0.12'
-          - '4.0.5'
+          - '3.0.13'
+          - '4.0.6'
           - '5.0.3'
         firebird-rid:
           - ''
@@ -87,58 +87,21 @@ jobs:
         exclude:
           ## Ubuntu 24.04 lacks libncurses5; Firebird 3 and 4 require it
           - os: ubuntu-24.04-arm
-            firebird-version: '3.0.12'
+            firebird-version: '3.0.13'
           - os: ubuntu-24.04-arm
-            firebird-version: '4.0.5'
+            firebird-version: '4.0.6'
         include:
-          ## win-x86 (32-bit) on Windows AMD64
-          - os: windows-2022
-            firebird-version: '3.0.12'
-            firebird-rid: win-x86
-          - os: windows-2022
-            firebird-version: '4.0.5'
-            firebird-rid: win-x86
-          - os: windows-2022
-            firebird-version: '5.0.3'
-            firebird-rid: win-x86
-          ## Snapshot (master branch) — 64-bit Linux and Windows AMD64
+          ## Snapshot (master branch) on all four OSes
           - os: ubuntu-22.04
             firebird-branch: master
           - os: ubuntu-24.04-arm
             firebird-branch: master
           - os: windows-2022
             firebird-branch: master
-          ## Snapshot (master branch) — 32-bit Windows AMD64
-          - os: windows-2022
-            firebird-branch: master
-            firebird-rid: win-x86
-          ## Windows ARM64 — x64 emulation for FB3/4/5 (no native arm64 binary available)
-          - os: windows-11-arm
-            firebird-version: '3.0.12'
-            firebird-rid: win-x64
-          - os: windows-11-arm
-            firebird-version: '4.0.5'
-            firebird-rid: win-x64
-          - os: windows-11-arm
-            firebird-version: '5.0.3'
-            firebird-rid: win-x64
-          ## Windows ARM64 — x86 emulation (32-bit) for FB3/4/5
-          - os: windows-11-arm
-            firebird-version: '3.0.12'
-            firebird-rid: win-x86
-          - os: windows-11-arm
-            firebird-version: '4.0.5'
-            firebird-rid: win-x86
-          - os: windows-11-arm
-            firebird-version: '5.0.3'
-            firebird-rid: win-x86
-          ## Windows ARM64 — snapshot (master): native arm64 and 32-bit emulation
+          ## Windows ARM64 — native arm64 build (only available from FB6 / master)
           - os: windows-11-arm
             firebird-branch: master
             firebird-rid: win-arm64
-          - os: windows-11-arm
-            firebird-branch: master
-            firebird-rid: win-x86
     env:
       FIREBIRD_VERSION: ${{ matrix.firebird-version }}
       FIREBIRD_BRANCH: ${{ matrix.firebird-branch }}
