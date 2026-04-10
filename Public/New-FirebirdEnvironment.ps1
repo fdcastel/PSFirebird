@@ -94,7 +94,14 @@ function New-FirebirdEnvironment {
     $tempRoot = [System.IO.Path]::GetTempPath()
 
     if (-not $Path) {
-        $pathSuffix = if ($PSCmdlet.ParameterSetName -eq 'ByBranch') { "firebird-snapshot-$Branch" } else { "firebird-$($Version)" }
+        if ($PSCmdlet.ParameterSetName -eq 'ByBranch') {
+            # Use the build number from the snapshot filename so that concurrent jobs or
+            # consecutive runs of different snapshots of the same branch don't collide.
+            $buildSuffix = if ($snapshotInfo.FileName -match '(\d+\.\d+\.\d+\.\d+)') { $Matches[1] } else { $Branch }
+            $pathSuffix = "firebird-snapshot-$buildSuffix"
+        } else {
+            $pathSuffix = "firebird-$($Version)"
+        }
         $Path = Join-Path $tempRoot $pathSuffix
         Write-VerboseMark -Message "No Path specified. Using temporary folder: $Path"
     }
