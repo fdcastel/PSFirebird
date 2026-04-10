@@ -831,3 +831,34 @@ Invoke-Pester -Tag 'Integration'
 ## Contributing
 
 Contributions, issues, and feature requests are welcome! Please open an issue or submit a pull request.
+
+
+
+---
+
+# Appendix — Platform and Version Support Matrix
+
+The table below shows which combinations of Firebird version and operating system are tested in CI and supported by this module.
+
+| Firebird version | ubuntu-22.04<br/>(linux-x64) | ubuntu-24.04-arm<br/>(linux-arm64) | windows-2022<br/>(win-x64) | windows-11-arm<br/>(win-arm64) |
+|:---|:---:|:---:|:---:|:---:|
+| **3.x** (e.g. 3.0.13) | ✅ | ❌ ¹ | ✅ | ❌ ² |
+| **4.x** (e.g. 4.0.6)  | ✅ | ❌ ¹ | ✅ | ❌ ² |
+| **5.x** (e.g. 5.0.3)  | ✅ | ✅   | ✅ | ❌ ² |
+| **master** (FB 6.x snapshot) | ✅ | ✅ | ✅ | ✅ |
+
+**Legend:** ✅ tested and supported &nbsp;·&nbsp; ❌ not supported (see notes below)
+
+### Notes
+
+**¹ Firebird 3 and 4 on Ubuntu 24.04 (arm64)**
+Firebird 3.x and 4.x binaries link against the legacy ncurses 5 ABI (`libncurses.so.5`, `libtinfo.so.5`). Ubuntu 24.04 removed the `libncurses5` and `libtinfo5` packages from its repos. Because those libraries cannot be obtained at install time, FB3 and FB4 cannot run on `ubuntu-24.04-arm` (and more generally on any Ubuntu 24.04 host). Firebird 5 and later link against ncurses 6, which is pre-installed on all supported distros.
+
+**² Firebird 3, 4, and 5 on Windows ARM64**
+The official Firebird project does not publish Windows ARM64 (win-arm64) binaries for any release prior to Firebird 6. Native ARM64 Windows support is only available through the `master` development snapshot (Firebird 6.x). Earlier versions would need to run under x64 emulation, which is not tested or supported by this module.
+
+### Additional implementation notes
+
+- **Firebird 3 and 4 linux-arm64 archive layout.** The arm64 tar archives for FB3 and FB4 place binaries directly inside the top-level `firebird/` directory (flat layout). FB5+ arm64 archives and all x64 archives use a nested `buildroot.tar.gz` that must be extracted separately. `New-FirebirdEnvironment` handles this automatically.
+
+- **Cross-version database conversion (`Convert-FirebirdDatabase`).** The module uses Firebird 3 as the oldest source in cross-version tests. On platforms where FB3 is unsupported (`ubuntu-24.04-arm`, `windows-11-arm`), the CrossVersion test suite is skipped.
