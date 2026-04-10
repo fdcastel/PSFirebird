@@ -160,8 +160,9 @@ function New-FirebirdEnvironment {
                 & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
             } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
 
-            if (-not ($rid.Contains('linux-arm64') -and ($Version.Major -lt 5))) {
-                # For Firebird 5.x+ and non-ARM64, extract the nested buildroot archive.
+            if (-not ($rid.Contains('linux-arm64') -and ($Version.Major -lt 4))) {
+                # FB3 arm64 archives ship binaries directly (no nested buildroot).
+                # FB4+ arm64 and all x64 builds use a nested buildroot.tar.gz.
                 Write-VerboseMark -Message 'Extracting buildroot archive...'
                 Invoke-ExternalCommand {
                     & tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
