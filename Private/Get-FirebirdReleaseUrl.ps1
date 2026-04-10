@@ -53,7 +53,7 @@ function Get-FirebirdReleaseUrl {
         Write-VerboseMark -Message '- Using unauthenticated GitHub API requests (60 req/hour limit)'
     }
 
-    $releases = Invoke-RestMethod -Uri $apiUrl -Headers $headers -Verbose:$false
+    $releases = Invoke-RestMethod -Uri "$apiUrl`?per_page=100" -Headers $headers -Verbose:$false
 
     $versionString = $Version.ToString()
     $release = $releases | Where-Object { $_.tag_name -match $versionString }
