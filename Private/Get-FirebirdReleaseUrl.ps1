@@ -66,14 +66,24 @@ function Get-FirebirdReleaseUrl {
     $major = $Version.Major
     $patternMap = @{}
     switch ($major) {
-        { $_ -ge 5 } {
-            Write-VerboseMark -Message "Using v5+ asset naming convention for Firebird $($major).x"
+        { $_ -ge 6 } {
+            Write-VerboseMark -Message "Using v6+ asset naming convention for Firebird $($major).x"
             $patternMap = @{
                 'win-x86'     = 'windows-x86.*\.zip$'
                 'win-x64'     = 'windows-x64.*\.zip$'
                 'win-arm64'   = 'windows-arm64.*\.zip$'
                 'linux-x64'   = 'linux-x64.*\.tar\.gz$'
                 'linux-arm64' = 'linux-arm64.*\.tar\.gz$'
+            }
+        }
+        5 {
+            Write-VerboseMark -Message "Using v5 asset naming convention for Firebird $($major).x"
+            $patternMap = @{
+                'win-x86'     = 'windows-x86.*\.zip$'
+                'win-x64'     = 'windows-x64.*\.zip$'
+                'linux-x64'   = 'linux-x64.*\.tar\.gz$'
+                'linux-arm64' = 'linux-arm64.*\.tar\.gz$'
+                # win-arm64 intentionally absent: Firebird v5 never published Windows ARM64 binaries
             }
         }
         4 {

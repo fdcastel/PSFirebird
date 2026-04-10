@@ -44,8 +44,8 @@ Describe 'GitHub releases' -Tag 'Unit' {
             (Get-FirebirdReleaseUrl -Version '5.0.0' -RuntimeIdentifier 'linux-arm64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.0/Firebird-5.0.0.1306-0-linux-arm64.tar.gz'
 
-            (Get-FirebirdReleaseUrl -Version '5.0.2' -RuntimeIdentifier 'win-arm64').Url |
-                Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-windows-arm64.zip'
+            { Get-FirebirdReleaseUrl -Version '5.0.2' -RuntimeIdentifier 'win-arm64' } |
+                Should -Throw "*not supported for Firebird 5.x*"
         }
 
         It 'Returns release info for Firebird 4.x' {
