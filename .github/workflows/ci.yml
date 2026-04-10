@@ -57,6 +57,8 @@ jobs:
           Invoke-Pester -Path ./Tests -Tag 'Unit' -Output Detailed
 
       - name: Run cross-version tests
+        ## ubuntu-24.04-arm lacks libncurses5; CrossVersion always needs Firebird 3 as source
+        if: matrix.os != 'ubuntu-24.04-arm'
         shell: pwsh
         run: |
           Invoke-Pester -Path ./Tests -Tag 'CrossVersion' -Output Detailed
@@ -82,6 +84,10 @@ jobs:
           - ''
         firebird-branch:
           - ''
+        exclude:
+          ## Ubuntu 24.04 lacks libncurses5; Firebird 3 requires it
+          - os: ubuntu-24.04-arm
+            firebird-version: '3.0.12'
         include:
           ## win-x86 (32-bit) on Windows AMD64
           - os: windows-2022
@@ -140,7 +146,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Run integration and cross-version tests
+      - name: Run integration tests
         shell: pwsh
         run: |
-          Invoke-Pester -Path ./Tests -Tag 'Integration', 'CrossVersion' -Output Detailed
+          Invoke-Pester -Path ./Tests -Tag 'Integration' -Output Detailed
+
+      - name: Run cross-version tests
+        ## ubuntu-24.04-arm lacks libncurses5; CrossVersion always needs Firebird 3 as source
+        if: matrix.os != 'ubuntu-24.04-arm'
+        shell: pwsh
+        run: |
+          Invoke-Pester -Path ./Tests -Tag 'CrossVersion' -Output Detailed

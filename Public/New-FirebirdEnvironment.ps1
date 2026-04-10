@@ -204,9 +204,11 @@ function New-FirebirdEnvironment {
             -SourcePattern './usr/lib/*/*' `
             -TargetFolder $libPath
 
-        # For FB3, we also need to download libncurses5
-        if ($Version -ge [semver]3) {
-            Write-VerboseMark -Message 'Downloading libncurses5 and libtinfo5 for Firebird 3+...'
+        # Firebird 3 binaries are compiled against the legacy ABI and need libncurses5/libtinfo5.
+        # FB4+ link against ncurses6, which is pre-installed on all supported distros.
+        # Ubuntu 24.04 removed libncurses5 from its repos, so we only download it for FB3.
+        if ($Version.Major -eq 3) {
+            Write-VerboseMark -Message 'Downloading libncurses5 and libtinfo5 for Firebird 3...'
             Invoke-AptDownloadAndExtract -PackageName 'libncurses5' `
                 -SourcePattern './lib/*/*' `
                 -TargetFolder $libPath

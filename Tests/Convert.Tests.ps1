@@ -44,7 +44,16 @@ Describe 'Convert Cross-Version' -Tag 'CrossVersion' {
         # Cross-version test: convert from oldest (3.x) to newest
         $script:SourceVersion = '3.0.12'
 
-        $script:SourceEnv = New-FirebirdEnvironment -Version $SourceVersion @FirebirdExtraParams
+        # FB3 has no win-arm64 binary (available only from FB6+).
+        # When the target env uses win-arm64, fall back to win-x64 (x64 emulation) for the FB3 source.
+        $sourceExtraParams = if ($FirebirdExtraParams.ContainsKey('RuntimeIdentifier') -and
+                                 $FirebirdExtraParams.RuntimeIdentifier -eq 'win-arm64') {
+            @{ RuntimeIdentifier = 'win-x64' }
+        } else {
+            $FirebirdExtraParams
+        }
+
+        $script:SourceEnv = New-FirebirdEnvironment -Version $SourceVersion @sourceExtraParams
         $script:TargetEnv = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
 
         $script:SourceDb = New-FirebirdDatabase -Database "$RootFolder/source.fdb" -Environment $SourceEnv
