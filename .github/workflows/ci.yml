@@ -42,7 +42,8 @@ jobs:
         os:
           ## ubuntu 24.04 doesn't have a package for libncurses5
           - ubuntu-22.04
-          - windows-latest
+          - ubuntu-24.04-arm
+          - windows-2022
           - windows-11-arm
     env:
       GITHUB_TOKEN: ${{ github.token }}
@@ -69,8 +70,10 @@ jobs:
       fail-fast: false
       matrix:
         os:
+          ## ubuntu 24.04 doesn't have a package for libncurses5
           - ubuntu-22.04
-          - windows-latest
+          - ubuntu-24.04-arm
+          - windows-2022
         firebird-version:
           - '3.0.12'
           - '4.0.5'
@@ -80,25 +83,54 @@ jobs:
         firebird-branch:
           - ''
         include:
-          ## Snapshot (v6 development) builds from the master branch
-          - os: ubuntu-22.04
-            firebird-branch: master
-          - os: windows-latest
-            firebird-branch: master
-          ## Win32 (x86) — runs x86 Firebird on x64 Windows
-          - os: windows-latest
+          ## win-x86 (32-bit) on Windows AMD64
+          - os: windows-2022
             firebird-version: '3.0.12'
             firebird-rid: win-x86
-          - os: windows-latest
+          - os: windows-2022
             firebird-version: '4.0.5'
             firebird-rid: win-x86
-          - os: windows-latest
+          - os: windows-2022
             firebird-version: '5.0.3'
             firebird-rid: win-x86
-          ## Windows ARM64 — uses win-x64 (x64 emulation) because Firebird has no ARM64 Windows builds yet
+          ## Snapshot (master branch) — 64-bit Linux and Windows AMD64
+          - os: ubuntu-22.04
+            firebird-branch: master
+          - os: ubuntu-24.04-arm
+            firebird-branch: master
+          - os: windows-2022
+            firebird-branch: master
+          ## Snapshot (master branch) — 32-bit Windows AMD64
+          - os: windows-2022
+            firebird-branch: master
+            firebird-rid: win-x86
+          ## Windows ARM64 — x64 emulation for FB3/4/5 (no native arm64 binary available)
+          - os: windows-11-arm
+            firebird-version: '3.0.12'
+            firebird-rid: win-x64
+          - os: windows-11-arm
+            firebird-version: '4.0.5'
+            firebird-rid: win-x64
           - os: windows-11-arm
             firebird-version: '5.0.3'
             firebird-rid: win-x64
+          ## Windows ARM64 — x86 emulation (32-bit) for FB3/4/5
+          - os: windows-11-arm
+            firebird-version: '3.0.12'
+            firebird-rid: win-x86
+          - os: windows-11-arm
+            firebird-version: '4.0.5'
+            firebird-rid: win-x86
+          - os: windows-11-arm
+            firebird-version: '5.0.3'
+            firebird-rid: win-x86
+          ## Windows ARM64 — snapshot (master): native arm64 and 32-bit emulation
+          - os: windows-11-arm
+            firebird-branch: master
+            firebird-rid: win-arm64
+          - os: windows-11-arm
+            firebird-branch: master
+            firebird-rid: win-x86
     env:
       FIREBIRD_VERSION: ${{ matrix.firebird-version }}
       FIREBIRD_BRANCH: ${{ matrix.firebird-branch }}
@@ -108,7 +140,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Run integration tests
+      - name: Run integration and cross-version tests
         shell: pwsh
         run: |
-          Invoke-Pester -Path ./Tests -Tag 'Integration' -Output Detailed
+          Invoke-Pester -Path ./Tests -Tag 'Integration', 'CrossVersion' -Output Detailed
