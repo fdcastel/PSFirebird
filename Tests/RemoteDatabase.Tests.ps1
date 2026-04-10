@@ -16,8 +16,8 @@ Describe 'Remote Database Operations' -Tag 'Integration' {
         $script:LocalDatabase = New-FirebirdDatabase -Database "$RootFolder/remote-tests.fdb" -Environment $TestEnvironment
         "CREATE OR ALTER USER SYSDBA PASSWORD 'masterkey';" | Invoke-FirebirdIsql -Database $LocalDatabase -Environment $TestEnvironment
 
-        # Start a Firebird server on a high port
-        $script:Port = 50100 + $TestEnvironment.Version.Major
+        # Start a Firebird server on a fixed port below the Windows ephemeral range (49152+)
+        $script:Port = 41000 + $TestEnvironment.Version.Major
         $script:TestInstance = Start-FirebirdInstance -Environment $TestEnvironment -Port $Port
         Start-Sleep -Seconds 1
 
