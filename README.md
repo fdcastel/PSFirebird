@@ -7,6 +7,7 @@ A PowerShell module for managing Firebird database environments, databases, and 
 ### Features
 
 - Download and run multiple Firebird environments without installation.
+- Supports official releases (v3, v4, v5) and snapshot builds (v6 development).
 - Create, inspect, and remove Firebird databases.
 - Run SQL scripts and queries using Firebird's `isql` utility.
 - Backup and restore Firebird databases (local and remote).
@@ -114,9 +115,13 @@ _Download and set up a Firebird environment._
 
 ```
 New-FirebirdEnvironment -Version <semver> [-Path <string>] [-RuntimeIdentifier <string>] [-Force] [<CommonParameters>]
+New-FirebirdEnvironment -Branch <string> [-Path <string>] [-RuntimeIdentifier <string>] [-Force] [<CommonParameters>]
 ```
 
-Downloads and extracts the specified Firebird version to a directory.
+Downloads and extracts Firebird binaries to a directory. Two modes are supported:
+
+- **`-Version`** — downloads an official release (e.g. `5.0.3`, `4.0.5`, `3.0.12`).
+- **`-Branch`** — downloads the latest snapshot build for a development branch (e.g. `master` for Firebird 6.x). Available branches: `master`, `v5.0-release`, `v4.0`.
 
 Use `-Path` to indicate the target folder. If no path is given, a temporary directory is used.
 
@@ -125,12 +130,15 @@ Use `-Force` to overwrite an existing environment.
 Note that most commands require an `-Environment` as argument. See [`Use-FirebirdEnvironment`](#use-firebirdenvironment) to avoid repetitions.
 
 ```powershell
-# Example: Create a Firebird 5 database and query it
-$fb5 = New-FirebirdEnvironment -Version '5.0.2' -Path '/tmp/firebird5'
+# Example: Create a Firebird 5 environment
+$fb5 = New-FirebirdEnvironment -Version '5.0.3' -Path '/tmp/firebird5'
 Use-FirebirdEnvironment -Environment $fb5 {
     $db5 = New-FirebirdDatabase -Database '/tmp/test.fdb' -Force
     Read-FirebirdDatabase -Database $db5
 }
+
+# Example: Install the latest Firebird 6 development snapshot
+$fb6 = New-FirebirdEnvironment -Branch 'master' -Path '/tmp/firebird6'
 ```
 
 **NOTICE:** This command queries the GitHub API to retrieve the download URL for the specified version. GitHub enforces a **rate limit of 60 requests per hour** for unauthenticated requests.
@@ -634,12 +642,20 @@ $env:ISC_USER = 'SYSDBA'
 $env:ISC_PASSWORD = 'masterkey'
 
 $fb3 = New-FirebirdEnvironment -Version '3.0.12'
-$fb5 = New-FirebirdEnvironment -Version '5.0.2'
+$fb5 = New-FirebirdEnvironment -Version '5.0.3'
 
 Convert-FirebirdDatabase -SourceDatabase '/tmp/mydb3.fdb' `
                          -SourceEnvironment $fb3 `
                          -TargetDatabase '/tmp/mydb5.fdb' `
                          -TargetEnvironment $fb5
+
+# Example: Convert a v5 database to v6 using the latest snapshot
+$fb6 = New-FirebirdEnvironment -Branch 'master'
+
+Convert-FirebirdDatabase -SourceDatabase '/tmp/mydb5.fdb' `
+                         -SourceEnvironment $fb5 `
+                         -TargetDatabase '/tmp/mydb6.fdb' `
+                         -TargetEnvironment $fb6
 ```
 
 
@@ -755,7 +771,9 @@ _Parse a Firebird version string into a structured object._
 Get-FirebirdVersion [-VersionString] <string> [<CommonParameters>]
 ```
 
-Parses version strings produced by Firebird tools (`gstat -z`, `isql -z`, etc.) into a structured object with platform, version, build number, and server name. Accepts pipeline input.
+Parses version strings produced by Firebird tools (`gstat -z`, `isql -z`, etc.) into a structured object with platform, version, build number, server name, and snapshot flag. Accepts pipeline input.
+
+The `IsSnapshot` property is `$true` for snapshot/test builds (version strings using the `-T` prefix, e.g. `WI-T6.0.0.1887`), and `$false` for official releases (using the `-V` prefix).
 
 ```powershell
 # Example: Parse a version string from gstat output
@@ -764,6 +782,13 @@ $v.Platform    # Linux
 $v.Version     # 5.0.3 (as [semver])
 $v.Build       # 1683
 $v.ServerName  # Firebird 5.0
+$v.IsSnapshot  # False
+
+# Example: Parse a Firebird 6 snapshot version string
+$v = Get-FirebirdVersion 'WI-T6.0.0.1887 Firebird 6.0 2e18929'
+$v.Platform    # Windows
+$v.Version     # 6.0.0
+$v.IsSnapshot  # True
 
 # Example: Parse a Windows version string via pipeline
 'WI-V4.0.5.3140 Firebird 4.0' | Get-FirebirdVersion
