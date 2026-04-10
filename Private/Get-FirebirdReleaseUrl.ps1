@@ -56,7 +56,7 @@ function Get-FirebirdReleaseUrl {
     $releases = Invoke-RestMethod -Uri "$apiUrl`?per_page=100" -Headers $headers -Verbose:$false
 
     $versionString = $Version.ToString()
-    $release = $releases | Where-Object { $_.tag_name -match $versionString }
+    $release = $releases | Where-Object { $_.tag_name -match "^[vVR]?$([regex]::Escape($versionString))(\.|$)" }
     if (-not $release) {
         throw "Could not find Firebird release for version $versionString on GitHub."
     }
