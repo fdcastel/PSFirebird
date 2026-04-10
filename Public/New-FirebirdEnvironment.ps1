@@ -160,9 +160,9 @@ function New-FirebirdEnvironment {
                 & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
             } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
 
-            if (-not ($rid.Contains('linux-arm64') -and ($Version.Major -lt 4))) {
-                # FB3 arm64 archives ship binaries directly (no nested buildroot).
-                # FB4+ arm64 and all x64 builds use a nested buildroot.tar.gz.
+            if (-not ($rid.Contains('linux-arm64') -and ($Version.Major -lt 5))) {
+                # FB3 and FB4 arm64 archives ship binaries directly (no nested buildroot).
+                # FB5+ arm64 and all x64 builds use a nested buildroot.tar.gz.
                 Write-VerboseMark -Message 'Extracting buildroot archive...'
                 Invoke-ExternalCommand {
                     & tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
@@ -205,11 +205,11 @@ function New-FirebirdEnvironment {
             -SourcePattern './usr/lib/*/*' `
             -TargetFolder $libPath
 
-        # Firebird 3 binaries are compiled against the legacy ABI and need libncurses5/libtinfo5.
-        # FB4+ link against ncurses6, which is pre-installed on all supported distros.
-        # Ubuntu 24.04 removed libncurses5 from its repos, so we only download it for FB3.
-        if ($Version.Major -eq 3) {
-            Write-VerboseMark -Message 'Downloading libncurses5 and libtinfo5 for Firebird 3...'
+        # Firebird 3 and 4 binaries link against the legacy libncurses ABI (ncurses5/tinfo5).
+        # FB5+ link against ncurses6, which is pre-installed on all supported distros.
+        # Ubuntu 24.04 removed libncurses5 from its repos, so only download it for FB3/FB4.
+        if ($Version.Major -lt 5) {
+            Write-VerboseMark -Message 'Downloading libncurses5 and libtinfo5 for Firebird 3/4...'
             Invoke-AptDownloadAndExtract -PackageName 'libncurses5' `
                 -SourcePattern './lib/*/*' `
                 -TargetFolder $libPath

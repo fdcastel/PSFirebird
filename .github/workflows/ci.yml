@@ -85,9 +85,11 @@ jobs:
         firebird-branch:
           - ''
         exclude:
-          ## Ubuntu 24.04 lacks libncurses5; Firebird 3 requires it
+          ## Ubuntu 24.04 lacks libncurses5; Firebird 3 and 4 require it
           - os: ubuntu-24.04-arm
             firebird-version: '3.0.12'
+          - os: ubuntu-24.04-arm
+            firebird-version: '4.0.5'
         include:
           ## win-x86 (32-bit) on Windows AMD64
           - os: windows-2022
