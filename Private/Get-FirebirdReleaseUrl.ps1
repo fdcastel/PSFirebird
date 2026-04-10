@@ -96,6 +96,9 @@ function Get-FirebirdReleaseUrl {
             throw "Unsupported Firebird major version: $major"
         }
     }
+    if (-not $patternMap.ContainsKey($RuntimeIdentifier)) {
+        throw "RuntimeIdentifier '$RuntimeIdentifier' is not supported for Firebird $major.x."
+    }
     $pattern = $patternMap[$RuntimeIdentifier]
     if ($RuntimeIdentifier -like 'linux-*') {
         $asset = $release.assets |
