@@ -4,8 +4,13 @@ function New-FirebirdEnvironment {
         Downloads and extracts Firebird binaries for a given version and platform.
     .DESCRIPTION
         Installs Firebird to a specified or temporary directory and returns environment details.
+        Supports both official releases (by version) and snapshot builds (by branch).
     .PARAMETER Version
         Firebird version to install. Minimum supported version is 3.0.9.
+    .PARAMETER Branch
+        Snapshot branch to install from (e.g. 'master' for Firebird 6.x development builds,
+        'v5.0-release' for Firebird 5.x next-patch builds, 'v4.0' for Firebird 4.x next-patch builds).
+        Mutually exclusive with -Version.
     .PARAMETER Path
         Directory to extract the binaries to. Uses a temporary folder if not provided.
     .PARAMETER RuntimeIdentifier
@@ -18,14 +23,21 @@ function New-FirebirdEnvironment {
     .EXAMPLE
         New-FirebirdEnvironment -Version 5.0.2
         Installs Firebird 5.0.2 to a temporary directory.
+    .EXAMPLE
+        New-FirebirdEnvironment -Branch 'master'
+        Installs the latest Firebird snapshot from the master branch to a temporary directory.
     .OUTPUTS
         FirebirdEnvironment object with Path and Version properties.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'ByVersion')]
     [OutputType([FirebirdEnvironment])]
     Param(
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory, ParameterSetName = 'ByVersion')]
         [semver]$Version,
+
+        [Parameter(Mandatory, ParameterSetName = 'ByBranch')]
+        [ValidateSet('master', 'v5.0-release', 'v4.0')]
+        [string]$Branch,
 
         [string]$Path,
 
@@ -50,16 +62,31 @@ function New-FirebirdEnvironment {
     }
     Write-VerboseMark -Message "RuntimeIdentifier is '$rid'."
 
+    # Resolve release info based on parameter set
+    if ($PSCmdlet.ParameterSetName -eq 'ByBranch') {
+        Write-VerboseMark -Message "Requested Firebird snapshot branch '$Branch'"
+        $snapshotInfo = Find-FirebirdSnapshotRelease -Branch $Branch -RuntimeIdentifier $rid
+        # Extract version from the snapshot filename (e.g. 'Firebird-6.0.0.1884-...' -> '6.0.0')
+        if ($snapshotInfo.FileName -match 'Firebird-(\d+\.\d+\.\d+)') {
+            $Version = [semver]$Matches[1]
+        } else {
+            throw "Cannot determine version from snapshot filename: $($snapshotInfo.FileName)"
+        }
+        Write-VerboseMark -Message "Resolved snapshot version: $Version"
+    } else {
+        Write-VerboseMark -Message "Requested Firebird version '$($Version)'"
+    }
+
     $minVersion = [semver]'3.0.9'
     if ($Version -lt $minVersion) {
         throw 'Firebird minimal supported version is 3.0.9.'
     }
-    Write-VerboseMark -Message "Requested Firebird version '$($Version)'"
 
     $tempRoot = [System.IO.Path]::GetTempPath()
 
     if (-not $Path) {
-        $Path = Join-Path $tempRoot "firebird-$($Version)"
+        $pathSuffix = if ($PSCmdlet.ParameterSetName -eq 'ByBranch') { "firebird-snapshot-$Branch" } else { "firebird-$($Version)" }
+        $Path = Join-Path $tempRoot $pathSuffix
         Write-VerboseMark -Message "No Path specified. Using temporary folder: $Path"
     }
 
@@ -89,7 +116,12 @@ function New-FirebirdEnvironment {
         New-Item -ItemType Directory $Path -Force > $null
     }
 
-    $releaseInfo = Get-FirebirdReleaseUrl -Version $Version -RuntimeIdentifier $rid
+    if ($PSCmdlet.ParameterSetName -eq 'ByBranch') {
+        # Snapshot release info was already resolved above
+        $releaseInfo = $snapshotInfo
+    } else {
+        $releaseInfo = Get-FirebirdReleaseUrl -Version $Version -RuntimeIdentifier $rid
+    }
     $downloadUrl = $releaseInfo.Url
     Write-VerboseMark -Message "Release URL is '$($downloadUrl)'"
 

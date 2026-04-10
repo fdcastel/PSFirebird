@@ -8,6 +8,26 @@ Describe 'GitHub releases' -Tag 'Unit' {
             }
         }
 
+        It 'Returns release info for Firebird 6.x' {
+            $result = Get-FirebirdReleaseUrl -Version '6.0.0' -RuntimeIdentifier 'win-x64'
+            $result.Url | Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-windows-x64.zip'
+            $result.FileName | Should -Be 'Firebird-6.0.0.1900-0-windows-x64.zip'
+            $result.Version | Should -Be '6.0.0'
+            $result.Sha256 | Should -Be 'a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6'
+
+            (Get-FirebirdReleaseUrl -Version '6.0.0' -RuntimeIdentifier 'win-x86').Url |
+                Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-windows-x86.zip'
+
+            (Get-FirebirdReleaseUrl -Version '6.0.0' -RuntimeIdentifier 'linux-x64').Url |
+                Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-linux-x64.tar.gz'
+
+            (Get-FirebirdReleaseUrl -Version '6.0.0' -RuntimeIdentifier 'linux-arm64').Url |
+                Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-linux-arm64.tar.gz'
+
+            (Get-FirebirdReleaseUrl -Version '6.0.0' -RuntimeIdentifier 'win-arm64').Url |
+                Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-windows-arm64.zip'
+        }
+
         It 'Returns release info for Firebird 5.x' {
             $result = Get-FirebirdReleaseUrl -Version '5.0.2' -RuntimeIdentifier 'win-x64'
             $result.Url | Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v5.0.2/Firebird-5.0.2.1613-0-windows-x64.zip'
@@ -55,6 +75,11 @@ Describe 'GitHub releases' -Tag 'Unit' {
             (Get-FirebirdReleaseUrl -Version '3.0.9' -RuntimeIdentifier 'linux-arm64').Url |
                 Should -Be 'https://github.com/FirebirdSQL/firebird/releases/download/v3.0.9/Firebird-3.0.9.33560-0.arm64.tar.gz'
         }
+        It 'Returns Sha256 when digest field is available (v6.0.0)' {
+            $result = Get-FirebirdReleaseUrl -Version '6.0.0' -RuntimeIdentifier 'linux-x64'
+            $result.Sha256 | Should -Be 'd6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6'
+        }
+
         It 'Returns Sha256 when digest field is available (v5.0.2)' {
             $result = Get-FirebirdReleaseUrl -Version '5.0.2' -RuntimeIdentifier 'linux-x64'
             $result.Sha256 | Should -Be 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2'
@@ -83,6 +108,9 @@ Describe 'GitHub releases' -Tag 'Unit' {
         }
 
         It 'Works for all major versions' {
+            $r6 = Find-FirebirdRelease -Version '6.0.0' -RuntimeIdentifier 'linux-x64'
+            $r6.FileName | Should -BeLike 'Firebird-6.0.0*linux-x64*'
+
             $r5 = Find-FirebirdRelease -Version '5.0.0' -RuntimeIdentifier 'linux-arm64'
             $r5.FileName | Should -BeLike 'Firebird-5.0.0*linux-arm64*'
 

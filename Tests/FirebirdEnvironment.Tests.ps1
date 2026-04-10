@@ -26,17 +26,19 @@ Describe 'FirebirdEnvironment' -Tag 'Integration' {
 
     It 'Create a FirebirdEnvironment of the given version' {
         $TestEnvironmentPath | Should -Not -Exist
-        $fbEnv = New-FirebirdEnvironment -Version $FirebirdVersion -Path $TestEnvironmentPath @FirebirdExtraParams
+        $fbEnv = New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams
         $fbEnv | Should -BeOfType FirebirdEnvironment
         $TestEnvironmentPath | Should -Exist
 
-        $v = $fbEnv.Version
-        [semver]::new($v.Major, $v.Minor, $v.Build) | Should -Be $FirebirdVersion
+        if (-not $FirebirdBranch) {
+            $v = $fbEnv.Version
+            [semver]::new($v.Major, $v.Minor, $v.Build) | Should -Be $FirebirdVersion
+        }
     }
 
     It 'Remove a FirebirdEnvironment with -Force' {
         $TestEnvironmentPath | Should -Not -Exist
-        New-FirebirdEnvironment -Version $FirebirdVersion -Path $TestEnvironmentPath @FirebirdExtraParams
+        New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams
         $TestEnvironmentPath | Should -Exist
 
         Remove-FirebirdEnvironment -Path $TestEnvironmentPath -Force

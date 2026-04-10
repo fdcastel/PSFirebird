@@ -6,7 +6,7 @@ Describe 'Backup' -Tag 'Integration' {
         # Create a temporary folder for the test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
-        $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion @FirebirdExtraParams
+        $script:TestEnvironment = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
         $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
 
         $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.fbk"

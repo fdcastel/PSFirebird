@@ -61,7 +61,7 @@ jobs:
           Invoke-Pester -Path ./Tests -Tag 'CrossVersion' -Output Detailed
 
   integration-tests:
-    name: Integration (${{ matrix.os }}, FB ${{ matrix.firebird-version }}${{ matrix.firebird-rid && format(', {0}', matrix.firebird-rid) || '' }})
+    name: Integration (${{ matrix.os }}, FB ${{ matrix.firebird-version || format('snapshot-{0}', matrix.firebird-branch) }}${{ matrix.firebird-rid && format(', {0}', matrix.firebird-rid) || '' }})
     needs: check
     if: needs.check.outputs.skip != 'true'
     runs-on: ${{ matrix.os }}
@@ -77,7 +77,14 @@ jobs:
           - '5.0.3'
         firebird-rid:
           - ''
+        firebird-branch:
+          - ''
         include:
+          ## Snapshot (v6 development) builds from the master branch
+          - os: ubuntu-22.04
+            firebird-branch: master
+          - os: windows-latest
+            firebird-branch: master
           ## Win32 (x86) — runs x86 Firebird on x64 Windows
           - os: windows-latest
             firebird-version: '3.0.12'
@@ -94,6 +101,7 @@ jobs:
             firebird-rid: win-x64
     env:
       FIREBIRD_VERSION: ${{ matrix.firebird-version }}
+      FIREBIRD_BRANCH: ${{ matrix.firebird-branch }}
       FIREBIRD_RID: ${{ matrix.firebird-rid }}
       GITHUB_TOKEN: ${{ github.token }}
     steps:

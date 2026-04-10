@@ -66,7 +66,8 @@ function Get-FirebirdReleaseUrl {
     $major = $Version.Major
     $patternMap = @{}
     switch ($major) {
-        5 {
+        { $_ -ge 5 } {
+            Write-VerboseMark -Message "Using v5+ asset naming convention for Firebird $($major).x"
             $patternMap = @{
                 'win-x86'     = 'windows-x86.*\.zip$'
                 'win-x64'     = 'windows-x64.*\.zip$'

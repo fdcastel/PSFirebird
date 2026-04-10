@@ -22,7 +22,7 @@ Describe 'FirebirdService' -Tag 'Integration' {
         # Create a temporary folder for test files
         $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
 
-        $script:TestEnvironment = New-FirebirdEnvironment -Version $FirebirdVersion @FirebirdExtraParams
+        $script:TestEnvironment = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
         $script:TestDatabasePath = "$RootFolder/$FirebirdVersion-service-tests.fdb"
         $script:TestDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
 

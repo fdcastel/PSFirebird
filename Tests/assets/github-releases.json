@@ -1,5 +1,59 @@
 [
   {
+    "tag_name": "v6.0.0",
+    "name": "Firebird 6.0.0",
+    "assets": [
+      {
+        "name": "Firebird-6.0.0.1900-0-windows-x64.zip",
+        "browser_download_url": "https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-windows-x64.zip",
+        "digest": "sha256:a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6",
+        "content_type": "application/zip"
+      },
+      {
+        "name": "Firebird-6.0.0.1900-0-windows-x64-withDebugSymbols.zip",
+        "browser_download_url": "https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-windows-x64-withDebugSymbols.zip",
+        "digest": "",
+        "content_type": "application/zip"
+      },
+      {
+        "name": "Firebird-6.0.0.1900-0-windows-x86.zip",
+        "browser_download_url": "https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-windows-x86.zip",
+        "digest": "sha256:b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6",
+        "content_type": "application/zip"
+      },
+      {
+        "name": "Firebird-6.0.0.1900-0-windows-arm64.zip",
+        "browser_download_url": "https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-windows-arm64.zip",
+        "digest": "sha256:c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6",
+        "content_type": "application/zip"
+      },
+      {
+        "name": "Firebird-6.0.0.1900-0-linux-x64.tar.gz",
+        "browser_download_url": "https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-linux-x64.tar.gz",
+        "digest": "sha256:d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6",
+        "content_type": "application/gzip"
+      },
+      {
+        "name": "Firebird-6.0.0.1900-0-linux-arm64.tar.gz",
+        "browser_download_url": "https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-linux-arm64.tar.gz",
+        "digest": "sha256:e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6a6b6c6d6e6f6",
+        "content_type": "application/gzip"
+      },
+      {
+        "name": "Firebird-6.0.0.1900-0-android-arm64.tar.gz",
+        "browser_download_url": "https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-android-arm64.tar.gz",
+        "digest": "",
+        "content_type": "application/gzip"
+      },
+      {
+        "name": "Firebird-6.0.0.1900-0-linux-x64-debugSymbols.tar.gz",
+        "browser_download_url": "https://github.com/FirebirdSQL/firebird/releases/download/v6.0.0/Firebird-6.0.0.1900-0-linux-x64-debugSymbols.tar.gz",
+        "digest": "",
+        "content_type": "application/gzip"
+      }
+    ]
+  },
+  {
     "url": "https://api.github.com/repos/FirebirdSQL/firebird/releases/199831208",
     "assets_url": "https://api.github.com/repos/FirebirdSQL/firebird/releases/199831208/assets",
     "upload_url": "https://uploads.github.com/repos/FirebirdSQL/firebird/releases/199831208/assets{?name,label}",
