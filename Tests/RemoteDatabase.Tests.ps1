@@ -19,7 +19,6 @@ Describe 'Remote Database Operations' -Tag 'Integration' {
         # Start a Firebird server on a fixed port below the Windows ephemeral range (49152+)
         $script:Port = 41000 + $TestEnvironment.Version.Major
         $script:TestInstance = Start-FirebirdInstance -Environment $TestEnvironment -Port $Port
-        Start-Sleep -Seconds 1
 
         # Build remote connection string
         $script:RemoteConnectionString = "localhost/$($Port):$($LocalDatabase.Path)"

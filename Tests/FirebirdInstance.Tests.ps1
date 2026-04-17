@@ -33,9 +33,6 @@ Describe 'FirebirdInstance' -Tag 'Integration' {
             $testInstance.Port | Should -Be $Port
             $testInstance.Process | Should -Not -BeNullOrEmpty
 
-            # Wait for the server to start
-            Start-Sleep -Seconds 1
-
             # Ensure the server is running
             $testInstance.Process.HasExited | Should -BeFalse
 

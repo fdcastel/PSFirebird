@@ -55,9 +55,6 @@ Describe 'FirebirdService' -Tag 'Integration' {
             $result.EnvironmentPath | Should -Be $TestEnvironment.Path
             $result.Status | Should -Be 'Running'
 
-            # Wait for the server to be ready
-            Start-Sleep -Seconds 2
-
             # Verify TCP connection through the service
             $remoteDatabase = "localhost/$($port):$($TestDatabase.Path)"
             $tcpResult = 'SET LIST ON; SELECT mon$remote_protocol FROM mon$attachments WHERE mon$attachment_id = CURRENT_CONNECTION;' |
@@ -75,9 +72,6 @@ Describe 'FirebirdService' -Tag 'Integration' {
 
         New-FirebirdService -Environment $TestEnvironment -Port $port > $null
         try {
-            # Wait for service to start
-            Start-Sleep -Seconds 1
-
             $svcInfo = Get-FirebirdService -Name $defaultName
             $svcInfo | Should -Not -BeNullOrEmpty
             $svcInfo.Name | Should -Be $defaultName
@@ -95,9 +89,6 @@ Describe 'FirebirdService' -Tag 'Integration' {
 
         New-FirebirdService -Environment $TestEnvironment -Port $port -Name $customName > $null
         try {
-            # Wait for the service to start
-            Start-Sleep -Seconds 1
-
             # Verify it exists
             $svcBefore = Get-FirebirdService -Name $customName
             $svcBefore | Should -Not -BeNullOrEmpty
