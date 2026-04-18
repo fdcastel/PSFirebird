@@ -68,4 +68,18 @@ Describe 'FirebirdEnvironment' -Tag 'Integration' {
         New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams | Out-Null
         $LASTEXITCODE | Should -Be 0
     }
+
+    It 'GetClientLibraryPath returns the client library file' {
+        $fbEnv = New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams
+
+        $clientLib = $fbEnv.GetClientLibraryPath()
+
+        $clientLib | Should -Not -BeNullOrEmpty
+        $clientLib | Should -Exist
+        if ($IsWindows) {
+            $clientLib.Path | Should -Match 'fbclient\.dll$'
+        } else {
+            $clientLib.Path | Should -Match 'libfbclient\.so'
+        }
+    }
 }

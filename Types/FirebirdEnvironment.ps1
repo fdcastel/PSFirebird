@@ -55,6 +55,23 @@ class FirebirdEnvironment {
         return $this.GetFirebirdToolPath('nbackup')
     }
 
+    # Return the client library path (fbclient.dll on Windows, libfbclient.so.X on Linux)
+    [System.Management.Automation.PathInfo] GetClientLibraryPath() {
+        if ($global:IsWindows) {
+            return Resolve-Path (Join-Path $this.Path 'fbclient.dll')
+        }
+        # Prefer the versioned .so.X form (e.g. libfbclient.so.5); fall back to the
+        # unversioned symlink if no versioned file is found.
+        $libDir = Join-Path $this.Path 'lib'
+        $versioned = Get-ChildItem -Path $libDir -Filter 'libfbclient.so.*' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '\.so\.\d+$' } |
+            Select-Object -First 1
+        if ($versioned) {
+            return Resolve-Path $versioned.FullName
+        }
+        return Resolve-Path (Join-Path $libDir 'libfbclient.so')
+    }
+
     # Private helper to get tool path
     hidden [System.Management.Automation.PathInfo] GetFirebirdToolPath([string]$tool) {
         $toolPath = if ($global:IsWindows) {
