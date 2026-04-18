@@ -29,10 +29,18 @@ function Invoke-ExternalCommand(
 
     if ($Passthru) {
         # If the Passthru switch is specified, we return both stdout and stderr.
-        return [PSCustomObject]@{
-            StdOut = $stdout
-            StdErr = $stderr
+        $result = [PSCustomObject]@{
+            StdOut   = $stdout
+            StdErr   = $stderr
             ExitCode = $LASTEXITCODE
         }
+        # Reset $LASTEXITCODE so callers (e.g. GitHub Actions run: steps) are not
+        # affected by non-zero exit codes from tools that exit non-zero on success
+        # (e.g. gstat -z exits 1 on Windows even when it succeeds).
+        $global:LASTEXITCODE = 0
+        return $result
     }
+
+    # Reset $LASTEXITCODE for the same reason.
+    $global:LASTEXITCODE = 0
 }

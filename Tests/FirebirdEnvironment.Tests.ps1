@@ -52,4 +52,20 @@ Describe 'FirebirdEnvironment' -Tag 'Integration' {
 
         { Remove-FirebirdEnvironment -Path $fakePath -Force } | Should -Throw '*does not appear to be a Firebird environment*'
     }
+
+    It 'Get-FirebirdEnvironment does not leak a non-zero $LASTEXITCODE' {
+        $fbEnv = New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams
+
+        $global:LASTEXITCODE = 0
+        Get-FirebirdEnvironment -Path $TestEnvironmentPath | Out-Null
+        $LASTEXITCODE | Should -Be 0
+    }
+
+    It 'New-FirebirdEnvironment (reuse existing path) does not leak a non-zero $LASTEXITCODE' {
+        New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams | Out-Null
+
+        $global:LASTEXITCODE = 0
+        New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams | Out-Null
+        $LASTEXITCODE | Should -Be 0
+    }
 }
