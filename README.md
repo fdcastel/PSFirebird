@@ -61,6 +61,27 @@ The example runs on both Windows and Linux platforms using a matrix build strate
 
 PSFirebird automatically uses `GITHUB_TOKEN` when it is available, increasing the rate limit to 5,000 requests/hour. To enable this in your GitHub Actions workflows, add `GITHUB_TOKEN: ${{ github.token }}` to the job or step `env`.
 
+#### Multi-step workflows
+
+PowerShell objects do not persist between separate `run:` steps. Use the `FIREBIRD_ENVIRONMENT` environment variable to share the environment path across steps — all PSFirebird cmdlets will use it automatically when no `-Environment` parameter is provided.
+
+```yaml
+- name: Create Firebird Environment
+  run: |
+    $fbEnv = New-FirebirdEnvironment -Version '5.0.3'
+    # Persist the path so subsequent steps can use it without -Environment
+    "FIREBIRD_ENVIRONMENT=$($fbEnv.Path)" >> $env:GITHUB_ENV
+
+- name: Create database
+  run: |
+    # $env:FIREBIRD_ENVIRONMENT is automatically used as the default environment
+    New-FirebirdDatabase -Database '/tmp/test.fdb'
+
+- name: Run query
+  run: |
+    'SELECT 1 FROM RDB$DATABASE;' | Invoke-FirebirdIsql -Database '/tmp/test.fdb'
+```
+
 
 
 # Usage
@@ -379,6 +400,16 @@ Start-FirebirdInstance [-Port <int>] [-Environment <FirebirdEnvironment>] [<Comm
 ```
 
 Launches a Firebird server process from the specified environment and returns a `FirebirdInstance` object. The server runs on the specified port (default: 3050).
+
+> **Note:** The archive-extracted Firebird security database ships with no users. TCP connections require SYSDBA to be initialized first via an embedded (local) connection — which bypasses authentication entirely. Do this once before starting the server:
+> ```powershell
+> $fb5 = New-FirebirdEnvironment -Version '5.0.3'
+> $db  = New-FirebirdDatabase -Database '/tmp/test.fdb' -Environment $fb5
+> # Initialize SYSDBA password for TCP connections (no server needed):
+> "CREATE USER SYSDBA PASSWORD 'masterkey';" |
+>     Invoke-FirebirdIsql -Database $db -Environment $fb5
+> $instance = Start-FirebirdInstance -Port 3051 -Environment $fb5
+> ```
 
 ```powershell
 # Example: Start a Firebird server on custom port
