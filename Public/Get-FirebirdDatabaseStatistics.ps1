@@ -38,22 +38,26 @@ function Get-FirebirdDatabaseStatistics {
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()
     )
 
-    Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+    begin {
+        Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+        $gstat = $Environment.GetGstatPath()
+    }
 
-    $gstat = $Environment.GetGstatPath()
-    $gstatArgs = @(
-        '-a'
-        '-r'
-        foreach ($table in $TableName) {
-            '-t'
-            $table
-        }
-        $Database.ConnectionString()
-    )
+    process {
+        $gstatArgs = @(
+            '-a'
+            '-r'
+            foreach ($table in $TableName) {
+                '-t'
+                $table
+            }
+            $Database.ConnectionString()
+        )
 
-    Write-VerboseMark -Message "Calling: $gstat $gstatArgs"
-    $gstatResult = Invoke-ExternalCommand {
-        & $gstat @gstatArgs
-    } -Passthru -ErrorMessage 'Error running gstat.'
-    $gstatResult.StdOut | ConvertFrom-Gstat
+        Write-VerboseMark -Message "Calling: $gstat $gstatArgs"
+        $gstatResult = Invoke-ExternalCommand {
+            & $gstat @gstatArgs
+        } -Passthru -ErrorMessage 'Error running gstat.'
+        $gstatResult.StdOut | ConvertFrom-Gstat
+    }
 }

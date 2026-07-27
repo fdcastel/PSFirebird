@@ -77,53 +77,61 @@ function Backup-FirebirdDatabase {
         $RemainingArguments
     )
 
-    Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+    begin {
+        Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+        $gbak = $Environment.GetGbakPath()
 
-    # Determine the target output for the backup.
-    if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
-        $BackupFilePath = 'stdout'
-    } else {
-        # If no file path is specified, derive it from the database path.
-        if (-not $BackupFilePath) {
-            $BackupFilePath = [Io.Path]::ChangeExtension($Database.Path, '.fbk')
-        }
-
-        # Force deletion of existing file if specified.
-        if ($Force -and (Test-Path $BackupFilePath)) {
-            Write-VerboseMark -Message "Deleting existing file at '$BackupFilePath' due to -Force."
-            Remove-Item -Path $BackupFilePath -Force
+        # Using -NT option makes backup 5% faster (tested with a 320GB database)
+        if ($Transportable) {
+            Write-VerboseMark -Message 'Using transportable backup (no -nt).'
         }
     }
 
-    # Using -NT option makes backup 5% faster (tested with a 320GB database)
-    if ($Transportable) {
-        Write-VerboseMark -Message 'Using transportable backup (no -nt).'
-    }
+    process {
+        # Determine the target output for the backup.
+        # $targetPath is derived per pipeline item, so $BackupFilePath is left untouched.
+        if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
+            $targetPath = 'stdout'
+        } else {
+            # If no file path is specified, derive it from the database path.
+            $targetPath = if ($BackupFilePath) {
+                $BackupFilePath
+            } else {
+                [Io.Path]::ChangeExtension($Database.Path, '.fbk')
+            }
+        }
 
-    # Using -G option inhibits Firebird garbage collection, speeding up the backup process if a lot of updates have been done.
-    #   https://firebirdsql.org/file/documentation/html/en/firebirddocs/gbak/firebird-gbak.html#gbak-backup-speedup
+        # Using -G option inhibits Firebird garbage collection, speeding up the backup process if a lot of updates have been done.
+        #   https://firebirdsql.org/file/documentation/html/en/firebirddocs/gbak/firebird-gbak.html#gbak-backup-speedup
 
-    $gbak = $Environment.GetGbakPath()
-    $gbakArgs = @(
-        $RemainingArguments
-        '-backup_database'
-        '-g'
-        if (-not $Transportable) { '-nt' }
-        '-verify'
-        '-statistics', 'T'
-        $Database.ConnectionString()
-        $BackupFilePath
-    ) | Where-Object { $_ }
+        $gbakArgs = @(
+            $RemainingArguments
+            '-backup_database'
+            '-g'
+            if (-not $Transportable) { '-nt' }
+            '-verify'
+            '-statistics', 'T'
+            $Database.ConnectionString()
+            $targetPath
+        ) | Where-Object { $null -ne $_ -and $_ -ne '' }
 
-    if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
-        Write-VerboseMark -Message "Returning: $gbakArgs"
-        return $gbakArgs
-    }
+        if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
+            Write-VerboseMark -Message "Returning: $gbakArgs"
+            return $gbakArgs
+        }
 
-    Write-VerboseMark -Message "Calling: $gbak $gbakArgs"
-    if ($PSCmdlet.ShouldProcess($Database.Path, 'Backup Firebird database')) {
-        Invoke-ExternalCommand {
-            & $gbak @gbakArgs
-        } -ErrorMessage 'Error running gbak backup.'
+        Write-VerboseMark -Message "Calling: $gbak $gbakArgs"
+        if ($PSCmdlet.ShouldProcess($Database.Path, 'Backup Firebird database')) {
+            # Force deletion of existing file if specified. Inside the gate so -WhatIf
+            # cannot delete.
+            if ($Force -and (Test-Path $targetPath)) {
+                Write-VerboseMark -Message "Deleting existing file at '$($targetPath)' due to -Force."
+                Remove-Item -Path $targetPath -Force
+            }
+
+            Invoke-ExternalCommand {
+                & $gbak @gbakArgs
+            } -ErrorMessage 'Error running gbak backup.'
+        }
     }
 }

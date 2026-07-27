@@ -29,50 +29,52 @@ function Write-FirebirdConfiguration {
         [Parameter(Mandatory, ValueFromPipeline)]
         [hashtable]$Configuration
     )
-    if (-not (Test-Path -Path $Path)) {
-        throw "File not found: $Path"
-    }
-    $lines = Get-Content -Path $Path
-    $keys = $Configuration.Keys
-    $updated = @{}
-    $output = @()
-    foreach ($line in $lines) {
-        $trimmed = $line.Trim()
-        $matched = $false
+    process {
+        if (-not (Test-Path -Path $Path)) {
+            throw "File not found: $Path"
+        }
+        $lines = Get-Content -Path $Path
+        $keys = $Configuration.Keys
+        $updated = @{}
+        $output = @()
+        foreach ($line in $lines) {
+            $trimmed = $line.Trim()
+            $matched = $false
+            foreach ($key in $keys) {
+                # Escape the key: a configuration name is a literal, not a pattern.
+                $pattern = "^(#)?$([regex]::Escape($key))\s*=.*$"
+                if ($trimmed -match $pattern) {
+                    $matched = $true
+                    $value = $Configuration[$key]
+                    if ($null -eq $value) {
+                        $output += "#$($key) = "
+                        Write-VerboseMark -Message "Commented out $($key) as value is null."
+                    } else {
+                        $output += "$($key) = $($value)"
+                        Write-VerboseMark -Message "Updated $($key) to $($value)."
+                    }
+                    $updated[$key] = $true
+                    break
+                }
+            }
+            if (-not $matched) {
+                $output += $line
+            }
+        }
         foreach ($key in $keys) {
-            $pattern = "^(#)?$($key)\s*=.*$"
-            if ($trimmed -match $pattern) {
-                $matched = $true
+            if (-not $updated.ContainsKey($key)) {
                 $value = $Configuration[$key]
                 if ($null -eq $value) {
                     $output += "#$($key) = "
-                    Write-VerboseMark -Message "Commented out $key as value is null."
+                    Write-VerboseMark -Message "Key '$($key)' not found in file. Appending as commented out."
                 } else {
                     $output += "$($key) = $($value)"
-                    Write-VerboseMark -Message "Updated $key to $value."
+                    Write-VerboseMark -Message "Key '$($key)' not found in file. Appending at end."
                 }
-                $updated[$key] = $true
-                break
             }
         }
-        if (-not $matched) {
-            $output += $line
+        if ($PSCmdlet.ShouldProcess($Path, 'Update Firebird configuration file')) {
+            Set-Content -Path $Path -Value $output
         }
-    }
-    foreach ($key in $keys) {
-        if (-not $updated.ContainsKey($key)) {
-            $value = $Configuration[$key]
-            if ($null -eq $value) {
-                $output += "#$($key) = "
-                Write-VerboseMark -Message "Key '$key' not found in file. Appending as commented out."
-            } else {
-                $output += "$($key) = $($value)"
-                Write-VerboseMark -Message "Key '$key' not found in file. Appending at end."
-            }
-            Write-VerboseMark -Message "Appended $key to file."
-        }
-    }
-    if ($PSCmdlet.ShouldProcess($Path, 'Update Firebird configuration file')) {
-        Set-Content -Path $Path -Value $output
     }
 }

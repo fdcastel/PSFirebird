@@ -51,70 +51,75 @@ function New-FirebirdDatabase {
         [switch]$Force
     )
 
-    Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+    begin {
+        Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+        $isql = $Environment.GetIsqlPath()
 
-    # If Credential is specified, extract User and Password from it
-    if ($Credential) {
-        $User = $Credential.UserName
-        $Password = $Credential.GetNetworkCredential().Password
-        Write-VerboseMark -Message "Using credentials from -Credential parameter for user '$User'."
+        # If Credential is specified, extract User and Password from it
+        if ($Credential) {
+            $User = $Credential.UserName
+            $Password = $Credential.GetNetworkCredential().Password
+            Write-VerboseMark -Message "Using credentials from -Credential parameter for user '$($User)'."
+        }
     }
 
-    if ($Database.Host) {
-        # Remote database or local over xnet
-        if ($Force) {
-            throw "Cannot use -Force with remote databases or xnet protocol."
-        }
-    } else {
-        # Local database connection
-        if (Test-Path -Path $Database.Path -PathType Leaf) {
+    process {
+        if ($Database.Host) {
+            # Remote database or local over xnet
             if ($Force) {
-                if ($PSCmdlet.ShouldProcess($Database.Path, 'Remove existing database file')) {
-                    Write-VerboseMark -Message "Database file '$($Database.Path)' already exists and -Force specified. Removing database file..."
-                    Remove-Item -Path $Database.Path -Force
+                throw 'Cannot use -Force with remote databases or xnet protocol.'
+            }
+        } else {
+            # Local database connection
+            if (Test-Path -Path $Database.Path -PathType Leaf) {
+                if ($Force) {
+                    if ($PSCmdlet.ShouldProcess($Database.Path, 'Remove existing database file')) {
+                        Write-VerboseMark -Message "Database file '$($Database.Path)' already exists and -Force specified. Removing database file..."
+                        Remove-Item -Path $Database.Path -Force
+                    }
+                } else {
+                    throw "Database file '$($Database.Path)' already exists. Use -Force to overwrite."
                 }
-            } else {
-                throw "Database file '$($Database.Path)' already exists. Use -Force to overwrite."
             }
         }
-    }
 
+        if (-not $PSCmdlet.ShouldProcess($Database.Path, 'Create new Firebird database')) {
+            # Nothing was created, so there is no database to describe.
+            return
+        }
 
-    if ($PSCmdlet.ShouldProcess($Database.Path, 'Create new Firebird database')) {
         $createDbCmd = @"
-CREATE DATABASE '$($Database.ConnectionString())' 
-    USER '$User' 
-    PASSWORD '$Password' 
-    PAGE_SIZE $PageSize 
-    DEFAULT CHARACTER SET $Charset;
+CREATE DATABASE '$($Database.ConnectionString())'
+    USER '$($User)'
+    PASSWORD '$($Password)'
+    PAGE_SIZE $($PageSize)
+    DEFAULT CHARACTER SET $($Charset);
 "@
 
-        $isql = $Environment.GetIsqlPath()
-        
         Write-VerboseMark -Message "Creating database at '$($Database.Path)' with user '$($User)', page size $($PageSize), charset '$($Charset)'."
         Invoke-ExternalCommand {
             $createDbCmd | & $isql -quiet
         } -ErrorMessage 'Error running isql.'
         Write-VerboseMark -Message "Database created successfully at '$($Database.Path)'"
+
+        $odsVersion = $null
+        try {
+            Write-VerboseMark -Message 'Reading ODS version via gstat.'
+            $header = Get-FirebirdDatabaseHeader -Database $Database -Environment $Environment
+            $odsVersion = $header.ODSVersion
+        } catch {
+            Write-VerboseMark -Message "Could not read ODS version: $($_.Exception.Message)"
+        }
+
+        # Return the database information as a FirebirdDatabase class instance.
+        [FirebirdDatabase]::new(@{
+                Protocol   = $Database.Protocol
+                Host       = $Database.Host
+                Port       = $Database.Port
+                Path       = $Database.Path
+
+                PageSize   = $PageSize
+                ODSVersion = $odsVersion
+            })
     }
-
-    $odsVersion = $null
-    try {
-        Write-VerboseMark -Message 'Reading ODS version via gstat.'
-        $header = Get-FirebirdDatabaseHeader -Database $Database -Environment $Environment
-        $odsVersion = $header.ODSVersion
-    } catch {
-        Write-VerboseMark -Message "Could not read ODS version: $($_.Exception.Message)"
-    }
-
-    # Return the database information as a FirebirdDatabase class instance.
-    [FirebirdDatabase]::new(@{
-            Protocol    = $Database.Protocol
-            Host        = $Database.Host
-            Port        = $Database.Port
-            Path        = $Database.Path
-
-            PageSize    = $PageSize
-            ODSVersion  = $odsVersion
-        })
 }

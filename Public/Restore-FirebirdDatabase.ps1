@@ -61,57 +61,63 @@ None by default. If -AsCommandLine is used, returns the gbak command-line argume
         $RemainingArguments
     )
 
-    Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+    begin {
+        Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+        $gbak = $Environment.GetGbakPath()
+    }
 
-    # Determine the target database for the restore.
-    if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
-        if (-not $Database) {
-            throw 'When using -AsCommandLine, you must specify a -Database to restore to.'
-        }
-        $BackupFilePath = 'stdin'
-    } else {
-        if (Test-Path $BackupFilePath) {
-            Write-VerboseMark -Message "Using file path: $BackupFilePath"
+    process {
+        # Determine source and target for the restore. Both are derived per pipeline item,
+        # so the bound parameters are left untouched.
+        if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
+            $sourcePath = 'stdin'
+            $targetDatabase = $Database
         } else {
-            throw "The specified BackupFilePath '$BackupFilePath' does not exist."
+            if (Test-Path $BackupFilePath) {
+                Write-VerboseMark -Message "Using file path: $($BackupFilePath)"
+            } else {
+                throw "The specified BackupFilePath '$BackupFilePath' does not exist."
+            }
+            $sourcePath = $BackupFilePath
+
+            # If no database path is specified, derive it from the file path.
+            $targetDatabase = if ($Database) {
+                $Database
+            } else {
+                $databasePath = [Io.Path]::ChangeExtension($BackupFilePath, '.restored.fdb')
+                Write-VerboseMark -Message "No database specified. Using derived path: $($databasePath)"
+                [FirebirdDatabase]::new($databasePath)
+            }
         }
 
-        # If no database path is specified, derive it from the file path.
-        if (-not $Database) {
-            $databasePath = [Io.Path]::ChangeExtension($BackupFilePath, '.restored.fdb')
-            Write-VerboseMark -Message "No database specified. Using derived path: $databasePath"
-            $Database = [FirebirdDatabase]::new($databasePath)
-        }
-    }
+        $gbakArgs = @(
+            $RemainingArguments
+            '-create_database'
+            '-verify'
+            '-statistics', 'T'
+            $sourcePath
+            $targetDatabase.ConnectionString()
+        ) | Where-Object { $null -ne $_ -and $_ -ne '' }
 
-    $gbak = $Environment.GetGbakPath()
-    $gbakArgs = @(
-        $RemainingArguments
-        '-create_database'
-        '-verify'
-        '-statistics', 'T'
-        $BackupFilePath
-        $Database.ConnectionString()
-    ) | Where-Object { $_ }
-
-    if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
-        Write-VerboseMark -Message "Returning: $gbakArgs"
-        return $gbakArgs
-    }
-
-    Write-VerboseMark -Message "Calling: $gbak $gbakArgs"
-    if ($PSCmdlet.ShouldProcess($Database.Path, 'Restore Firebird database')) {
-        # Force deletion of existing database if specified. gbak -create_database refuses to
-        # overwrite, so the target must be gone first. This stays inside ShouldProcess so
-        # -WhatIf cannot delete, and out of the -AsCommandLine path so that merely asking for
-        # the command line has no side effects.
-        if ($Force -and (Test-Path $Database.Path)) {
-            Write-VerboseMark -Message "Deleting existing database at '$($Database.Path)' due to -Force."
-            Remove-Item -Path $Database.Path -Force
+        if ($PSCmdlet.ParameterSetName -eq 'AsCommandLine') {
+            Write-VerboseMark -Message "Returning: $gbakArgs"
+            return $gbakArgs
         }
 
-        Invoke-ExternalCommand {
-            & $gbak @gbakArgs
-        } -ErrorMessage 'Error running gbak restore.'
+        Write-VerboseMark -Message "Calling: $gbak $gbakArgs"
+        if ($PSCmdlet.ShouldProcess($targetDatabase.Path, 'Restore Firebird database')) {
+            # Force deletion of existing database if specified. gbak -create_database refuses to
+            # overwrite, so the target must be gone first. This stays inside ShouldProcess so
+            # -WhatIf cannot delete, and out of the -AsCommandLine path so that merely asking for
+            # the command line has no side effects.
+            if ($Force -and (Test-Path $targetDatabase.Path)) {
+                Write-VerboseMark -Message "Deleting existing database at '$($targetDatabase.Path)' due to -Force."
+                Remove-Item -Path $targetDatabase.Path -Force
+            }
+
+            Invoke-ExternalCommand {
+                & $gbak @gbakArgs
+            } -ErrorMessage 'Error running gbak restore.'
+        }
     }
 }

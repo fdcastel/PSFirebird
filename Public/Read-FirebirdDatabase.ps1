@@ -26,26 +26,28 @@ function Read-FirebirdDatabase {
         [FirebirdEnvironment]$Environment = [FirebirdEnvironment]::default()
     )
 
-    $query = 'SET LIST ON; SELECT * FROM mon$database CROSS JOIN rdb$database;'
+    process {
+        $query = 'SET LIST ON; SELECT * FROM mon$database CROSS JOIN rdb$database;'
 
-    $isqlOutput = $query | Invoke-FirebirdIsql -Database $Database -Environment $Environment -bail -quiet 
+        $isqlOutput = $query | Invoke-FirebirdIsql -Database $Database -Environment $Environment -bail -quiet
 
-    # Parse isql list output. Discard first 2 lines, stop at first blank line.
-    $result = [ordered]@{
-        Environment  = $Environment
-        Database = $Database
-    }
-
-    $resultLines = $isqlOutput | Select-Object -Skip 2
-    foreach ($line in $resultLines) {
-        if ($line.Trim() -eq '') { break }
-        if ($line -match '^(\S+)\s+(.*)$') {
-            $key = $Matches[1]
-            $value = $Matches[2].Trim()
-            Write-VerboseMark -Message "Parsed: $key = $value"
-            $result[$key] = $value
+        # Parse isql list output. Discard first 2 lines, stop at first blank line.
+        $result = [ordered]@{
+            Environment = $Environment
+            Database    = $Database
         }
-    }
 
-    return $result
+        $resultLines = $isqlOutput | Select-Object -Skip 2
+        foreach ($line in $resultLines) {
+            if ($line.Trim() -eq '') { break }
+            if ($line -match '^(\S+)\s+(.*)$') {
+                $key = $Matches[1]
+                $value = $Matches[2].Trim()
+                Write-VerboseMark -Message "Parsed: $key = $value"
+                $result[$key] = $value
+            }
+        }
+
+        $result
+    }
 }

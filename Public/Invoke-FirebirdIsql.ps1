@@ -32,16 +32,30 @@ function Invoke-FirebirdIsql {
         $RemainingArguments
     )
 
-    Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
+    begin {
+        Write-VerboseMark -Message "Using Firebird environment at '$($Environment.Path)'"
 
-    $isql = $Environment.GetIsqlPath()
+        $isql = $Environment.GetIsqlPath()
+        $connectionString = $Database.ConnectionString()
 
-    $connectionString = $Database.ConnectionString()
-    Write-VerboseMark -Message "Piping Sql into: $isql $($RemainingArguments -join ' ') $connectionString"
+        # Collect piped statements so that a multi-line script arriving over the pipeline
+        # (e.g. Get-Content script.sql | Invoke-FirebirdIsql) runs as one isql session
+        # rather than one session per line.
+        $statements = [System.Collections.Generic.List[string]]::new()
+    }
 
-    $result = Invoke-ExternalCommand {
-        $Sql | & $isql @RemainingArguments $connectionString
-    } -Passthru -ErrorMessage "Error running isql."    
+    process {
+        $statements.Add($Sql)
+    }
 
-    return $result.StdOut
+    end {
+        $script = $statements -join [Environment]::NewLine
+        Write-VerboseMark -Message "Piping $($statements.Count) statement block(s) into: $isql $($RemainingArguments -join ' ') $connectionString"
+
+        $result = Invoke-ExternalCommand {
+            $script | & $isql @RemainingArguments $connectionString
+        } -Passthru -ErrorMessage 'Error running isql.'
+
+        $result.StdOut
+    }
 }
