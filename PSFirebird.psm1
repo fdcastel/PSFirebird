@@ -6,7 +6,10 @@ $ErrorActionPreference = 'Stop'
 $TypeFiles = @(
     'FirebirdEnvironment.ps1',
     'FirebirdInstance.ps1',
-    'FirebirdDatabase.ps1'
+    'FirebirdDatabase.ps1',
+
+    # Internal. Not exported as a type accelerator below.
+    'GstatParser.ps1'
 )
 foreach ($TypeFile in $TypeFiles) {
     $TypePath = Join-Path $PSScriptRoot "Types/$TypeFile"

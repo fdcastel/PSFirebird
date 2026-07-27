@@ -1,0 +1,112 @@
+
+Database "C:\USERS\FDCASTEL\APPDATA\LOCAL\TEMP\GSTATFIX-C489ABBC-5891-47EB-BAAC-B68861529667.FDB"
+Gstat execution time Sun Jul 26 21:12:26 2026
+
+Database header page information:
+	Flags			0
+	Generation		16
+	System Change Number	0
+	Page size		8192
+	ODS version		13.1
+	Oldest transaction	9
+	Oldest active		10
+	Oldest snapshot		10
+	Next transaction	12
+	Sequence number		0
+	Next attachment ID	6
+	Implementation		HW=AMD/Intel/x64 little-endian OS=Windows CC=MSVC
+	Shadow count		0
+	Page buffers		0
+	Next header page	0
+	Database dialect	3
+	Creation date		Jul 27, 2026 0:12:26
+	Attributes		force write
+
+    Variable header data:
+	Database GUID:	{F0A460E6-120C-44A2-936F-43E3B1F7EAA6}
+	*END*
+
+
+Database file sequence:
+File C:\USERS\FDCASTEL\APPDATA\LOCAL\TEMP\GSTATFIX-C489ABBC-5891-47EB-BAAC-B68861529667.FDB is the only file
+
+Analyzing database pages ...
+CUSTOMERS (128)
+    Primary pointer page: 225, Index root page: 226
+    Total formats: 1, used formats: 1
+    Average record length: 19.00, total records: 3
+    Average version length: 0.00, total versions: 0, max versions: 0
+    Average fragment length: 0.00, total fragments: 0, max fragments: 0
+    Average unpacked length: 410.00, compression ratio: 21.58
+    Pointer pages: 1, data page slots: 1
+    Data pages: 1, average fill: 1%
+    Primary pages: 1, secondary pages: 0, swept pages: 0
+    Empty pages: 0, full pages: 0
+    Table size: 16384 bytes
+    Fill distribution:
+	 0 - 19% = 1
+	20 - 39% = 0
+	40 - 59% = 0
+	60 - 79% = 0
+	80 - 99% = 0
+
+    Index IDX_CUSTOMERS_NAME (1)
+	Root page: 233, depth: 1, leaf buckets: 1, nodes: 3
+	Average node length: 8.00, total dup: 0, max dup: 0
+	Average key length: 6.00, compression ratio: 0.67
+	Average prefix length: 0.00, average data length: 4.00
+	Clustering factor: 1, ratio: 0.33
+	Fill distribution:
+	     0 - 19% = 1
+	    20 - 39% = 0
+	    40 - 59% = 0
+	    60 - 79% = 0
+	    80 - 99% = 0
+
+    Index PK_CUSTOMERS (0)
+	Root page: 229, depth: 1, leaf buckets: 1, nodes: 3
+	Average node length: 4.67, total dup: 0, max dup: 0
+	Average key length: 3.00, compression ratio: 0.56
+	Average prefix length: 0.33, average data length: 1.33
+	Clustering factor: 1, ratio: 0.33
+	Fill distribution:
+	     0 - 19% = 1
+	    20 - 39% = 0
+	    40 - 59% = 0
+	    60 - 79% = 0
+	    80 - 99% = 0
+
+ORDERS (129)
+    Primary pointer page: 230, Index root page: 231
+    Total formats: 1, used formats: 1
+    Average record length: 24.00, total records: 3
+    Average version length: 0.00, total versions: 0, max versions: 0
+    Average fragment length: 0.00, total fragments: 0, max fragments: 0
+    Average unpacked length: 24.00, compression ratio: 1.00
+    Pointer pages: 1, data page slots: 1
+    Data pages: 1, average fill: 2%
+    Primary pages: 1, secondary pages: 0, swept pages: 0
+    Empty pages: 0, full pages: 0
+    Table size: 16384 bytes
+    Fill distribution:
+	 0 - 19% = 1
+	20 - 39% = 0
+	40 - 59% = 0
+	60 - 79% = 0
+	80 - 99% = 0
+
+    Index PK_ORDERS (0)
+	Root page: 232, depth: 1, leaf buckets: 1, nodes: 3
+	Average node length: 4.67, total dup: 0, max dup: 0
+	Average key length: 3.00, compression ratio: 0.56
+	Average prefix length: 0.33, average data length: 1.33
+	Clustering factor: 1, ratio: 0.33
+	Fill distribution:
+	     0 - 19% = 1
+	    20 - 39% = 0
+	    40 - 59% = 0
+	    60 - 79% = 0
+	    80 - 99% = 0
+
+Gstat completion time Sun Jul 26 21:12:26 2026
+
