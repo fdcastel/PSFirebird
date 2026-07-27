@@ -481,6 +481,8 @@ Use `-Port` to set the TCP listening port (default: 3050).
 
 Use `-Name` to set a custom service name. If not specified, the name defaults to `Firebird-{MajorVersion}` (e.g., `Firebird-5`).
 
+The underlying system service is named after `-Name`: `FirebirdServer{Name}` on Windows, and `firebird-{name}.service` on Linux. The `firebird-` prefix is added only when the name does not already start with it, so the default `Firebird-5` maps to `firebird-5.service`. This prefix is what `Get-FirebirdService` matches on, so services registered by an older version of this module under an unprefixed name (e.g. `myfirebird.service`) will not be listed; `Remove-FirebirdService` still finds them.
+
 Use `-NoStart` to register the service without starting it.
 
 Requires elevated privileges (Administrator on Windows, root on Linux).
