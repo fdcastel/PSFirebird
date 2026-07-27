@@ -30,7 +30,7 @@ function Lock-FirebirdDatabase {
     Write-VerboseMark -Message "Calling: $nbackup $nbackupArgs"
     if ($PSCmdlet.ShouldProcess($Database.Path, 'Lock Firebird database for backup')) {
         try {
-            Invoke-ExternalCommand { & $nbackup @nbackupArgs } -Passthru
+            Invoke-ExternalCommand { & $nbackup @nbackupArgs }
         } catch {
             if ($_.Exception.Message -match 'Database is already in the physical backup mode') {
                 Write-VerboseMark -Message 'Database is already in physical backup mode.'

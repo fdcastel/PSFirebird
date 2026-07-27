@@ -84,11 +84,21 @@ function Remove-FirebirdService {
             }
         } elseif ($IsLinux) {
             Write-VerboseMark -Message "Removing systemd service: $Name"
-            $unitName = $Name.ToLower()
+            $unitName = Get-FirebirdServiceUnitName -Name $Name
             $unitPath = "/etc/systemd/system/$($unitName).service"
 
             if (-not (Test-Path $unitPath)) {
-                throw "No systemd unit file found at '$unitPath'."
+                # Fall back to the unprefixed name so that services registered before the
+                # 'firebird-' prefix was introduced can still be removed.
+                $legacyUnitName = $Name.ToLower()
+                $legacyUnitPath = "/etc/systemd/system/$($legacyUnitName).service"
+                if (Test-Path $legacyUnitPath) {
+                    Write-VerboseMark -Message "No unit at '$($unitPath)'. Using legacy unprefixed unit '$($legacyUnitPath)'."
+                    $unitName = $legacyUnitName
+                    $unitPath = $legacyUnitPath
+                } else {
+                    throw "No systemd unit file found at '$unitPath'."
+                }
             }
 
             if ($PSCmdlet.ShouldProcess($Name, 'Remove systemd service')) {

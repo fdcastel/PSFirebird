@@ -85,7 +85,7 @@ function New-FirebirdService {
         $status = if ($svc) { $svc.Status.ToString() } else { 'Unknown' }
     } elseif ($IsLinux) {
         Write-VerboseMark -Message 'Registering systemd service'
-        $unitName = $Name.ToLower()
+        $unitName = Get-FirebirdServiceUnitName -Name $Name
         $unitPath = "/etc/systemd/system/$($unitName).service"
 
         if (Test-Path $unitPath) {

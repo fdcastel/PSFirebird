@@ -7,8 +7,6 @@ function Remove-FirebirdDatabase {
         Supports -WhatIf and -Confirm for safe operation.
     .PARAMETER Database
         The Firebird database to remove. Must exist.
-    .PARAMETER Environment
-        The Firebird environment to use. Uses the current environment if not specified.
     .PARAMETER Force
         Suppresses confirmation prompts.
     .EXAMPLE

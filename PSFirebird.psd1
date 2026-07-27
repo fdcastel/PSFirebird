@@ -62,6 +62,13 @@
         'Write-FirebirdConfiguration'
     )
 
+    # This module exports no cmdlets, aliases or variables. Declaring them explicitly
+    # (rather than omitting them, which means '*') lets PowerShell resolve commands from
+    # the manifest without loading the module.
+    CmdletsToExport   = @()
+    AliasesToExport   = @()
+    VariablesToExport = @()
+
     # Minimum version of the PowerShell engine required by this module
     PowerShellVersion = '7.4'
 

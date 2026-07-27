@@ -77,7 +77,7 @@ function Get-FirebirdService {
         Write-VerboseMark -Message 'Querying systemd units'
 
         $unitDir = '/etc/systemd/system'
-        $pattern = if ($Name) { "$($Name.ToLower()).service" } else { 'firebird-*.service' }
+        $pattern = if ($Name) { "$(Get-FirebirdServiceUnitName -Name $Name).service" } else { 'firebird-*.service' }
         Write-VerboseMark -Message "Looking for unit files matching: $pattern"
 
         $unitFiles = Get-ChildItem -Path $unitDir -Filter $pattern -ErrorAction SilentlyContinue

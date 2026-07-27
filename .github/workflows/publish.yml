@@ -11,6 +11,10 @@ on:
 jobs:
   publish:
     runs-on: windows-latest
+    ## Only tag pushes carry a version. On a workflow_dispatch from a branch, github.ref is
+    ## 'refs/heads/master' and the -replace below is a no-op, which would write
+    ## ModuleVersion = 'refs/heads/master' into the manifest.
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
     steps:
@@ -25,6 +29,9 @@ jobs:
           $ErrorActionPreference = 'Stop'
 
           $tag = "${{ github.ref }}" -replace 'refs/tags/v', ''
+          if ($tag -notmatch '^\d+\.\d+\.\d+') {
+            throw "Refusing to publish: '$tag' is not a valid version."
+          }
           Write-Host "Updating ModuleVersion to $tag"
           $psd1 = 'PSFirebird.psd1'
           (Get-Content $psd1) -replace "(?<=ModuleVersion\s*=\s*)'[^']+'", "'$tag'" | Set-Content $psd1

@@ -15,12 +15,14 @@ function Split-FirebirdConnectionString {
         [string]$ConnectionString
     )
 
-    # Remove protocol prefix if present
+    # Remove protocol prefix if present.
+    # Longest alternatives first so that 'inet6' is not partially matched as 'inet'.
+    $proto = $null
     $cs = $ConnectionString.Trim()
-    $protoMatch = $cs -match '^(?<proto>xnet|inet|inet4|inet6)://(.+)$'
-    if ($protoMatch) {
-        $proto = $matches['proto']
-        $cs = $cs -replace '^(xnet|inet|inet4|inet6)://', ''
+    if ($cs -match '^(?<proto>xnet|inet6|inet4|inet)://(?<rest>.+)$') {
+        $proto = $Matches['proto']
+        $cs = $Matches['rest']
+        Write-VerboseMark -Message "Parsed protocol prefix '$($proto)'. Remainder: '$($cs)'"
     }
 
     # XNET: xnet://<path-or-alias>
@@ -47,15 +49,16 @@ function Split-FirebirdConnectionString {
 
     # INET: inet[4|6]://[host[:port]/]path-or-alias
     if ($proto -like 'inet*') {
-        if ($cs -match '^(\[(?<host>[^\]]+)\]|(?<host>[^:/]+))(:?(?<port>[^/]+))?/(?<path>.+)$') {
-            Write-VerboseMark -Message "Parsed INET connection: Host='$($matches['host'])', Port='$($matches['port'])', Path='$($matches['path'])'"
+        if ($cs -match '^(\[(?<host>[^\]]+)\]|(?<host>[^:/]+))(?::(?<port>[^/]+))?/(?<path>.+)$') {
+            Write-VerboseMark -Message "Parsed INET connection: Host='$($Matches['host'])', Port='$($Matches['port'])', Path='$($Matches['path'])'"
             return [PSCustomObject]@{
                 Protocol = $proto
-                Host = $matches['host']
-                Port = if ($matches['port']) { $matches['port'].TrimStart(':') } else { $null }
-                Path = $matches['path']
+                Host     = $Matches['host']
+                Port     = if ($Matches['port']) { $Matches['port'] } else { $null }
+                Path     = $Matches['path']
             }
         }
+        Write-VerboseMark -Message "Connection string did not match the INET form. Falling through to legacy parsing."
     }
 
     # Legacy: <host>[/port]:<path-or-alias>

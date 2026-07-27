@@ -18,6 +18,24 @@ Describe 'Use-FirebirdEnvironment' -Tag 'Unit' {
                 Version = [version]'5.0.2'
             })
 
+        # FirebirdEnvironment::default() falls back to $env:FIREBIRD_ENVIRONMENT before
+        # throwing, so every 'no environment available' assertion below depends on that
+        # variable being unset. Isolate the whole suite from the developer's session --
+        # the README actively recommends setting it.
+        $script:OriginalFirebirdEnvironment = $env:FIREBIRD_ENVIRONMENT
+    }
+
+    AfterAll {
+        if ($null -eq $script:OriginalFirebirdEnvironment) {
+            Remove-Item env:FIREBIRD_ENVIRONMENT -ErrorAction SilentlyContinue
+        } else {
+            $env:FIREBIRD_ENVIRONMENT = $script:OriginalFirebirdEnvironment
+        }
+    }
+
+    BeforeEach {
+        # Also clears anything a preceding test set.
+        Remove-Item env:FIREBIRD_ENVIRONMENT -ErrorAction SilentlyContinue
     }
 
     It 'FirebirdEnvironment::default() throws an error when no context environment is available.' {
@@ -61,50 +79,19 @@ Describe 'Use-FirebirdEnvironment' -Tag 'Unit' {
     }
 
     It 'FirebirdEnvironment::default() uses FIREBIRD_ENVIRONMENT env var as fallback.' {
-        # Save current environment variable value
-        $originalEnvValue = $env:FIREBIRD_ENVIRONMENT
-        
-        try {
-            # Set the environment variable
-            $env:FIREBIRD_ENVIRONMENT = '/tmp/mock-firebird-from-env'
-            
-            # Should use the environment variable
-            $result = [FirebirdEnvironment]::default()
-            $result.Path | Should -Be '/tmp/mock-firebird-from-env'
-        }
-        finally {
-            # Restore original value
-            if ($null -eq $originalEnvValue) {
-                Remove-Item env:FIREBIRD_ENVIRONMENT -ErrorAction SilentlyContinue
-            }
-            else {
-                $env:FIREBIRD_ENVIRONMENT = $originalEnvValue
-            }
-        }
+        # BeforeEach clears the variable and AfterAll restores the original.
+        $env:FIREBIRD_ENVIRONMENT = '/tmp/mock-firebird-from-env'
+
+        $result = [FirebirdEnvironment]::default()
+        $result.Path | Should -Be '/tmp/mock-firebird-from-env'
     }
 
     It 'FirebirdEnvironment::default() prefers context environment over FIREBIRD_ENVIRONMENT env var.' {
-        # Save current environment variable value
-        $originalEnvValue = $env:FIREBIRD_ENVIRONMENT
-        
-        try {
-            # Set the environment variable
-            $env:FIREBIRD_ENVIRONMENT = '/tmp/mock-firebird-from-env'
-            
-            # Context environment should take precedence
-            Use-FirebirdEnvironment -Environment $mockEnv5 {
-                $result = [FirebirdEnvironment]::default()
-                $result | Should -Be $mockEnv5
-            }
-        }
-        finally {
-            # Restore original value
-            if ($null -eq $originalEnvValue) {
-                Remove-Item env:FIREBIRD_ENVIRONMENT -ErrorAction SilentlyContinue
-            }
-            else {
-                $env:FIREBIRD_ENVIRONMENT = $originalEnvValue
-            }
+        $env:FIREBIRD_ENVIRONMENT = '/tmp/mock-firebird-from-env'
+
+        Use-FirebirdEnvironment -Environment $mockEnv5 {
+            $result = [FirebirdEnvironment]::default()
+            $result | Should -Be $mockEnv5
         }
     }
 

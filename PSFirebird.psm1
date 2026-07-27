@@ -63,10 +63,6 @@ $MyInvocation.MyCommand.ScriptBlock.Module.OnRemove = {
 }.GetNewClosure()
 
 
-# Shared private variables
-[FirebirdEnvironment]$script:CurrentFirebirdEnvironment = $null
-
-
 # Import all public/private function files from Functions subfolders
 $Public = @(Get-ChildItem -Path (Join-Path $PSScriptRoot 'Public/*.ps1') -ErrorAction SilentlyContinue)
 $Private = @(Get-ChildItem -Path (Join-Path $PSScriptRoot 'Private/*.ps1') -ErrorAction SilentlyContinue)
