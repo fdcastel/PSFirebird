@@ -110,8 +110,18 @@ function New-FirebirdEnvironment {
         if (-not $Force) {
             Write-VerboseMark -Message "Path '$Path' already exists and -Force not specified."
 
-            # Check if the existing path is a valid Firebird environment
-            $existingEnvironment = Get-FirebirdEnvironment -Path $Path
+            # Check if the existing path is a valid Firebird environment.
+            # A directory left behind by an interrupted install has no usable gstat, and the
+            # raw failure ("Failed to run gstat command") says nothing about what to do
+            # next, so report the actual situation and keep the cause as context.
+            try {
+                $existingEnvironment = Get-FirebirdEnvironment -Path $Path
+            } catch {
+                # Keep the first line only: the rest is the offending source line and a
+                # caret, which is noise once the real problem has been named.
+                $cause = (($_.Exception.Message -split '\r?\n')[0] -replace '\s*At \S+ char:\d+.*$', '').Trim()
+                throw "Path '$Path' already exists but is not a usable Firebird environment. Use -Force to replace it. Cause: $cause"
+            }
 
             # Check if the existing environment version matches the requested version (discard Revision/Build number)
             $v = $existingEnvironment.Version

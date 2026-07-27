@@ -1,6 +1,48 @@
 Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 . "$PSScriptRoot/TestHelper.ps1"
 
+Describe 'New-FirebirdEnvironment (existing path)' -Tag 'Unit' {
+    # These need no Firebird download: with -Version, the existing-path check happens
+    # before any network call.
+    BeforeAll {
+        $script:UnitRoot = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
+    }
+
+    AfterAll {
+        Remove-Item -Path $UnitRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    It 'Reports an empty directory as unusable rather than a bare gstat failure.' {
+        $stalePath = Join-Path $UnitRoot (New-Guid)
+        New-Item -ItemType Directory -Path $stalePath > $null
+
+        { New-FirebirdEnvironment -Version '5.0.3' -Path $stalePath } |
+            Should -Throw '*is not a usable Firebird environment*'
+    }
+
+    It 'Reports a partially extracted directory as unusable.' {
+        # The real-world case: an interrupted install leaves gstat behind without the
+        # libraries it links against, so the binary exists but cannot run.
+        $stalePath = Join-Path $UnitRoot (New-Guid)
+        $gstatPath = [FirebirdEnvironment]::ExpectedToolPath($stalePath, 'gstat')
+        New-Item -ItemType Directory -Path (Split-Path $gstatPath -Parent) -Force > $null
+        Set-Content -Path $gstatPath -Value 'not a real executable'
+
+        { New-FirebirdEnvironment -Version '5.0.3' -Path $stalePath } |
+            Should -Throw '*is not a usable Firebird environment*'
+    }
+
+    It 'Points at -Force as the way out, and keeps the underlying cause.' {
+        $stalePath = Join-Path $UnitRoot (New-Guid)
+        New-Item -ItemType Directory -Path $stalePath > $null
+
+        $message = try { New-FirebirdEnvironment -Version '5.0.3' -Path $stalePath } catch { $_.Exception.Message }
+
+        $message | Should -BeLike '*Use -Force to replace it*'
+        $message | Should -BeLike '*Cause:*' -Because 'the original failure is still worth reporting'
+    }
+}
+
 Describe 'FirebirdEnvironment' -Tag 'Integration' {
     BeforeAll {
         # Create a temporary folder for the test files
@@ -54,7 +96,7 @@ Describe 'FirebirdEnvironment' -Tag 'Integration' {
     }
 
     It 'Get-FirebirdEnvironment does not leak a non-zero $LASTEXITCODE' {
-        $fbEnv = New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams
+        New-FirebirdEnvironment @FirebirdEnvParams -Path $TestEnvironmentPath @FirebirdExtraParams | Out-Null
 
         $global:LASTEXITCODE = 0
         Get-FirebirdEnvironment -Path $TestEnvironmentPath | Out-Null
