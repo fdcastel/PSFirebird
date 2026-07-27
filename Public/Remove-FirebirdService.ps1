@@ -32,6 +32,13 @@ function Remove-FirebirdService {
     )
 
     process {
+        # -Force suppresses the confirmation prompt, but must NOT bypass ShouldProcess
+        # itself -- doing so would also disable -WhatIf and remove the service.
+        if ($Force -and -not $PSBoundParameters.ContainsKey('Confirm')) {
+            Write-VerboseMark -Message '-Force specified. Suppressing confirmation prompt.'
+            $ConfirmPreference = 'None'
+        }
+
         if ($PSCmdlet.ParameterSetName -eq 'ByEnvironment') {
             $Name = "Firebird-$($Environment.Version.Major)"
             Write-VerboseMark -Message "Derived service name from environment: $Name"
@@ -48,7 +55,7 @@ function Remove-FirebirdService {
                 throw "No Firebird service named '$serviceName' was found."
             }
 
-            if ($Force -or $PSCmdlet.ShouldProcess($Name, 'Remove Windows service')) {
+            if ($PSCmdlet.ShouldProcess($Name, 'Remove Windows service')) {
                 # Stop first (ignore errors if already stopped)
                 Write-VerboseMark -Message "Stopping service: Stop-Service '$serviceName'"
                 Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
@@ -84,7 +91,7 @@ function Remove-FirebirdService {
                 throw "No systemd unit file found at '$unitPath'."
             }
 
-            if ($Force -or $PSCmdlet.ShouldProcess($Name, 'Remove systemd service')) {
+            if ($PSCmdlet.ShouldProcess($Name, 'Remove systemd service')) {
                 # Stop the service (ignore errors if already stopped)
                 Write-VerboseMark -Message "Stopping service: systemctl stop $unitName"
                 try {

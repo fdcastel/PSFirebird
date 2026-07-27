@@ -78,6 +78,14 @@ function Convert-FirebirdDatabase {
     $restoreArgs = Restore-FirebirdDatabase -AsCommandLine -Database $TargetDatabase -Environment $TargetEnvironment -Force:$Force
 
     if ($PSCmdlet.ShouldProcess("$($SourceDatabase.Path) -> $($TargetDatabase.Path)", 'Convert Firebird database')) {
+        # gbak -create_database refuses to overwrite, so clear the target first when -Force
+        # was given. Restore-FirebirdDatabase used to do this as a side effect of
+        # -AsCommandLine; it no longer does, so the deletion happens here, inside the gate.
+        if ($Force -and (Test-Path $TargetDatabase.Path)) {
+            Write-VerboseMark -Message "Deleting existing target database at '$($TargetDatabase.Path)' due to -Force."
+            Remove-Item -Path $TargetDatabase.Path -Force
+        }
+
         Write-VerboseMark -Message 'Running streamed gbak backup/restore pipeline.'
 
         $previousPSNativeCommandUseErrorActionPreference = $PSNativeCommandUseErrorActionPreference

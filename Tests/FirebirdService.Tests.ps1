@@ -154,6 +154,26 @@ Describe 'FirebirdService' -Tag 'Integration' {
         }
     }
 
+    It 'Remove-FirebirdService -Force -WhatIf does not remove the service' -Skip:($SkipTests) {
+        # Regression: `if ($Force -or $PSCmdlet.ShouldProcess(...))` short-circuits, so -Force
+        # skipped the ShouldProcess call and -WhatIf was ignored. Unlike the database and
+        # environment cmdlets -- whose Remove-Item honours the inherited $WhatIfPreference --
+        # this one deletes via sc.exe/systemctl, native commands that ignore -WhatIf, so the
+        # service really was destroyed.
+        $port = Get-RandomPort
+        $customName = "TestFBWhatIf-$(Get-Random -Minimum 1000 -Maximum 9999)"
+
+        New-FirebirdService -Environment $TestEnvironment -Port $port -Name $customName -NoStart > $null
+        try {
+            Remove-FirebirdService -Name $customName -Force -WhatIf
+
+            $result = Get-FirebirdService -Name $customName
+            $result | Should -Not -BeNullOrEmpty -Because '-WhatIf must not remove the service, even with -Force'
+        } finally {
+            try { Remove-FirebirdService -Name $customName -Force } catch { }
+        }
+    }
+
     It 'Remove service using -Environment parameter' -Skip:($SkipTests) {
         $port = Get-RandomPort
         # The -Environment parameter derives the name as 'Firebird-{Major}'

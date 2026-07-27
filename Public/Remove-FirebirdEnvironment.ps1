@@ -26,6 +26,13 @@ function Remove-FirebirdEnvironment {
     )
 
     process {
+        # -Force suppresses the confirmation prompt, but must NOT bypass ShouldProcess
+        # itself -- doing so would also disable -WhatIf and remove the directory.
+        if ($Force -and -not $PSBoundParameters.ContainsKey('Confirm')) {
+            Write-VerboseMark -Message '-Force specified. Suppressing confirmation prompt.'
+            $ConfirmPreference = 'None'
+        }
+
         $resolvedPath = Resolve-Path $Path
         Write-VerboseMark -Message "Validating Firebird environment at '$resolvedPath'."
 
@@ -43,7 +50,7 @@ function Remove-FirebirdEnvironment {
 
         Write-VerboseMark -Message "Confirmed Firebird environment at '$resolvedPath'."
 
-        if ($Force -or $PSCmdlet.ShouldProcess($resolvedPath, 'Remove Firebird environment')) {
+        if ($PSCmdlet.ShouldProcess($resolvedPath, 'Remove Firebird environment')) {
             Write-VerboseMark -Message "Removing environment directory '$resolvedPath'."
             Remove-Item -Path $resolvedPath -Recurse -Force
             Write-VerboseMark -Message "Environment '$resolvedPath' removed successfully."

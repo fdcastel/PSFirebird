@@ -30,6 +30,13 @@ function Remove-FirebirdDatabase {
     )
 
     process {
+        # -Force suppresses the confirmation prompt, but must NOT bypass ShouldProcess
+        # itself -- doing so would also disable -WhatIf and delete the database.
+        if ($Force -and -not $PSBoundParameters.ContainsKey('Confirm')) {
+            Write-VerboseMark -Message '-Force specified. Suppressing confirmation prompt.'
+            $ConfirmPreference = 'None'
+        }
+
         if (-not $Database.IsLocal()) {
             throw 'Remove-FirebirdDatabase only supports local databases. Use a Firebird administration tool for remote databases.'
         }
@@ -49,7 +56,7 @@ function Remove-FirebirdDatabase {
             throw "Cannot remove database '$dbPath'. It is currently locked for backup (.delta file exists). Use Unlock-FirebirdDatabase first."
         }
 
-        if ($Force -or $PSCmdlet.ShouldProcess($dbPath, 'Remove Firebird database')) {
+        if ($PSCmdlet.ShouldProcess($dbPath, 'Remove Firebird database')) {
             Write-VerboseMark -Message "Removing database file '$dbPath'."
             Remove-Item -Path $dbPath -Force
             Write-VerboseMark -Message "Database '$dbPath' removed successfully."
