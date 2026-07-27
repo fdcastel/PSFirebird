@@ -37,11 +37,7 @@ function Remove-FirebirdEnvironment {
         Write-VerboseMark -Message "Validating Firebird environment at '$resolvedPath'."
 
         # Verify this looks like a Firebird environment by checking for gstat
-        $gstatPath = if ($global:IsWindows) {
-            Join-Path $resolvedPath 'gstat.exe'
-        } else {
-            Join-Path $resolvedPath 'bin/gstat'
-        }
+        $gstatPath = [FirebirdEnvironment]::ExpectedToolPath($resolvedPath, 'gstat')
 
         if (-not (Test-Path $gstatPath)) {
             Write-VerboseMark -Message "gstat not found at '$gstatPath'. Path does not look like a Firebird environment."

@@ -3,21 +3,15 @@ Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
 Describe 'Convert' -Tag 'Integration' {
     BeforeAll {
-        # Create a temporary folder for the test files
-        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
-
-        $script:TestEnvironment = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
-        $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion.fdb" -Environment $TestEnvironment
+        $script:Fixture = New-TestFixture -DatabaseName "$FirebirdVersion.fdb"
+        $script:RootFolder = $Fixture.RootFolder
+        $script:TestEnvironment = $Fixture.Environment
+        $script:TestDatabase = $Fixture.Database
         $script:DatabaseRestored = "$RootFolder/$FirebirdVersion.restored.fdb"
-
-        # Set up the environment variables for Firebird
-        $env:ISC_USER = 'SYSDBA'
-        $env:ISC_PASSWORD = 'masterkey'
     }
 
     AfterAll {
-        # Remove the test folder
-        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-TestFixture -Fixture $Fixture
     }
 
     BeforeEach {
@@ -38,8 +32,10 @@ Describe 'Convert' -Tag 'Integration' {
 
 Describe 'Convert Cross-Version' -Tag 'CrossVersion' {
     BeforeAll {
-        # Create a temporary folder for the test files
-        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
+        # The target environment and credentials come from the shared fixture; this suite
+        # additionally installs an older source environment to convert from.
+        $script:Fixture = New-TestFixture -NoDatabase
+        $script:RootFolder = $Fixture.RootFolder
 
         # Cross-version test: convert from oldest (3.x) to newest
         $script:SourceVersion = '3.0.13'
@@ -54,19 +50,14 @@ Describe 'Convert Cross-Version' -Tag 'CrossVersion' {
         }
 
         $script:SourceEnv = New-FirebirdEnvironment -Version $SourceVersion @sourceExtraParams
-        $script:TargetEnv = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
+        $script:TargetEnv = $Fixture.Environment
 
         $script:SourceDb = New-FirebirdDatabase -Database "$RootFolder/source.fdb" -Environment $SourceEnv
         $script:NativeTargetDb = New-FirebirdDatabase -Database "$RootFolder/native-target.fdb" -Environment $TargetEnv
-
-        # Set up the environment variables for Firebird
-        $env:ISC_USER = 'SYSDBA'
-        $env:ISC_PASSWORD = 'masterkey'
     }
 
     AfterAll {
-        # Remove the test folder
-        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-TestFixture -Fixture $Fixture
     }
 
     It 'Cross-version conversion produces correct ODS' {

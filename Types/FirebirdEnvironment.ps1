@@ -72,14 +72,19 @@ class FirebirdEnvironment {
         return Resolve-Path (Join-Path $libDir 'libfbclient.so')
     }
 
+    # Return where a Firebird tool is expected to live under $path, without requiring it to
+    # exist. Callers that probe a directory to decide whether it is a Firebird environment
+    # need this; the instance methods above resolve the path and throw when it does not.
+    static [string] ExpectedToolPath([string]$path, [string]$tool) {
+        if ($global:IsWindows) {
+            return Join-Path $path "$($tool).exe"
+        }
+        return Join-Path $path "bin/$($tool)"
+    }
+
     # Private helper to get tool path
     hidden [System.Management.Automation.PathInfo] GetFirebirdToolPath([string]$tool) {
-        $toolPath = if ($global:IsWindows) {
-            Join-Path $this.Path ("$tool.exe")
-        } else {
-            Join-Path $this.Path ("bin/$tool")
-        }
-        return Resolve-Path $toolPath
+        return Resolve-Path ([FirebirdEnvironment]::ExpectedToolPath($this.Path, $tool))
     }
 
     # Return the current context environment (set by Use-FirebirdEnvironment). Used as a default value for parameters.

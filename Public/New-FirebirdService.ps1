@@ -136,8 +136,7 @@ WantedBy=multi-user.target
             }
         }
 
-        $null = & systemctl is-active $unitName 2>&1
-        $status = if ($LASTEXITCODE -eq 0) { 'Running' } else { 'Stopped' }
+        $status = Get-SystemdServiceStatus -UnitName $unitName
     } else {
         throw 'Unsupported platform. Only Windows and Linux are supported.'
     }

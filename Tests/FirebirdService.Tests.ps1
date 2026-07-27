@@ -19,26 +19,20 @@ Describe 'FirebirdService' -Tag 'Integration' {
             Get-Random -Minimum 49152 -Maximum 65536
         }
 
-        # Create a temporary folder for test files
-        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
-
-        $script:TestEnvironment = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
-        $script:TestDatabasePath = "$RootFolder/$FirebirdVersion-service-tests.fdb"
-        $script:TestDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
+        $script:Fixture = New-TestFixture -DatabaseName "$FirebirdVersion-service-tests.fdb"
+        $script:RootFolder = $Fixture.RootFolder
+        $script:TestEnvironment = $Fixture.Environment
+        $script:TestDatabase = $Fixture.Database
+        $script:TestDatabasePath = $TestDatabase.Path
 
         # Set SYSDBA password for remote connections
         "CREATE OR ALTER USER SYSDBA PASSWORD 'masterkey';" | Invoke-FirebirdIsql -Database $TestDatabase -Environment $TestEnvironment
-
-        # Set up environment variables for Firebird authentication
-        $env:ISC_USER = 'SYSDBA'
-        $env:ISC_PASSWORD = 'masterkey'
     }
 
     AfterAll {
         if ($script:SkipTests) { return }
 
-        # Remove the test folder
-        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-TestFixture -Fixture $Fixture
     }
 
     It 'Create a service with default name and custom port' -Skip:($SkipTests) {

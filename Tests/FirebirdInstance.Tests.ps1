@@ -3,21 +3,15 @@ Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
 Describe 'FirebirdInstance' -Tag 'Integration' {
     BeforeAll {
-        # Create a temporary folder for the test files
-        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
-
-        $script:TestEnvironment = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
-        $script:TestDatabasePath = "$RootFolder/$FirebirdVersion-tests.fdb"
-        $script:TestDatabase = New-FirebirdDatabase -Database $TestDatabasePath -Environment $TestEnvironment
-
-        # Set up the environment variables for Firebird
-        $env:ISC_USER = 'SYSDBA'
-        $env:ISC_PASSWORD = 'masterkey'
+        $script:Fixture = New-TestFixture
+        $script:RootFolder = $Fixture.RootFolder
+        $script:TestEnvironment = $Fixture.Environment
+        $script:TestDatabase = $Fixture.Database
+        $script:TestDatabasePath = $TestDatabase.Path
     }
 
     AfterAll {
-        # Remove the test folder
-        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-TestFixture -Fixture $Fixture
     }
 
     It 'Start a server instance of the given version' {
@@ -49,7 +43,25 @@ Describe 'FirebirdInstance' -Tag 'Integration' {
             $instanceResult | Where-Object { $_ -match 'MON\$REMOTE_PROTOCOL' } |
                 Should -Match 'MON\$REMOTE_PROTOCOL\s+TCP.*'
         } finally {
-            $testInstance.Process | Stop-Process
+            # Exercises Stop-FirebirdInstance rather than calling Stop-Process directly.
+            $testInstance.Process | Stop-FirebirdInstance
+        }
+    }
+
+    It 'Get-FirebirdInstance lists a running instance, and Stop-FirebirdInstance stops it' {
+        $port = 33150 + $TestEnvironment.Version.Major
+        $instance = Start-FirebirdInstance -Environment $TestEnvironment -Port $port
+        try {
+            $found = Get-FirebirdInstance | Where-Object Id -EQ $instance.Process.Id
+            $found | Should -Not -BeNullOrEmpty -Because 'the instance just started must be listed'
+            [int]$found.Port | Should -Be $port
+
+            $instance.Process | Stop-FirebirdInstance
+            $instance.Process.WaitForExit(10000) | Should -BeTrue
+
+            Get-FirebirdInstance | Where-Object Id -EQ $instance.Process.Id | Should -BeNullOrEmpty
+        } finally {
+            if (-not $instance.Process.HasExited) { $instance.Process | Stop-Process -Force -ErrorAction SilentlyContinue }
         }
     }
 }

@@ -14,20 +14,16 @@ BeforeAll {
 
 Describe 'FirebirdDatabase' -Tag 'Integration' {
     BeforeAll {
-        # Create a temporary folder for the test files
-        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
-
-        $script:TestEnvironment = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
+        # These tests create the database themselves, so the fixture provides only the
+        # environment.
+        $script:Fixture = New-TestFixture -NoDatabase
+        $script:RootFolder = $Fixture.RootFolder
+        $script:TestEnvironment = $Fixture.Environment
         $script:TestDatabasePath = "$RootFolder/$FirebirdVersion-tests.fdb"
-
-        # Set up the environment variables for Firebird
-        $env:ISC_USER = 'SYSDBA'
-        $env:ISC_PASSWORD = 'masterkey'
     }
 
     AfterAll {
-        # Remove the test folder
-        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-TestFixture -Fixture $Fixture
     }
 
     BeforeEach {

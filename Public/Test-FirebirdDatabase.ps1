@@ -27,32 +27,18 @@ function Test-FirebirdDatabase {
     )
 
     process {
-        $connectionString = $Database.ConnectionString()
-        Write-VerboseMark -Message "Testing database at '$connectionString'."
+        Write-VerboseMark -Message "Testing database at '$($Database.ConnectionString())'."
 
         try {
-            $gstat = $Environment.GetGstatPath()
-            Write-VerboseMark -Message "Running gstat header check on '$connectionString'."
+            # A database that gstat can read and that reports an ODS version is valid.
+            $header = Get-FirebirdDatabaseHeader -Database $Database -Environment $Environment
 
-            $gstatResult = Invoke-ExternalCommand {
-                & $gstat -h $connectionString
-            } -Passthru
-
-            # Verify we got valid ODS version from the output
-            $hasODS = $false
-            foreach ($line in $gstatResult.StdOut) {
-                if ($line -match '^\s+ODS Version\s+([\d]+\.[\d]+)') {
-                    $hasODS = $true
-                    Write-VerboseMark -Message "Database is valid. ODS Version: $($Matches[1])"
-                    break
-                }
-            }
-
-            if (-not $hasODS) {
-                Write-VerboseMark -Message "gstat output did not contain ODS version. Database may be corrupt."
+            if ($null -eq $header.ODSVersion) {
+                Write-VerboseMark -Message 'gstat output did not contain ODS version. Database may be corrupt.'
                 return $false
             }
 
+            Write-VerboseMark -Message "Database is valid. ODS Version: $($header.ODSVersion)"
             return $true
         } catch {
             Write-VerboseMark -Message "Database test failed: $($_.Exception.Message)"

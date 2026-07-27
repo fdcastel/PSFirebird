@@ -112,10 +112,9 @@ function Get-FirebirdService {
                 }
             }
 
-            # Query service status
-            $null = & systemctl is-active $fbName 2>&1
-            $status = if ($LASTEXITCODE -eq 0) { 'Running' } else { 'Stopped' }
-            Write-VerboseMark -Message "Service status: $status"
+            # Query service status. The unit file name, not the display name recovered from
+            # Description, is what systemctl expects.
+            $status = Get-SystemdServiceStatus -UnitName $unitFile.BaseName
 
             [PSCustomObject]@{
                 Name            = $fbName

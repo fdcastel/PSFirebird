@@ -38,18 +38,7 @@ function Find-FirebirdSnapshotRelease {
     $apiUrl = "https://api.github.com/repos/FirebirdSQL/snapshots/releases/tags/$tag"
     Write-VerboseMark -Message "Querying GitHub API for snapshot release: $apiUrl"
 
-    $headers = @{ 'User-Agent' = 'PSFirebird' }
-
-    [string]$githubAccessToken = $env:API_GITHUB_ACCESS_TOKEN
-    if (-not $githubAccessToken) {
-        $githubAccessToken = $env:GITHUB_TOKEN
-    }
-    if ($githubAccessToken) {
-        Write-VerboseMark -Message '- Using authenticated GitHub API requests'
-        $headers['Authorization'] = "Bearer $githubAccessToken"
-    } else {
-        Write-VerboseMark -Message '- Using unauthenticated GitHub API requests (60 req/hour limit)'
-    }
+    $headers = Get-GitHubApiHeader
 
     $release = Invoke-RestMethod -Uri $apiUrl -Headers $headers -Verbose:$false
     Write-VerboseMark -Message "Found release: $($release.tag_name) ($($release.name))"

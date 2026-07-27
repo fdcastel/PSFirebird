@@ -26,11 +26,7 @@ function Get-FirebirdEnvironment {
         Write-VerboseMark -Message "Checking Firebird environment at '$($resolvedPath)'."
 
         # Determine the environment version from gstat header.
-        $gstat = if ($global:IsWindows) {
-            Join-Path $resolvedPath 'gstat.exe'
-        } else {
-            Join-Path $resolvedPath 'bin/gstat'
-        }
+        $gstat = [FirebirdEnvironment]::ExpectedToolPath($resolvedPath, 'gstat')
         $gstatResult = Invoke-ExternalCommand {
             & $gstat -z
         } -SuccessExitCodes @(0, 1) -Passthru -ErrorMessage 'Failed to run gstat command. Cannot determine Firebird version.'

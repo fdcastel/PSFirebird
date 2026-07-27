@@ -3,17 +3,12 @@ Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
 Describe 'Remote Database Operations' -Tag 'Integration' {
     BeforeAll {
-        # Create a temporary folder for the test files
-        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
+        $script:Fixture = New-TestFixture -DatabaseName 'remote-tests.fdb'
+        $script:RootFolder = $Fixture.RootFolder
+        $script:TestEnvironment = $Fixture.Environment
+        $script:LocalDatabase = $Fixture.Database
 
-        $script:TestEnvironment = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
-
-        # Set up the environment variables for Firebird
-        $env:ISC_USER = 'SYSDBA'
-        $env:ISC_PASSWORD = 'masterkey'
-
-        # Create a test database and set up SYSDBA for TCP auth
-        $script:LocalDatabase = New-FirebirdDatabase -Database "$RootFolder/remote-tests.fdb" -Environment $TestEnvironment
+        # Set up SYSDBA for TCP auth
         "CREATE OR ALTER USER SYSDBA PASSWORD 'masterkey';" | Invoke-FirebirdIsql -Database $LocalDatabase -Environment $TestEnvironment
 
         # Start a Firebird server on a fixed port below the Windows ephemeral range (49152+)
@@ -27,9 +22,9 @@ Describe 'Remote Database Operations' -Tag 'Integration' {
 
     AfterAll {
         if ($TestInstance -and -not $TestInstance.Process.HasExited) {
-            $TestInstance.Process | Stop-Process -ErrorAction SilentlyContinue
+            $TestInstance.Process | Stop-FirebirdInstance -ErrorAction SilentlyContinue
         }
-        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-TestFixture -Fixture $Fixture
     }
 
     Context 'Invoke-FirebirdIsql over TCP' {

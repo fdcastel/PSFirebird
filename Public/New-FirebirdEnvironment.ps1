@@ -144,7 +144,7 @@ function New-FirebirdEnvironment {
         # Snapshot release info was already resolved above
         $releaseInfo = $snapshotInfo
     } else {
-        $releaseInfo = Get-FirebirdReleaseUrl -Version $Version -RuntimeIdentifier $rid
+        $releaseInfo = Find-FirebirdRelease -Version $Version -RuntimeIdentifier $rid
     }
     $downloadUrl = $releaseInfo.Url
     Write-VerboseMark -Message "Release URL is '$($downloadUrl)'"

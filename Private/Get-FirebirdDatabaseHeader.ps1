@@ -26,20 +26,26 @@ function Get-FirebirdDatabaseHeader {
         & $gstat -h $connectionString
     } -Passthru -ErrorMessage 'Error running gstat.'
 
+    # Both patterns are anchored to the leading whitespace of a header field, so the
+    # preamble ("Database ...", "Gstat execution time ...") cannot match and there is no
+    # need to skip a fixed number of lines.
     $pageSize = $null
     $odsVersion = $null
-    $lines = $gstatResult.StdOut | Select-Object -Skip 5
-    foreach ($line in $lines) {
+    foreach ($line in $gstatResult.StdOut) {
         if ($line -match '^\s+Page size\s+(\d+)') {
             $pageSize = [int]$Matches[1].Trim()
-            Write-VerboseMark -Message "Parsed Page size: $pageSize"
+            Write-VerboseMark -Message "Parsed Page size: $($pageSize)"
         }
 
         if ($line -match '^\s+ODS Version\s+([\d]+\.[\d]+)') {
             $odsVersion = [version]$Matches[1].Trim()
-            Write-VerboseMark -Message "Parsed ODS Version: $odsVersion"
+            Write-VerboseMark -Message "Parsed ODS Version: $($odsVersion)"
             break
         }
+    }
+
+    if ($null -eq $odsVersion) {
+        Write-VerboseMark -Message 'gstat output contained no ODS Version field.'
     }
 
     @{

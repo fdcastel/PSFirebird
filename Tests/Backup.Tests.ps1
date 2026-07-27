@@ -3,22 +3,16 @@ Import-Module "$PSScriptRoot/../PSFirebird.psd1" -Force
 
 Describe 'Backup' -Tag 'Integration' {
     BeforeAll {
-        # Create a temporary folder for the test files
-        $script:RootFolder = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) -Name (New-Guid)
-
-        $script:TestEnvironment = New-FirebirdEnvironment @FirebirdEnvParams @FirebirdExtraParams
-        $script:TestDatabase = New-FirebirdDatabase -Database "$RootFolder/$FirebirdVersion-tests.fdb" -Environment $TestEnvironment
+        $script:Fixture = New-TestFixture
+        $script:RootFolder = $Fixture.RootFolder
+        $script:TestEnvironment = $Fixture.Environment
+        $script:TestDatabase = $Fixture.Database
 
         $script:TestBackupFile = "$RootFolder/$FirebirdVersion-tests.fbk"
-
-        # Set up the environment variables for Firebird
-        $env:ISC_USER = 'SYSDBA'
-        $env:ISC_PASSWORD = 'masterkey'
     }
-        
+
     AfterAll {
-        # Remove the test folder
-        Remove-Item -Path $RootFolder -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-TestFixture -Fixture $Fixture
     }
 
     BeforeEach {
