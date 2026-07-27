@@ -123,14 +123,22 @@ function New-FirebirdEnvironment {
             # If the existing environment matches the requested version, return it
             return $existingEnvironment
         }
-        if ($PSCmdlet.ShouldProcess($Path, 'Clear existing output directory')) {
-            Remove-Item $Path -Recurse -Force
-        }
     }
 
-    if ($PSCmdlet.ShouldProcess($Path, 'Create output directory')) {
-        New-Item -ItemType Directory $Path -Force > $null
+    # Installing is a single operation: download, extract, patch and clean up. Gating each
+    # step separately meant -WhatIf skipped the download but still tried to read the
+    # firebird.conf it would have extracted, and failed.
+    if (-not $PSCmdlet.ShouldProcess($Path, "Install Firebird $Version")) {
+        return
     }
+
+    if (Test-Path $Path) {
+        Write-VerboseMark -Message "Clearing existing output directory '$($Path)'."
+        Remove-Item $Path -Recurse -Force
+    }
+
+    Write-VerboseMark -Message "Creating output directory '$($Path)'."
+    New-Item -ItemType Directory $Path -Force > $null
 
     if ($PSCmdlet.ParameterSetName -eq 'ByBranch') {
         # Snapshot release info was already resolved above
@@ -144,54 +152,49 @@ function New-FirebirdEnvironment {
     $archiveFile = $releaseInfo.FileName
     $fullArchiveFile = Join-Path $tempRoot $archiveFile
 
-    if ($PSCmdlet.ShouldProcess($archiveFile, 'Downloading Firebird archive')) {
-        Write-VerboseMark -Message "Downloading Firebird archive '$archiveFile'..."
-        Invoke-WebRequest $downloadUrl -OutFile $fullArchiveFile -Verbose:$false
-    }
+    Write-VerboseMark -Message "Downloading Firebird archive '$($archiveFile)'..."
+    # Retry: a transient network failure here fails an entire CI job.
+    Invoke-WebRequest $downloadUrl -OutFile $fullArchiveFile -MaximumRetryCount 3 -RetryIntervalSec 5 -Verbose:$false
 
-    if ($PSCmdlet.ShouldProcess($archiveFile, 'Extracting archive')) {
-        Write-VerboseMark -Message "Extracting archive '$archiveFile'..."
-        if ($IsWindows) {
-            Write-VerboseMark -Message 'Extracting Windows archive...'
-            Expand-Archive -Path $fullArchiveFile -DestinationPath $Path
-        } elseif ($IsLinux) {
-            Write-VerboseMark -Message 'Extracting Linux archive...'
+    Write-VerboseMark -Message "Extracting archive '$($archiveFile)'..."
+    if ($IsWindows) {
+        Write-VerboseMark -Message 'Extracting Windows archive...'
+        Expand-Archive -Path $fullArchiveFile -DestinationPath $Path
+    } elseif ($IsLinux) {
+        Write-VerboseMark -Message 'Extracting Linux archive...'
+        Invoke-ExternalCommand {
+            & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
+        } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
+
+        if (-not (($rid -eq 'linux-arm64') -and ($Version.Major -lt 5))) {
+            # FB3 and FB4 arm64 archives ship binaries directly (no nested buildroot).
+            # FB5+ arm64 and all x64 builds use a nested buildroot.tar.gz.
+            Write-VerboseMark -Message 'Extracting buildroot archive...'
             Invoke-ExternalCommand {
-                & tar --extract --file=$fullArchiveFile --gunzip --directory=$Path --strip-components=1
+                & tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
             } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
-
-            if (-not ($rid.Contains('linux-arm64') -and ($Version.Major -lt 5))) {
-                # FB3 and FB4 arm64 archives ship binaries directly (no nested buildroot).
-                # FB5+ arm64 and all x64 builds use a nested buildroot.tar.gz.
-                Write-VerboseMark -Message 'Extracting buildroot archive...'
-                Invoke-ExternalCommand {
-                    & tar --extract --file="$Path/buildroot.tar.gz" --gunzip --directory=$Path --strip-components=3 ./opt
-                } -ErrorMessage "Failed to extract '$fullArchiveFile' archive. Cannot continue."
-            }
         }
     }
 
-    if ($PSCmdlet.ShouldProcess($fullArchiveFile, 'Removing archive')) {
-        Write-VerboseMark -Message "Removing archive '$fullArchiveFile'..."
-        Remove-Item -Path @(
-            # On Linux, also remove the buildroot archive
-            "$Path/buildroot.tar.gz",
+    # Free the archive early: these run to ~100 MB and the rest of the install does not
+    # need them.
+    Write-VerboseMark -Message "Removing archive '$($fullArchiveFile)'..."
+    Remove-Item -Path @(
+        # On Linux, also remove the buildroot archive
+        "$Path/buildroot.tar.gz",
 
-            # Common
-            $fullArchiveFile
-        ) -Recurse -Force -ErrorAction Ignore
-    }
+        # Common
+        $fullArchiveFile
+    ) -Recurse -Force -ErrorAction Ignore
 
     # Windows-only: Set the IpcName in firebird.conf
     if ($IsWindows) {
         $ipcName = "FIREBIRD-$($Version -replace '\.','_')"
         $firebirdConfPath = Join-Path $Path 'firebird.conf'
-        if ($PSCmdlet.ShouldProcess($firebirdConfPath, "Setting IpcName to '$ipcName' in firebird.conf")) {
-            Write-VerboseMark -Message "Setting IpcName to '$ipcName' in firebird.conf..."
-            $content = Get-Content $firebirdConfPath
-            $content = $content -replace '#IpcName = FIREBIRD', "IpcName = $ipcName"
-            Set-Content -Path $firebirdConfPath -Value $content -Encoding Ascii
-        }
+        Write-VerboseMark -Message "Setting IpcName to '$($ipcName)' in firebird.conf..."
+        $content = Get-Content $firebirdConfPath
+        $content = $content -replace '#IpcName = FIREBIRD', "IpcName = $ipcName"
+        Set-Content -Path $firebirdConfPath -Value $content -Encoding Ascii
     } else {
         Write-VerboseMark -Message 'Skipping IpcName configuration (not Windows).'
     }
@@ -221,11 +224,10 @@ function New-FirebirdEnvironment {
 
         # Fix libtommath for FB3 and FB4 -- https://github.com/FirebirdSQL/firebird/issues/5716#issuecomment-826239174
         if ($Version -lt [semver]5) {
-            Write-VerboseMark -Message 'Applying libtommath symlink fix for Firebird < 5...'
-            if ($PSCmdlet.ShouldProcess("$libPath/libtommath.so.1", 'Creating symlink for libtommath.so.0...')) {
-                Write-VerboseMark -Message 'Creating symlink for libtommath.so.0...'
-                ln -sf "$libPath/libtommath.so.1" "$libPath/libtommath.so.0"
-            }
+            Write-VerboseMark -Message 'Creating symlink for libtommath.so.0...'
+            Invoke-ExternalCommand {
+                & ln -sf "$libPath/libtommath.so.1" "$libPath/libtommath.so.0"
+            } -ErrorMessage 'Failed to create the libtommath.so.0 symlink.'
         }
     }
 
@@ -235,34 +237,25 @@ function New-FirebirdEnvironment {
         $folderItems = Get-ChildItem -Path $Path
         throw "databases.conf not found at '$Path'. Folder content is: $folderItems"
     }
-    
-    if ($PSCmdlet.ShouldProcess($databasesConfPath, 'Removing sample database')) {
-        Write-VerboseMark -Message "Removing sample database from '$databasesConfPath'..."
-        $content = Get-Content $databasesConfPath
-        $content | Where-Object { $_ -notmatch '^employee' } | Set-Content $databasesConfPath
-    }
 
-    # Clean up the output directory
-    if ($PSCmdlet.ShouldProcess($Path, 'Cleaning up output directory')) {
-        Write-VerboseMark -Message 'Cleaning up output directory...'
-        Remove-Item -Path @(
-            # Windows-specific
-            "$Path/system32",
-            "$Path/*.bat",
+    Write-VerboseMark -Message "Removing sample database from '$($databasesConfPath)'..."
+    $content = Get-Content $databasesConfPath
+    $content | Where-Object { $_ -notmatch '^employee' } | Set-Content $databasesConfPath
 
-            # Linux-specific
-            "$Path/buildroot.tar.gz",
+    # Clean up the output directory. The archives were already removed above.
+    Write-VerboseMark -Message 'Cleaning up output directory...'
+    Remove-Item -Path @(
+        # Windows-specific
+        "$Path/system32",
+        "$Path/*.bat",
 
-            # Common files
-            "$Path/doc",
-            "$Path/examples",
-            "$Path/help",
-            "$Path/include",
-            "$Path/misc",
-
-            $fullArchiveFile
-        ) -Recurse -Force -ErrorAction Ignore
-    }
+        # Common files
+        "$Path/doc",
+        "$Path/examples",
+        "$Path/help",
+        "$Path/include",
+        "$Path/misc"
+    ) -Recurse -Force -ErrorAction Ignore
 
     # Return the environment information as a FirebirdEnvironment class instance.
     Get-FirebirdEnvironment -Path $Path
